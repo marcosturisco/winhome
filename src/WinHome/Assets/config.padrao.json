@@ -1,0 +1,61 @@
+// Configuração do WinHome. Salve o arquivo e a Home atualiza sozinha.
+// Comentários com // são permitidos. Opções ausentes usam o valor padrão.
+{
+  // Nome usado na saudação ("Bom dia, Marcos").
+  "nome": "Marcos",
+
+  // "maximizada" = ocupa a tela mas mantém a barra de tarefas; "telaCheia" = cobre tudo.
+  "janela": "maximizada",
+
+  // Tecla para mostrar/esconder a Home. Ex.: "Ctrl+Alt+Space", "Ctrl+Shift+H", "Alt+F1".
+  "atalho": "Ctrl+Alt+Space",
+
+  // true = abre a Home ao fazer login (cria o valor WinHome em HKCU\...\Run; false remove).
+  "iniciarComWindows": false,
+
+  // Esconde a Home depois de abrir um app.
+  "esconderAoAbrirApp": true,
+
+  "tema": {
+    "modo": "escuro",              // "escuro", "claro" ou "sistema"
+    "corDestaque": "#4F8CFF",      // títulos e relógio; "#RRGGBB" ou "#AARRGGBB"
+    "fundo": "mica",               // "mica", "micaAlt", "acrilico", "cor" ou "imagem"
+    "corFundo": "#101418",         // usada quando fundo = "cor"
+    "imagemFundo": "",             // caminho da imagem quando fundo = "imagem"
+    "fonte": "Segoe UI Variable",
+    "cantos": 12,                  // arredondamento dos painéis
+    "tamanhoIcone": 48,
+    "opacidadePaineis": 0.35,      // 0 = transparente, 1 = sólido
+    "espacamento": 16,             // distância entre painéis
+    "colunas": 6                   // colunas da grade; cada painel ocupa "largura" colunas
+  },
+
+  // Painéis em ordem de exibição. "visivel" liga/desliga o painel.
+  // "relogio" é o relógio; os demais ids são grupos de apps definidos em "grupos".
+  "paineis": [
+    { "id": "relogio",  "visivel": true, "largura": 6 },
+    { "id": "trabalho", "visivel": true, "largura": 4, "titulo": "Trabalho" },
+    { "id": "pessoal",  "visivel": true, "largura": 2, "titulo": "Pessoal" }
+  ],
+
+  // Cada app usa "app" (AppID do menu Iniciar; veja com Get-StartApps no PowerShell)
+  // ou "caminho" (arquivo .exe, pasta ou documento). Opcionais: "args", "pasta", "icone" (imagem).
+  "grupos": {
+    "trabalho": [
+      { "nome": "Android Studio", "app": "{6D809377-6AF0-444B-8957-A3773F02200E}\\Android\\Android Studio\\bin\\studio64.exe" },
+      { "nome": "VS Code",        "app": "Microsoft.VisualStudioCode" },
+      { "nome": "Terminal",       "app": "Microsoft.WindowsTerminal_8wekyb3d8bbwe!App" },
+      { "nome": "Claude",         "app": "Claude_pzs8sxrjxfjjc!Claude" },
+      { "nome": "Chrome",         "app": "Chrome" },
+      { "nome": "Edge",           "app": "MSEdge" },
+      { "nome": "Outlook",        "app": "Microsoft.OutlookForWindows_8wekyb3d8bbwe!Microsoft.OutlookforWindows" },
+      { "nome": "Teams",          "app": "MSTeams_8wekyb3d8bbwe!MSTeams" },
+      { "nome": "Docker",         "app": "Docker.DockerForWindows.Settings" },
+      { "nome": "DBeaver",        "caminho": "%LOCALAPPDATA%\\DBeaver\\dbeaver.exe" }
+    ],
+    "pessoal": [
+      { "nome": "WhatsApp", "app": "5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App" },
+      { "nome": "Discord",  "app": "com.squirrel.Discord.Discord" }
+    ]
+  }
+}
