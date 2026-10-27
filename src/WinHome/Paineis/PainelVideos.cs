@@ -36,6 +36,7 @@ public static class PainelVideos
     static Task<CoreWebView2Environment>? _ambienteWeb;
 
     const string HostLocal = "winhome.local";
+    const string TextoInicial = "Abra um arquivo, cole um link ou arraste um vídeo para cá.";
     static readonly string PastaWeb = Path.Combine(AppContext.BaseDirectory, "Assets", "web");
     static readonly string[] TiposMidia =
     [
@@ -102,7 +103,7 @@ public static class PainelVideos
         // ---------- Tela (16:9) ----------
         var aviso = new TextBlock
         {
-            Text = "Abra um arquivo, cole um link ou arraste um vídeo para cá.",
+            Text = TextoInicial,
             Foreground = new SolidColorBrush(Microsoft.UI.Colors.White),
             Opacity = 0.7,
             TextWrapping = TextWrapping.Wrap,
@@ -146,7 +147,16 @@ public static class PainelVideos
         }
 
         // ---------- Controles (YouTube) ----------
-        var noYouTube = new HyperlinkButton { Content = "Abrir no YouTube", Padding = new Thickness(0), Visibility = Visibility.Collapsed };
+        var pararYouTube = BotaoControle("", "Parar e limpar o painel");
+        var noYouTube = new HyperlinkButton { Content = "Abrir no YouTube", Padding = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+        var controlesYouTube = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            Visibility = Visibility.Collapsed,
+            Children = { pararYouTube, noYouTube },
+        };
+        ToolTipService.SetToolTip(parar, "Parar e limpar o painel");
 
         LibVLC? libvlc = null;
         MediaPlayerVlc? player = null;
@@ -180,6 +190,26 @@ public static class PainelVideos
             if (Sessao.Player == p) Sessao.Player = null;
             if (p is null && l is null) return;
             Task.Run(() => { p?.Stop(); p?.Dispose(); l?.Dispose(); }); // Stop pode demorar; fora da interface
+        }
+
+        // Parar: encerra o player, tira a imagem do vídeo (VLC ou YouTube) e esquece a sessão — o painel volta ao
+        // estado inicial e a Home remontada não retoma esse vídeo.
+        void Limpar()
+        {
+            LiberarVlc();
+            pendente = null;
+            if (view is not null) { tela.Children.Remove(view); view = null; }
+            if (web is not null) { tela.Children.Remove(web); web = null; } // o Unloaded fecha o WebView2
+            Sessao.Fonte = null;
+            Sessao.TempoMs = 0;
+            Sessao.Tocando = false;
+            Sessao.YouTube = false;
+            link.Text = "";
+            controles.Visibility = Visibility.Collapsed;
+            controlesYouTube.Visibility = Visibility.Collapsed;
+            Glifo(tocarPausar, "");
+            Atualizar(0, 0);
+            Mostrar(TextoInicial);
         }
 
         void CriarVideoView()
@@ -317,14 +347,14 @@ public static class PainelVideos
                 LiberarVlc();
                 if (view is not null) { tela.Children.Remove(view); view = null; }
                 controles.Visibility = Visibility.Collapsed;
-                noYouTube.Visibility = Visibility.Visible;
+                controlesYouTube.Visibility = Visibility.Visible;
                 TocarYouTube(yt.Id, yt.Lista, inicioMs > 0 ? inicioMs : yt.InicioMs, tocar);
                 return;
             }
 
             Sessao.YouTube = false;
             if (web is not null) { tela.Children.Remove(web); web = null; }
-            noYouTube.Visibility = Visibility.Collapsed;
+            controlesYouTube.Visibility = Visibility.Collapsed;
             if (!CarregarVlc(cfg))
             {
                 Mostrar(_erroVlc);
@@ -362,6 +392,13 @@ public static class PainelVideos
                 menu.Items.Add(item);
             }
             if (menu.Items.Count == 0) menu.Items.Add(new MenuFlyoutItem { Text = "Nada ainda", IsEnabled = false });
+            else
+            {
+                menu.Items.Add(new MenuFlyoutSeparator());
+                var limpar = new MenuFlyoutItem { Text = "Limpar o histórico", Icon = new FontIcon { Glyph = "" } };
+                limpar.Click += (_, _) => ConfirmarLimpezaDoHistorico(recentes, estado);
+                menu.Items.Add(limpar);
+            }
             menu.ShowAt(recentes);
         };
 
@@ -389,16 +426,8 @@ public static class PainelVideos
             else if (player.State is VLCState.Paused) player.Play();
             else if (Sessao.Fonte is { } f) TocarVlc(f, Sessao.TempoMs);
         };
-        parar.Click += (_, _) =>
-        {
-            Sessao.TempoMs = 0;
-            Sessao.Tocando = false;
-            var p = player;
-            Task.Run(() => p?.Stop());
-            Glifo(tocarPausar, "");
-            Atualizar(0, 0);
-            Mostrar("Parado.");
-        };
+        parar.Click += (_, _) => Limpar();
+        pararYouTube.Click += (_, _) => Limpar();
         posicao.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, _) => arrastando = true), true);
         posicao.AddHandler(UIElement.PointerReleasedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, _) =>
         {
@@ -439,8 +468,32 @@ public static class PainelVideos
         // Painel remontado: continua o que estava aberto, do mesmo ponto.
         if (Sessao.Fonte is { } anterior) Abrir(anterior, Sessao.TempoMs, Sessao.Tocando);
 
-        var rodape = new StackPanel { Children = { controles, noYouTube } };
+        var rodape = new StackPanel { Children = { controles, controlesYouTube } };
         return new StackPanel { Spacing = 10, Children = { topo, tela, rodape } };
+    }
+
+    // Confirmação rápida junto ao botão de recentes (o vídeo que estiver tocando não é afetado).
+    static void ConfirmarLimpezaDoHistorico(Button ancora, EstadoVideos estado)
+    {
+        var confirmar = new Button
+        {
+            Content = $"Apagar os {estado.Recentes.Count} itens do histórico",
+            Style = (Style)Application.Current.Resources["AccentButtonStyle"],
+        };
+        var flyout = new Flyout
+        {
+            Content = new StackPanel
+            {
+                Spacing = 8,
+                Children = { new TextBlock { Text = "Limpar a lista de vídeos e links recentes?" }, confirmar },
+            },
+        };
+        confirmar.Click += (_, _) =>
+        {
+            estado.LimparRecentes();
+            flyout.Hide();
+        };
+        flyout.ShowAt(ancora);
     }
 
     static async Task<CoreWebView2Environment> CriarAmbienteWeb()

@@ -144,7 +144,10 @@ Painel `id: "videos"`. Cole um link e tecle Enter, use o botão de arquivo ou ar
   tocar/pausar, parar, barra de posição, sem som, volume e ⤢ (abre no VLC em tela cheia, do mesmo ponto).
 - **Links do YouTube** (`watch?v=`, `youtu.be/`, `shorts/`, `live/`, playlists com `list=`, início com `t=`) tocam no
   **player do YouTube** (`youtube-nocookie.com`, num WebView2). "Abrir no YouTube" leva ao navegador no mesmo ponto.
-- Recentes (botão de relógio) e volume ficam em `%APPDATA%\WinHome\videos.json`, fora da config.
+- Recentes (botão de relógio) e volume ficam em `%APPDATA%\WinHome\videos.json`, fora da config. No fim do menu de
+  recentes, **Limpar o histórico** (com confirmação) apaga a lista.
+- **Parar** (VLC ou YouTube) encerra o player, tira a imagem do vídeo e esquece o que estava aberto: o painel volta ao
+  estado inicial e a Home não retoma esse vídeo.
 - Mudar a config remonta a Home; o vídeo continua do mesmo ponto (pisca por um instante).
 
 | Opção | Valores | Padrão |
