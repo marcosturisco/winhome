@@ -80,7 +80,7 @@ public sealed class MainWindow : Window
 
         _config = new ConfigService(DispatcherQueue);
         _editor = new EditorConfig(_config);
-        _acoes = new Acoes(AbrirApp, _editor, ResultadoAbertura, EscolherPasta, Informar, EscolherArquivo);
+        _acoes = new Acoes(AbrirApp, _editor, ResultadoAbertura, EscolherPasta, Informar, EscolherArquivo, InformarComDesfazer);
         _configuracoes = new Telas.PainelConfiguracoes(_editor, _hwnd, AbrirConfig, Sair);
         // Com as Configurações abertas, a Home encolhe para o lado em vez de ficar coberta.
         _configuracoes.AbertoMudou += aberto =>
@@ -513,8 +513,21 @@ public sealed class MainWindow : Window
         }
     }
 
+    void InformarComDesfazer(string texto, Action desfazer)
+    {
+        Informar(texto);
+        var botao = new Button { Content = "Desfazer" };
+        botao.Click += (_, _) =>
+        {
+            _aviso.IsOpen = false;
+            desfazer();
+        };
+        _aviso.ActionButton = botao;
+    }
+
     void Informar(string texto)
     {
+        _aviso.ActionButton = null;
         _aviso.Severity = InfoBarSeverity.Informational;
         _aviso.Title = "";
         _aviso.Message = texto;
@@ -523,6 +536,7 @@ public sealed class MainWindow : Window
 
     void MostrarAviso(List<string> erros)
     {
+        _aviso.ActionButton = null;
         _aviso.Severity = InfoBarSeverity.Warning;
         _aviso.Title = erros.Count > 0 ? "Atenção" : "";
         _aviso.Message = string.Join("\n", erros);

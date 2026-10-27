@@ -29,7 +29,7 @@ public static class HomeBuilder
             }
 
             var (conteudo, acao) = Conteudo(painel, config, estilo, acoes);
-            var cartao = Cartao(painel.Titulo, conteudo, estilo, acao);
+            var cartao = CartaoDoPainel(painel, conteudo, acao, estilo, acoes, linha, usado);
             Grid.SetColumn(cartao, usado);
             Grid.SetColumnSpan(cartao, largura);
             linha.Children.Add(cartao);
@@ -114,7 +114,6 @@ public static class HomeBuilder
             Width = 36,
             Height = 36,
             Padding = new Thickness(0),
-            Margin = new Thickness(0, -8, -10, -8), // não aumenta a altura do cabeçalho
             VerticalAlignment = VerticalAlignment.Center,
         };
         ToolTipService.SetToolTip(botao, dica);
@@ -130,17 +129,19 @@ public static class HomeBuilder
         return grid;
     }
 
-    static Border Cartao(string? titulo, UIElement conteudo, Estilo estilo, Button? acao = null)
+    // ferramentas = botões do canto direito do cabeçalho (ex.: ↻ e ✕); sem título, ficam por cima, no canto.
+    static FrameworkElement Cartao(string? titulo, UIElement conteudo, Estilo estilo, FrameworkElement? ferramentas = null)
     {
         var pilha = new StackPanel { Spacing = 12 };
-        if (!string.IsNullOrWhiteSpace(titulo) || acao is not null)
+        var temTitulo = !string.IsNullOrWhiteSpace(titulo);
+        if (temTitulo)
         {
             var cabecalho = new Grid();
             cabecalho.ColumnDefinitions.Add(new ColumnDefinition());
             cabecalho.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             cabecalho.Children.Add(new TextBlock
             {
-                Text = titulo ?? "",
+                Text = titulo,
                 FontFamily = estilo.Fonte,
                 FontSize = 18,
                 FontWeight = FontWeights.SemiBold,
@@ -148,21 +149,58 @@ public static class HomeBuilder
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 VerticalAlignment = VerticalAlignment.Center,
             });
-            if (acao is not null)
+            if (ferramentas is not null)
             {
-                Grid.SetColumn(acao, 1);
-                cabecalho.Children.Add(acao);
+                ferramentas.Margin = new Thickness(0, -8, -10, -8); // não aumenta a altura do cabeçalho
+                Grid.SetColumn(ferramentas, 1);
+                cabecalho.Children.Add(ferramentas);
             }
             pilha.Children.Add(cabecalho);
         }
         pilha.Children.Add(conteudo);
 
-        return new Border
+        var borda = new Border
         {
             Background = estilo.FundoPainel,
             CornerRadius = estilo.Cantos,
             Padding = new Thickness(20),
             Child = pilha,
         };
+        if (temTitulo || ferramentas is null) return borda;
+
+        ferramentas.HorizontalAlignment = HorizontalAlignment.Right;
+        ferramentas.VerticalAlignment = VerticalAlignment.Top;
+        ferramentas.Margin = new Thickness(0, 10, 10, 0);
+        return new Grid { Children = { borda, ferramentas } };
+    }
+
+    // Cartão de um painel da Home: ✕ oculta (com "Desfazer") e a borda direita ajusta a largura em colunas.
+    static FrameworkElement CartaoDoPainel(Painel painel, UIElement conteudo, Button? acao, Estilo estilo, Acoes acoes,
+        Grid linha, int coluna)
+    {
+        var titulo = painel.Titulo is { Length: > 0 } t ? t
+            : EditorConfig.Especiais.FirstOrDefault(e => e.Id == painel.Id).Nome ?? painel.Id;
+        var fechar = BotaoCabecalho("", "Ocultar este painel (volta em Configurações → Painéis)");
+        fechar.Opacity = 0; // aparece ao passar o mouse; o espaço fica reservado para o ↻ não mudar de lugar
+        fechar.Click += (_, _) =>
+        {
+            acoes.Editor.DefinirVisivel(painel, false);
+            acoes.Desfazer($"\"{titulo}\" foi ocultado.", () => acoes.Editor.DefinirVisivel(painel, true));
+        };
+        var ferramentas = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2 };
+        if (acao is not null)
+        {
+            acao.Margin = new Thickness(0);
+            ferramentas.Children.Add(acao);
+        }
+        ferramentas.Children.Add(fechar);
+
+        var cartao = Cartao(painel.Titulo, conteudo, estilo, ferramentas);
+        var alca = new AlcaLargura(painel, estilo, acoes, linha, coluna);
+        var raiz = new Grid { Children = { cartao, alca } };
+        raiz.PointerEntered += (_, _) => { fechar.Opacity = 0.8; alca.Destacar(true); };
+        raiz.PointerExited += (_, _) => { fechar.Opacity = 0; alca.Destacar(false); };
+        fechar.GotFocus += (_, _) => fechar.Opacity = 0.8; // acessível pelo teclado
+        return raiz;
     }
 }

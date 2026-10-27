@@ -157,6 +157,10 @@ Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura`
 - `id: "videos"`: vídeos (VLC e YouTube).
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
 - Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.
+- **Direto na Home**, sem abrir as Configurações:
+  - **✕** no canto do painel (aparece ao passar o mouse): oculta o painel (`visivel: false`); o aviso no topo tem **Desfazer**.
+  - **Borda direita** do painel (cursor ↔): arrastar muda a `largura`, encaixando nas colunas da grade ("4 de 6 colunas");
+    **duplo clique** faz o painel ocupar o espaço livre da linha. Largura que não cabe na linha desce para a seguinte.
 
 ## Grupos de apps (`grupos`)
 Cada grupo é uma lista de apps:

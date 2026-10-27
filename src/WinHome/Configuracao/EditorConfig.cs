@@ -210,6 +210,8 @@ public sealed class EditorConfig(ConfigService config)
 
     public void DefinirVisivel(Painel painel, bool visivel) => Estrutura(_ => painel.Visivel = visivel);
 
+    public void DefinirLargura(Painel painel, int largura) => Estrutura(c => painel.Largura = Math.Clamp(largura, 1, c.Tema.Colunas));
+
     public void MoverPainel(Painel painel, int delta) => Estrutura(c =>
     {
         var i = c.Paineis.IndexOf(painel);

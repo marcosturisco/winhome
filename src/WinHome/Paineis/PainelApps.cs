@@ -10,9 +10,9 @@ namespace WinHome.Paineis;
 // O que os painéis podem fazer: abrir apps, editar a config pelo menu de contexto, informar o resultado
 // de uma abertura feita por eles mesmos (null = abriu, a Home pode se esconder; texto = erro a mostrar)
 // pedir uma pasta ou um arquivo ao usuário (null = cancelou; tipos ex.: [".apk"] ou ["*"]) e mostrar uma
-// informação que não é erro (ex.: saída de um comando).
+// informação que não é erro (ex.: saída de um comando), com um botão "Desfazer" opcional.
 public sealed record Acoes(Action<AppItem> Abrir, EditorConfig Editor, Action<string?> Resultado, Func<Task<string?>> EscolherPasta,
-    Action<string> Informar, Func<string[], Task<string?>> EscolherArquivo);
+    Action<string> Informar, Func<string[], Task<string?>> EscolherArquivo, Action<string, Action> Desfazer);
 
 // Grade de botões de apps; navegável por setas, Enter abre, botão direito mostra o menu.
 public static class PainelApps
