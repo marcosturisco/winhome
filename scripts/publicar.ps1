@@ -45,8 +45,13 @@ try {
 
     # 4. Tag e envio.
     git tag -a $tag -m "WinHome $Versao"
-    git -c $ssh push origin main $tag
-    if ($LASTEXITCODE -ne 0) { throw 'Falha ao enviar para o GitHub.' }
+    # O git escreve o progresso do push na saida de erro; com a saida redirecionada, o PowerShell 5.1 trataria
+    # isso como erro e pararia aqui. Vale so o codigo de saida.
+    $ErrorActionPreference = 'Continue'
+    git -c $ssh push origin main $tag 2>&1 | ForEach-Object { "$_" }
+    $codigo = $LASTEXITCODE
+    $ErrorActionPreference = 'Stop'
+    if ($codigo -ne 0) { throw 'Falha ao enviar para o GitHub.' }
 
     # 5. Release com o .zip e as notas.
     $mudancas = if ($anterior) { (git log "$anterior..HEAD" --no-merges --pretty=format:'- %s') -join "`n" } else { '- Primeira versao.' }
