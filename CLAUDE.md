@@ -73,6 +73,9 @@ O push usa a chave passada **só no comando** (não mexer no gitconfig global ne
 
 ## Testar
 - Abrir pelo PowerShell da ferramenta com `run_in_background` (senão o processo cai junto com o comando).
+- Neste PC o uso diário é a **versão instalada** (`%LOCALAPPDATA%\WinHome\app`, atualizada pelos Releases); a de
+  desenvolvimento (`bin\Debug`) é só para testes e usa a mesma config. Com a instalada presente, o "iniciar com o
+  Windows" aponta sempre para ela. Depois de testar com o `executar.ps1`, sair (`--sair`) e reabrir a instalada.
 - Print de janela com `PrintWindow` sai preto (WinUI); peça um print ao usuário.
 - "Sair do WinHome" (menu da bandeja ou Configurações → Geral) **encerra** o app (o `Close()` não passa
   pelo `AppWindow.Closing`); `Esc`/`✕`/Alt+F4 só escondem; `—` minimiza; `❐` alterna para o modo janela
