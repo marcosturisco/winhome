@@ -66,5 +66,5 @@ O push usa a chave passada **só no comando** (não mexer no gitconfig global ne
 - Print de janela com `PrintWindow` sai preto (WinUI); peça um print ao usuário.
 - "Sair do WinHome" (menu da bandeja ou Configurações → Geral) **encerra** o app (o `Close()` não passa
   pelo `AppWindow.Closing`); `Esc`/`✕`/Alt+F4 só escondem; `—` minimiza; `❐` alterna para o modo janela
-  (arrastável, para trocar de monitor) e de volta.
+  e de volta; a faixa do topo arrasta a Home para outro monitor; monitor/modo ficam em `%APPDATA%\WinHome\estado.json`.
 - Mensagens Win32 da janela (atalho, bandeja) passam por `MensagensJanela`; ícone gerado por `scripts/gerar-icone.ps1`.

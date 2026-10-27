@@ -44,17 +44,30 @@ public sealed class MainWindow : Window
     Estilo? _estilo;
     bool _saindo;
 
-    // Modo janela (botão ❐): borda, redimensionável e arrastável pela faixa do topo, para levar a Home a outro monitor.
-    // Vale só na sessão; "janela" da config continua dizendo como ela ocupa a tela.
+    // Modo janela (botão ❐): borda e redimensionável. "janela" da config continua dizendo como ela ocupa a tela.
+    // Monitor, modo e retângulo ficam em estado.json (EstadoJanela) para a próxima vez que o WinHome abrir.
     bool _emJanela;
     RectInt32? _retanguloJanela;
+    readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _gravarEstado;
+
+    // Faixa do topo: arrastar leva a Home a qualquer monitor (em qualquer modo); duplo clique alterna o modo.
     long _ultimoCliqueFaixa;
+    Windows.Foundation.Point? _inicioArrasto;
     readonly Border _faixa = new()
     {
         Height = 40,
         VerticalAlignment = VerticalAlignment.Top,
         Background = new SolidColorBrush(Colors.Transparent), // precisa de fundo para receber o clique
-        Visibility = Visibility.Collapsed,
+        Child = new Border // alça discreta, como em outras janelas arrastáveis
+        {
+            Width = 48,
+            Height = 4,
+            CornerRadius = new CornerRadius(2),
+            Background = new SolidColorBrush(Colors.Gray),
+            Opacity = 0.35,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        },
     };
 
     static readonly string ArquivoIcone = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
@@ -71,7 +84,7 @@ public sealed class MainWindow : Window
         _configuracoes = new Telas.PainelConfiguracoes(_editor, _hwnd, AbrirConfig, Sair);
         // Com as Configurações abertas, a Home encolhe para o lado em vez de ficar coberta.
         _configuracoes.AbertoMudou += aberto =>
-            _rolagem.Margin = new Thickness(0, 0, aberto ? Telas.PainelConfiguracoes.Largura : 0, 0);
+            _rolagem.Margin = _faixa.Margin = new Thickness(0, 0, aberto ? Telas.PainelConfiguracoes.Largura : 0, 0);
 
         _busca.TextChanged += (_, _) => RenderizarArea();
         _busca.KeyDown += TeclaNaBusca;
@@ -86,8 +99,21 @@ public sealed class MainWindow : Window
         _raiz.Children.Add(_configuracoes.Raiz);
         _raiz.Children.Add(_faixa);
         _raiz.Children.Add(barra);
-        ToolTipService.SetToolTip(_faixa, "Arraste para mover (inclusive para outro monitor); duplo clique ocupa a tela");
-        _faixa.PointerPressed += ArrastarFaixa;
+        ToolTipService.SetToolTip(_faixa, "Arraste para levar a Home a outro monitor; duplo clique alterna tela inteira/janela");
+        _faixa.PointerPressed += FaixaPressionada;
+        _faixa.PointerMoved += FaixaMovida;
+        _faixa.PointerReleased += (_, _) => _inicioArrasto = null;
+        _faixa.PointerCaptureLost += (_, _) => _inicioArrasto = null;
+
+        // Grava o estado meio segundo depois do último movimento ou redimensionamento.
+        _gravarEstado = DispatcherQueue.CreateTimer();
+        _gravarEstado.Interval = TimeSpan.FromMilliseconds(500);
+        _gravarEstado.IsRepeating = false;
+        _gravarEstado.Tick += (_, _) => GravarEstado();
+        AppWindow.Changed += (_, e) =>
+        {
+            if (e.DidPositionChange || e.DidSizeChange) { _gravarEstado.Stop(); _gravarEstado.Start(); }
+        };
         _raiz.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(TeclaPressionada), true);
         _raiz.CharacterReceived += LetraDigitada;
         Content = _raiz;
@@ -114,6 +140,7 @@ public sealed class MainWindow : Window
         };
         Closed += (_, _) =>
         {
+            if (_gravarEstado.IsRunning) GravarEstado();
             _bandeja.Dispose();
             _atalho.Dispose();
             _mensagens.Dispose();
@@ -122,6 +149,7 @@ public sealed class MainWindow : Window
 
         _config.Mudou += Aplicar;
         var erro = _config.Carregar(); // antes de ler Atual
+        RestaurarEstado(); // antes de Aplicar: o ajuste da janela usa o monitor onde ela está
         Aplicar(_config.Atual, erro, false);
     }
 
@@ -245,7 +273,6 @@ public sealed class MainWindow : Window
     void AjustarJanela(string modo)
     {
         AtualizarBotaoModo();
-        _faixa.Visibility = _emJanela ? Visibility.Visible : Visibility.Collapsed;
 
         if (_emJanela)
         {
@@ -313,20 +340,92 @@ public sealed class MainWindow : Window
             : "Modo janela (para mover a Home para outro monitor)");
     }
 
-    // Faixa do topo no modo janela: arrastar move a janela (como uma barra de título); duplo clique ocupa a tela.
-    void ArrastarFaixa(object sender, PointerRoutedEventArgs e)
+    // Duplo clique alterna o modo; um clique só prepara o arrasto, que começa quando o mouse anda alguns pixels
+    // (assim um clique simples não faz a Home encolher).
+    void FaixaPressionada(object sender, PointerRoutedEventArgs e)
     {
-        if (!e.GetCurrentPoint(_faixa).Properties.IsLeftButtonPressed) return;
+        var ponto = e.GetCurrentPoint(_faixa);
+        if (!ponto.Properties.IsLeftButtonPressed) return;
         var agora = Environment.TickCount64;
         if (agora - _ultimoCliqueFaixa <= GetDoubleClickTime())
         {
             _ultimoCliqueFaixa = 0;
+            _inicioArrasto = null;
             AlternarModo();
             return;
         }
         _ultimoCliqueFaixa = agora;
+        _inicioArrasto = ponto.Position;
+        _faixa.CapturePointer(e.Pointer);
+    }
+
+    void FaixaMovida(object sender, PointerRoutedEventArgs e)
+    {
+        if (_inicioArrasto is not { } inicio) return;
+        var ponto = e.GetCurrentPoint(_faixa).Position;
+        if (Math.Abs(ponto.X - inicio.X) < 6 && Math.Abs(ponto.Y - inicio.Y) < 6) return;
+        _inicioArrasto = null;
+        _faixa.ReleasePointerCaptures();
+        Arrastar();
+    }
+
+    // Como uma janela maximizada do Windows: ocupando a tela, a Home encolhe sob o cursor e segue o mouse;
+    // ao soltar, volta a ocupar a tela no monitor onde caiu. No modo janela, só move.
+    void Arrastar()
+    {
+        var daTelaInteira = !_emJanela;
+        if (daTelaInteira && GetCursorPos(out var cursor))
+        {
+            var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+            var largura = _retanguloJanela?.Width ?? area.Width * 70 / 100;
+            var altura = _retanguloJanela?.Height ?? area.Height * 70 / 100;
+            Sobreposto().SetBorderAndTitleBar(true, false);
+            AppWindow.MoveAndResize(new RectInt32(cursor.X - largura / 2, cursor.Y - 16, largura, altura));
+        }
         ReleaseCapture();
-        SendMessage(_hwnd, WM_NCLBUTTONDOWN, HTCAPTION, IntPtr.Zero);
+        SendMessage(_hwnd, WM_NCLBUTTONDOWN, HTCAPTION, IntPtr.Zero); // laço de mover do Windows; volta ao soltar
+        if (daTelaInteira) AjustarJanela(_config.Atual.Janela);
+    }
+
+    // Um ponto no centro da janela identifica o monitor; minimizada ou escondida, a posição não vale.
+    void GravarEstado()
+    {
+        _gravarEstado.Stop();
+        if (!AppWindow.IsVisible || IsIconic(_hwnd)) return;
+        var p = AppWindow.Position;
+        var t = AppWindow.Size;
+        if (_emJanela) _retanguloJanela = new RectInt32(p.X, p.Y, t.Width, t.Height);
+        new EstadoJanela
+        {
+            CentroX = p.X + t.Width / 2,
+            CentroY = p.Y + t.Height / 2,
+            EmJanela = _emJanela,
+            Janela = _retanguloJanela is { } r ? [r.X, r.Y, r.Width, r.Height] : null,
+        }.Gravar();
+    }
+
+    // Leva a janela ao monitor salvo (se ainda estiver conectado; senão, o principal) antes do primeiro ajuste.
+    void RestaurarEstado()
+    {
+        if (EstadoJanela.Ler() is not { } estado) return;
+        var monitor = DisplayArea.GetFromPoint(new PointInt32(estado.CentroX, estado.CentroY), DisplayAreaFallback.Primary);
+        if (estado.Janela is [var x, var y, var largura, var altura] && largura > 100 && altura > 100)
+        {
+            var r = new RectInt32(x, y, largura, altura);
+            if (DisplayArea.GetFromRect(r, DisplayAreaFallback.None)?.DisplayId.Value is { } id && id != 0)
+                _retanguloJanela = r; // só se ainda cai num monitor conectado
+        }
+        if (estado.EmJanela && _retanguloJanela is { } janela)
+        {
+            _emJanela = true;
+            Sobreposto();
+            AppWindow.MoveAndResize(janela);
+        }
+        else
+        {
+            var area = monitor.WorkArea;
+            AppWindow.Move(new PointInt32(area.X, area.Y)); // o ajuste seguinte ocupa este monitor
+        }
     }
 
     FrameworkElement BarraDeBotoes()
@@ -467,6 +566,10 @@ public sealed class MainWindow : Window
     [DllImport("user32.dll")] static extern bool ReleaseCapture();
     [DllImport("user32.dll")] static extern IntPtr SendMessage(IntPtr hwnd, uint mensagem, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] static extern uint GetDoubleClickTime();
+    [DllImport("user32.dll")] static extern bool GetCursorPos(out PontoTela ponto);
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct PontoTela { public int X, Y; }
 
     const int SW_MINIMIZE = 6, SW_RESTORE = 9;
     const uint WM_NCLBUTTONDOWN = 0x00A1;

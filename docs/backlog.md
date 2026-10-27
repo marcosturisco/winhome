@@ -9,7 +9,8 @@
 - Branch local `v0.4-b-tarefas` (não enviada ao GitHub).
 - Painel `tarefas` (dados em `%APPDATA%\WinHome\tarefas.json`) e opção `tarefas.mostrarConcluidas`; seção Configurações → Tarefas.
 - Painel Projetos ganhou o botão **Pastas…** (trocar, remover, adicionar pasta sem abrir as Configurações).
-- Vários monitores: botões — (minimizar), ❐ (modo janela arrastável ↔ ocupar a tela no monitor atual), ✕ (esconder).
+- Vários monitores: botões — (minimizar), ❐ (modo janela ↔ ocupar a tela no monitor atual), ✕ (esconder);
+  faixa do topo arrasta a Home para qualquer monitor; último monitor lembrado em `%APPDATA%\WinHome\estado.json`.
 - **Para retomar:** `git switch v0.4-b-tarefas`, `.\scripts\executar.ps1` e testar:
   1. Configurações → Tarefas → ligar "Mostrar as tarefas na Home".
   2. Enter adiciona; marcar risca e manda para o fim; desmarcar volta; ✕ remove; "Limpar concluídas".
@@ -19,6 +20,9 @@
   6. Botões [⚙][—][❐][✕]: — minimiza (volta pela barra de tarefas, atalho ou bandeja); ✕ esconde;
      ❐ vira janela → arrastar pela faixa do topo para o outro monitor → ❐ (ou duplo clique na faixa) ocupa aquele monitor;
      esconder e reabrir pelo atalho mantém o monitor.
+  7. Ocupando a tela, arrastar a alça do topo para o outro monitor: encolhe, segue o mouse e ocupa o monitor ao soltar.
+     Clique simples na faixa não faz nada.
+  8. Sair do WinHome e abrir de novo: volta no último monitor (e no modo janela, se estava assim).
   - Aprovado: merge na `main`, commit de docs e push.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
