@@ -54,6 +54,7 @@ com painéis configuráveis (relógio, apps de trabalho, pessoal…). Projeto ir
 | Compilar e abrir | `.\scripts\executar.ps1` |
 | Remover inicialização e fechar | `.\scripts\desinstalar.ps1` |
 | Pacote de instalação (outro PC) | `.\scripts\empacotar.ps1` → `dist\WinHome-<versão>.zip` (Release self-contained + `instalador\`) |
+| Publicar versão no GitHub | `.\scripts\publicar.ps1 -Versao 1.2.3` (versão no csproj, pacote, tag, push e Release com o .zip; notas = `docs\notas-release.md` + commits). Precisa do `gh` portátil logado |
 | Push para o GitHub | `git -c "core.sshCommand='C:/Program Files/Git/usr/bin/ssh.exe' -F none -i C:/Users/predator/.ssh/id_ed25519 -o IdentitiesOnly=yes" push` |
 
 O push usa a chave passada **só no comando** (não mexer no gitconfig global nem no `~/.ssh/config`).
