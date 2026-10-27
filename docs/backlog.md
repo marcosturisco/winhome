@@ -48,8 +48,8 @@
 ## A verificar com o usuário
 - Ainda sem confirmação explícita: busca ao digitar ("calc" + Enter), menu de contexto nos apps,
   clique e menu do ícone da bandeja, Home encolhendo com as Configurações abertas.
-- Cotações: a AwesomeAPI informou variação do dia de ~8% no dólar (`pctChange`), alta demais para um dia.
-  Decidir: manter, trocar por variação semanal ou remover.
+- ~~Cotações: variação do dia de ~8% no dólar~~ → resolvido em 27/10/2026: era erro pontual da AwesomeAPI; a Home
+  esconde a variação acima de 5% no dia (exceto BTC/ETH) e mostra só o valor.
 - "Iniciar com o Windows" continua **desligado** (Configurações → Geral) — ligar quando quiser.
 
 ## Observações conhecidas

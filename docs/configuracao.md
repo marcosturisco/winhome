@@ -51,7 +51,7 @@ Painel do topo (`id: "boasVindas"`; configs antigas com `"relogio"` são convert
 | `clima.unidade` | `C` · `F` | `C` |
 | `clima.cidades` | lista de `{ nome, regiao, pais, latitude, longitude, fuso }` (adicione pela busca em Configurações → Boas-vindas) | São Paulo e Orlando |
 | `cotacoes.visivel` | cartão de cotações | `true` |
-| `cotacoes.moedas` | códigos em relação ao real: `USD`, `EUR`, `GBP`, `JPY`, `CAD`, `AUD`, `CHF`, `CNY`, `ARS`, `BTC`, `ETH` | `["USD", "EUR"]` |
+| `cotacoes.moedas` | códigos em relação ao real: `USD`, `EUR`, `GBP`, `JPY`, `CAD`, `AUD`, `CHF`, `CNY`, `ARS`, `BTC`, `ETH`. Cada uma mostra valor e variação do dia (▲/▼); variação acima de 5% no dia é tratada como erro da API e escondida (exceto `BTC` e `ETH`) | `["USD", "EUR"]` |
 
 Clima e cotações vêm da internet ([Open-Meteo](https://open-meteo.com) a cada 30 min; [AwesomeAPI](https://docs.awesomeapi.com.br) a cada 15 min)
 e ficam em cache em `%APPDATA%\WinHome\cache\`. Sem conexão, os cartões mostram o último valor salvo.

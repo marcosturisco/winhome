@@ -117,8 +117,11 @@ public static class WidgetsBoasVindas
                 var valor = Texto(estilo, 13);
                 valor.Text = c.Valor.ToString(c.Valor >= 1000 ? "C0" : "C2", PtBr);
                 var variacao = Texto(estilo, 12);
-                variacao.Text = $"{(c.Variacao >= 0 ? "▲" : "▼")} {Math.Abs(c.Variacao).ToString("0.00", PtBr)}%";
-                variacao.Foreground = c.Variacao >= 0 ? verde : vermelho;
+                if (c.Variacao is { } pct) // sem variação = a API mandou um valor implausível (ServicoCotacoes)
+                {
+                    variacao.Text = $"{(pct >= 0 ? "▲" : "▼")} {Math.Abs(pct).ToString("0.00", PtBr)}%";
+                    variacao.Foreground = pct >= 0 ? verde : vermelho;
+                }
 
                 var grade = new Grid { ColumnSpacing = 8 };
                 grade.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(40) });
