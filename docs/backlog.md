@@ -28,13 +28,17 @@
   "Endereço secreto no formato iCal" (Ical.Net: repetições, exceções, fusos); cores, "agora"/"em X min", clique abre o
   dia no Google, ↻; endereço em campo de senha, cache com hash, nunca exposto. **Fecha a v0.4.**
 
+- **v0.5 — Modo "área de trabalho"** ✅ (27/10/2026): `modoAreaDeTrabalho` deixa a Home no fundo (WM_WINDOWPOSCHANGING →
+  HWND_BOTTOM), fora da barra de tarefas e do Alt+Tab; atalho/bandeja trazem à frente, ativar outro programa (ou Esc,
+  —, ✕) manda de volta, Win+D não a esconde. Sem truques no shell. Padrões adotados: atalho traz à frente; ícones da
+  área de trabalho intocados; monitor = onde a Home está.
+
 ## Próximo passo
-- **v0.5 — Modo "área de trabalho"** (decisões abaixo): detalhar o plano com o usuário antes de começar.
+- **v1.0 — Acabamento** (decisões abaixo): detalhar o plano com o usuário antes de começar.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
 | Etapa | O quê | Decisões |
 |---|---|---|
-| v0.5 | Modo "área de trabalho" | Home atrás das janelas, no lugar do papel de parede, com toggle |
 | v1.0 | Acabamento | Backup/restauração da config, temas prontos, build Release/instalador simples |
 
 ## A verificar com o usuário
