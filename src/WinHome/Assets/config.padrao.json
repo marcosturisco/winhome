@@ -73,9 +73,25 @@
     "incluirMortes": false
   },
 
+  // Painel "projetos": recentes das IDEs + subpastas com git das "pastas".
+  // Ligue em Configurações → Projetos (ou adicione { "id": "projetos" } em "paineis").
+  "projetos": {
+    "usarIntellij": true,
+    "usarAndroidStudio": true,
+    "usarVsCode": true,
+    "pastas": [ "D:\\Documents\\dev" ],
+    "maximo": 8,
+    "editorPadrao": "origem",      // "origem" (IDE onde foi aberto), "vscode", "intellij" ou "androidStudio"
+    "fixados": [],                 // caminhos que ficam sempre no topo
+    "ocultos": [],                 // caminhos que não aparecem
+    // Caminhos dos executáveis; vazio = detectar sozinho.
+    "editores": { "vsCode": "", "intellij": "", "androidStudio": "" }
+  },
+
   // Painéis em ordem de exibição. "visivel" liga/desliga o painel.
-  // Ids especiais: "boasVindas" (saudação, hora, clima, cotações), "mensagem" (mensagem do dia)
-  // e "curiosidade" (curiosidades do dia); os demais ids são grupos de apps definidos em "grupos".
+  // Ids especiais: "boasVindas" (saudação, hora, clima, cotações), "mensagem" (mensagem do dia),
+  // "curiosidade" (curiosidades do dia) e "projetos" (projetos recentes);
+  // os demais ids são grupos de apps definidos em "grupos".
   "paineis": [
     { "id": "boasVindas", "visivel": true, "largura": 6 },
     { "id": "trabalho",   "visivel": true, "largura": 4, "titulo": "Trabalho" },

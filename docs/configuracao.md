@@ -64,11 +64,29 @@ Primeiro os destacados pela Wikipédia, depois os demais eventos; ↻ mostra out
 | `incluirNascimentos` | inclui quem nasceu nesta data | `false` |
 | `incluirMortes` | inclui quem morreu nesta data | `false` |
 
+## Projetos (`projetos`)
+Painel `id: "projetos"`: projetos abertos recentemente no IntelliJ, Android Studio e VS Code, mais as subpastas
+com git das `pastas`, sem repetição. Mostra a branch do git, se é do WSL e quando foi aberto.
+Clique abre no editor padrão; botão direito: abrir no VS Code / IntelliJ / Android Studio / Terminal / Explorer, fixar, ocultar.
+Projetos do WSL abrem no VS Code em modo remoto. Nada sai do PC: tudo é lido dos arquivos locais das IDEs.
+| Opção | Valores | Padrão |
+|---|---|---|
+| `usarIntellij` | lê `%APPDATA%\JetBrains\IntelliJIdea*\options\recentProjects.xml` | `true` |
+| `usarAndroidStudio` | lê os recentes do Android Studio (`%APPDATA%\Google\AndroidStudio*`) | `true` |
+| `usarVsCode` | lê `%APPDATA%\Code\User\workspaceStorage\*\workspace.json` | `true` |
+| `pastas` | pastas cujas subpastas com git entram na lista | `["D:\\Documents\\dev"]` |
+| `maximo` | quantos projetos mostrar | `8` |
+| `editorPadrao` | `origem` (IDE onde foi aberto) · `vscode` · `intellij` · `androidStudio` | `origem` |
+| `fixados` | caminhos sempre no topo | `[]` |
+| `ocultos` | caminhos que não aparecem (Configurações → Projetos mostra de novo) | `[]` |
+| `editores.vsCode`, `editores.intellij`, `editores.androidStudio` | caminho do executável; vazio = detectar sozinho | `""` |
+
 ## Painéis (`paineis`)
 Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas) e `titulo` (opcional).
 - `id: "boasVindas"`: saudação, hora e data.
 - `id: "mensagem"`: mensagem do dia.
 - `id: "curiosidade"`: curiosidades do dia.
+- `id: "projetos"`: projetos recentes.
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
 - Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.
 

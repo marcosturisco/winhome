@@ -33,6 +33,6 @@ Não substitui o `explorer.exe`: barra de tarefas, menu Iniciar e área de traba
 | **v0.3-a** ✅ | "Relógio" vira **Boas-vindas** (conversão automática, opções de saudação/data/segundos), painel **Mensagem do dia** (frases embutidas + minhas, ↻), menu "+ Adicionar painel" |
 | **v0.3-b** ✅ | Clima (São Paulo e Orlando, via Open-Meteo) e cotações (dólar e euro, via AwesomeAPI) no Boas-vindas, com cache e sem travar sem internet |
 | **v0.3-c** ✅ | Painel **Curiosidades do dia** com foto (Wikipédia "Neste dia", pt) |
-| v0.4 | Produtividade em etapas: a) projetos recentes (em teste), b) tarefas, c) ações rápidas, d) dispositivos, e) agenda Google (ICS) — detalhes em `docs/backlog.md` |
+| v0.4 | Produtividade em etapas: a) projetos recentes ✅, b) tarefas, c) ações rápidas, d) dispositivos, e) agenda Google (ICS) — detalhes em `docs/backlog.md` |
 | v0.5 | Modo "área de trabalho" (Home atrás das janelas, no lugar do papel de parede), com toggle |
 | v1.0 | Backup/restauração da config, temas prontos, instalador simples |

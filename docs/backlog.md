@@ -1,19 +1,11 @@
-# Backlog do WinHome (atualizado em 26/10/2026)
+# Backlog do WinHome (atualizado em 27/10/2026)
 
-## Em andamento
-### v0.4-a — Projetos recentes (código pronto, **falta testar**)
-- Branch local `v0.4-a-projetos` (não enviada ao GitHub; a `main` só tem versões testadas).
-- Painel `projetos`: junta os recentes do IntelliJ (`%APPDATA%\JetBrains\IntelliJIdea*\options\recentProjects.xml`),
-  do Android Studio (`%APPDATA%\Google\AndroidStudio*\...`), do VS Code (`%APPDATA%\Code\User\workspaceStorage\*\workspace.json`)
-  e as subpastas com git de `D:\Documents\dev`. Mostra branch do git, WSL e quando foi aberto.
-- Clique abre na IDE de origem; botão direito: abrir no VS Code / IntelliJ / Android Studio / Terminal / Explorer, fixar, ocultar.
-- Configurações → Projetos: toggle de exibir, editor padrão, máximo, fontes, pastas, ocultos, caminhos dos programas.
-- **Para retomar:** `git switch v0.4-a-projetos`, `.\scripts\executar.ps1`, ligar "Mostrar os projetos recentes na Home" e testar:
-  1. Aparecem tvlauncher, winhome, os do IntelliJ (inclusive os do WSL/Ubuntu) e os do VS Code, sem repetição.
-  2. Clique abre na IDE certa; botão direito → Terminal e Explorer.
-  3. Projeto do WSL abre no VS Code em modo remoto (`--folder-uri vscode-remote://wsl+Ubuntu/...`).
-  4. Fixar/Desafixar e Ocultar/Mostrar de novo.
-  - Aprovado: merge na `main` (`git switch main`, `git merge v0.4-a-projetos`), commit de docs e push.
+## Concluído recentemente
+- **v0.4-a — Projetos recentes** ✅ (testado e aprovado em 27/10/2026): recentes do IntelliJ, Android Studio e VS Code
+  + subpastas com git de `D:\Documents\dev`; abrir na IDE de origem, Terminal, Explorer, WSL remoto, fixar/ocultar.
+
+## Próximo passo
+- **v0.4-b — Tarefas** (decisões abaixo). Fazer numa branch `v0.4-b-tarefas` e só juntar na `main` depois do teste.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
 | Etapa | O quê | Decisões |
