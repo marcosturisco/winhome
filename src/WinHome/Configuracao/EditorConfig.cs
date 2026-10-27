@@ -234,5 +234,25 @@ public sealed class EditorConfig(ConfigService config)
     {
         c.Paineis.Remove(painel);
         c.Grupos.Remove(painel.Id);
+        if (c.AppsAncorados.Remove(painel.Id)) Servicos.Ancoragem.Soltar(painel.Id);
+    });
+
+    // Painel novo com um app ancorado; vários podem ficar lado a lado.
+    public string NovoAppAncorado(AppAncorado app)
+    {
+        var n = 1;
+        while (C.AppsAncorados.ContainsKey($"ancorado{n}") || C.Paineis.Any(p => p.Id == $"ancorado{n}")) n++;
+        var id = $"ancorado{n}";
+        Estrutura(c =>
+        {
+            c.AppsAncorados[id] = app;
+            c.Paineis.Add(new Painel { Id = id, Titulo = app.Nome, Largura = Math.Max(1, c.Tema.Colunas / 2) });
+        });
+        return id;
+    }
+
+    public void DefinirAlturaAncorado(string id, int altura) => Estrutura(c =>
+    {
+        if (c.AppsAncorados.TryGetValue(id, out var app)) app.Altura = Math.Clamp(altura, 200, 2000);
     });
 }

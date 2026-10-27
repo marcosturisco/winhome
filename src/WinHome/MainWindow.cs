@@ -138,8 +138,16 @@ public sealed class MainWindow : Window
             e.Cancel = true;
             Esconder();
         };
+        // Apps ancorados acompanham a área dos painéis e voltam para cima da Home quando ela é ativada.
+        Ancoragem.Iniciar(_hwnd, _rolagem, DispatcherQueue);
+        Activated += (_, e) =>
+        {
+            if (e.WindowActivationState != WindowActivationState.Deactivated) Ancoragem.HomeAtivada();
+        };
+
         Closed += (_, _) =>
         {
+            Ancoragem.SoltarTodos(); // os apps voltam ao tamanho e lugar de antes
             if (_gravarEstado.IsRunning) GravarEstado();
             _bandeja.Dispose();
             _atalho.Dispose();
@@ -588,7 +596,9 @@ public sealed class MainWindow : Window
 
     void Alternar()
     {
-        if (AppWindow.IsVisible && GetForegroundWindow() == _hwnd) Esconder();
+        // Um app ancorado em primeiro plano conta como a Home: o atalho esconde tudo.
+        var frente = GetForegroundWindow();
+        if (AppWindow.IsVisible && (frente == _hwnd || Ancoragem.EhAncorada(frente))) Esconder();
         else Mostrar();
     }
 

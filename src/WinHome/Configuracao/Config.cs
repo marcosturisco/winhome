@@ -18,6 +18,7 @@ public sealed class Config
     public Tarefas Tarefas { get; set; } = new();
     public List<AcaoRapida> AcoesRapidas { get; set; } = AcaoRapida.Padrao();
     public Videos Videos { get; set; } = new();
+    public Dictionary<string, AppAncorado> AppsAncorados { get; set; } = []; // id do painel → app
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
 
@@ -110,6 +111,20 @@ public sealed class Projetos
 public sealed class Tarefas
 {
     public bool MostrarConcluidas { get; set; } = true;
+}
+
+// Painel "App ancorado": a janela real do app fica posicionada sobre a área do painel e acompanha a Home.
+// Abre por "editor" (vscode, intellij, androidStudio), "app" (AppID) ou "caminho"; "processo" é o nome do processo
+// dono da janela (ex.: idea64, Code, WindowsTerminal) — vazio = nome do executável.
+public sealed class AppAncorado
+{
+    public string Nome { get; set; } = "";
+    public string? Editor { get; set; }
+    public string? App { get; set; }
+    public string? Caminho { get; set; }
+    public string? Args { get; set; }
+    public string? Processo { get; set; }
+    public int Altura { get; set; } = 640; // altura da área do app, em pixels da Home
 }
 
 // Painel "Vídeos": arquivos e links pelo VLC instalado; links do YouTube pelo player do YouTube (WebView2).

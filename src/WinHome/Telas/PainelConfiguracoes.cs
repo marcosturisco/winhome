@@ -683,6 +683,21 @@ public sealed class PainelConfiguracoes
             item.Click += (_, _) => _ed.AdicionarEspecial(id);
             menu.Items.Add(item);
         }
+        // App ancorado: a janela real do app fica sobre o painel (vários podem ficar lado a lado).
+        var ancorados = new MenuFlyoutSubItem { Text = "App ancorado (trabalhar no app dentro da Home)" };
+        foreach (var app in new AppAncorado[]
+                 {
+                     new() { Nome = "IntelliJ IDEA", Editor = "intellij" },
+                     new() { Nome = "VS Code", Editor = "vscode" },
+                     new() { Nome = "Android Studio", Editor = "androidStudio" },
+                     new() { Nome = "Terminal", Caminho = "wt.exe", Processo = "WindowsTerminal" },
+                 })
+        {
+            var item = new MenuFlyoutItem { Text = app.Nome };
+            item.Click += (_, _) => _ed.NovoAppAncorado(app);
+            ancorados.Items.Add(item);
+        }
+        menu.Items.Add(ancorados);
         pilha.Children.Add(new DropDownButton { Content = "+ Adicionar painel", Flyout = menu });
         return pilha;
     }
