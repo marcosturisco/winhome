@@ -22,48 +22,88 @@ public sealed class MainWindow : Window
     readonly Grid _raiz = new();
     readonly ScrollViewer _rolagem = new() { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
     readonly InfoBar _aviso = new() { Severity = InfoBarSeverity.Warning, IsClosable = true, Margin = new Thickness(16, 16, 16, 0) };
+    readonly TextBox _busca = new()
+    {
+        PlaceholderText = "Buscar apps… (comece a digitar)",
+        Width = 560,
+        HorizontalAlignment = HorizontalAlignment.Left,
+    };
+    readonly Border _area = new();
+    readonly List<Button> _resultados = [];
     readonly ConfigService _config;
+    readonly EditorConfig _editor;
+    readonly Acoes _acoes;
+    readonly Telas.PainelConfiguracoes _configuracoes;
+    readonly MensagensJanela _mensagens;
     readonly AtalhoGlobal _atalho;
+    readonly IconeBandeja _bandeja;
+    Button? _botaoEsconder;
+    Estilo? _estilo;
     bool _saindo;
+
+    static readonly string ArquivoIcone = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
 
     public MainWindow()
     {
         Title = "WinHome";
         _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        AppWindow.SetIcon(ArquivoIcone);
+
+        _config = new ConfigService(DispatcherQueue);
+        _editor = new EditorConfig(_config);
+        _acoes = new Acoes(AbrirApp, _editor);
+        _configuracoes = new Telas.PainelConfiguracoes(_editor, _hwnd, AbrirConfig, Sair);
+
+        _busca.TextChanged += (_, _) => RenderizarArea();
+        _busca.KeyDown += TeclaNaBusca;
+        _rolagem.Content = new StackPanel { Spacing = 24, Children = { _busca, _area } };
 
         _raiz.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         _raiz.RowDefinitions.Add(new RowDefinition());
-        Grid.SetRow(_rolagem, 1);
         var barra = BarraDeBotoes();
-        Grid.SetRow(barra, 1);
+        foreach (var elemento in new[] { _rolagem, _configuracoes.Raiz, barra }) Grid.SetRow(elemento, 1);
         _raiz.Children.Add(_aviso);
         _raiz.Children.Add(_rolagem);
+        _raiz.Children.Add(_configuracoes.Raiz);
         _raiz.Children.Add(barra);
         _raiz.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(TeclaPressionada), true);
+        _raiz.CharacterReceived += LetraDigitada;
         Content = _raiz;
 
-        _atalho = new AtalhoGlobal(_hwnd);
+        _mensagens = new MensagensJanela(_hwnd);
+        _atalho = new AtalhoGlobal(_mensagens);
         _atalho.Pressionado += Alternar;
+        // Os eventos chegam dentro do procedimento da janela; a ação roda logo depois, na fila da interface.
+        _bandeja = new IconeBandeja(_mensagens, ArquivoIcone);
+        _bandeja.Mostrar += () => DispatcherQueue.TryEnqueue(Mostrar);
+        _bandeja.Configuracoes += () => DispatcherQueue.TryEnqueue(() =>
+        {
+            Mostrar();
+            if (!_configuracoes.Aberto) _configuracoes.Abrir();
+        });
+        _bandeja.Sair += () => DispatcherQueue.TryEnqueue(Sair);
 
-        // Fechar (Alt+F4) só esconde; sair de verdade é pelo botão de desligar.
+        // Fechar (Alt+F4) só esconde; sair de verdade é pelo menu da bandeja ou pelas Configurações.
         AppWindow.Closing += (_, e) =>
-        {            if (_saindo) return;
+        {
+            if (_saindo) return;
             e.Cancel = true;
             Esconder();
         };
         Closed += (_, _) =>
         {
+            _bandeja.Dispose();
             _atalho.Dispose();
-            _config?.Dispose();
+            _mensagens.Dispose();
+            _config.Dispose();
         };
 
-        _config = new ConfigService(DispatcherQueue);
         _config.Mudou += Aplicar;
         var erro = _config.Carregar(); // antes de ler Atual
-        Aplicar(_config.Atual, erro);
+        Aplicar(_config.Atual, erro, false);
     }
 
-    void Aplicar(Config config, string? erroConfig)
+    void Aplicar(Config config, string? erroConfig, bool doArquivo)
     {
         var erros = new List<string>();
         if (erroConfig is not null) erros.Add(erroConfig + " (mantida a configuração anterior)");
@@ -86,13 +126,68 @@ public sealed class MainWindow : Window
         AplicarFundo(tema, erros);
         AjustarJanela(config.Janela);
 
-        if (_atalho.Definir(config.Atalho) is { } erroAtalho) erros.Add(erroAtalho);
+        var erroAtalho = _atalho.Definir(config.Atalho);
+        if (erroAtalho is not null) erros.Add(erroAtalho);
         if (Inicializacao.Sincronizar(config.IniciarComWindows) is { } erroInicio) erros.Add(erroInicio);
+        AtualizarDicas(config, atalhoValido: erroAtalho is null && !string.IsNullOrWhiteSpace(config.Atalho));
 
         var margem = Math.Max(24, estilo.Espaco * 3);
         _rolagem.Padding = new Thickness(margem, margem + 24, margem, margem);
-        _rolagem.Content = HomeBuilder.Montar(config, estilo, AbrirApp);
+        _busca.Visibility = config.MostrarBusca ? Visibility.Visible : Visibility.Collapsed;
+        _busca.FontFamily = estilo.Fonte;
+        _busca.CornerRadius = new CornerRadius(Math.Min(estilo.Tema.Cantos, 20));
+        _estilo = estilo;
+        RenderizarArea();
+
+        _configuracoes.AtualizarTema(escuro);
+        if (doArquivo) _configuracoes.Recarregar();
         MostrarAviso(erros);
+    }
+
+    // Home normal ou, com texto na busca, os resultados.
+    async void RenderizarArea()
+    {
+        if (_estilo is null) return;
+        var termo = _busca.Text.Trim();
+        _resultados.Clear();
+        if (termo.Length == 0)
+        {
+            _area.Child = HomeBuilder.Montar(_config.Atual, _estilo, _acoes);
+            return;
+        }
+
+        var instalados = await AppsInstalados.Obter();
+        if (_busca.Text.Trim() != termo) return; // o usuário continuou digitando
+        _resultados.Clear();
+        _area.Child = HomeBuilder.MontarResultados(_config.Atual, termo, instalados, _estilo, _acoes, _resultados);
+    }
+
+    // Enter abre o primeiro resultado; seta para baixo vai para os resultados.
+    void TeclaNaBusca(object sender, KeyRoutedEventArgs e)
+    {
+        if (_resultados.Count == 0) return;
+        if (e.Key == VirtualKey.Enter && _resultados[0].Tag is AppItem primeiro)
+        {
+            AbrirApp(primeiro);
+            e.Handled = true;
+        }
+        else if (e.Key == VirtualKey.Down)
+        {
+            _resultados[0].Focus(FocusState.Keyboard);
+            e.Handled = true;
+        }
+    }
+
+    // Digitar com o foco fora de uma caixa de texto começa uma busca.
+    void LetraDigitada(UIElement sender, CharacterReceivedRoutedEventArgs e)
+    {
+        if (!_config.Atual.MostrarBusca || char.IsControl(e.Character)) return;
+        if (FocusManager.GetFocusedElement(_raiz.XamlRoot) is TextBox or AutoSuggestBox or NumberBox or ComboBox) return;
+        if (_configuracoes.Aberto) return;
+        _busca.Focus(FocusState.Keyboard);
+        _busca.Text += e.Character;
+        _busca.SelectionStart = _busca.Text.Length;
+        e.Handled = true;
     }
 
     void AplicarFundo(Tema tema, List<string> erros)
@@ -163,7 +258,7 @@ public sealed class MainWindow : Window
             return b;
         }
 
-        return new StackPanel
+        var barra = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right,
@@ -172,11 +267,23 @@ public sealed class MainWindow : Window
             Spacing = 4,
             Children =
             {
-                Botao("", "Editar configuração (config.json)", AbrirConfig),
+                Botao("", "Configurações", AlternarConfiguracoes),
                 Botao("", "Esconder (Esc)", Esconder),
-                Botao("", "Sair do WinHome", Sair),
             },
         };
+        _botaoEsconder = (Button)barra.Children[^1]; // a dica muda com o atalho (AtualizarDicas)
+        return barra;
+    }
+
+    // Dicas que mencionam o atalho e a bandeja acompanham a config.
+    void AtualizarDicas(Config config, bool atalhoValido)
+    {
+        var formas = new List<string>();
+        if (atalhoValido) formas.Add(config.Atalho);
+        if (config.IconeNaBandeja) formas.Add("o ícone na bandeja");
+        var volta = formas.Count > 0 ? $" — volte com {string.Join(" ou ", formas)}" : "";
+        if (_botaoEsconder is not null) ToolTipService.SetToolTip(_botaoEsconder, $"Esconder (Esc){volta}");
+        _bandeja.Definir(config.IconeNaBandeja, atalhoValido ? $"WinHome — {config.Atalho}" : "WinHome");
     }
 
     void AbrirApp(AppItem item)
@@ -205,13 +312,20 @@ public sealed class MainWindow : Window
         _aviso.IsOpen = erros.Count > 0;
     }
 
+    void AlternarConfiguracoes()
+    {
+        if (_configuracoes.Aberto) _configuracoes.Fechar();
+        else _configuracoes.Abrir();
+    }
+
+    // Esc fecha uma coisa por vez: Configurações, depois a busca, depois a Home.
     void TeclaPressionada(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == VirtualKey.Escape)
-        {
-            Esconder();
-            e.Handled = true;
-        }
+        if (e.Key != VirtualKey.Escape || e.Handled) return;
+        if (_configuracoes.Aberto) _configuracoes.Fechar();
+        else if (_busca.Text.Length > 0) _busca.Text = "";
+        else Esconder();
+        e.Handled = true;
     }
 
     public void Mostrar()
@@ -220,6 +334,11 @@ public sealed class MainWindow : Window
         AppWindow.Show();
         Activate();
         SetForegroundWindow(_hwnd);
+        if (_config.Atual.MostrarBusca && !_configuracoes.Aberto)
+        {
+            _busca.Text = "";
+            _busca.Focus(FocusState.Programmatic);
+        }
     }
 
     void Esconder() => AppWindow.Hide();
@@ -231,7 +350,8 @@ public sealed class MainWindow : Window
     }
 
     void Sair()
-    {        _saindo = true;
+    {
+        _saindo = true;
         Close();
     }
 

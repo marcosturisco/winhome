@@ -1,5 +1,7 @@
 // Configuração do WinHome. Salve o arquivo e a Home atualiza sozinha.
 // Comentários com // são permitidos. Opções ausentes usam o valor padrão.
+// Salvar pela tela de Configurações regrava o arquivo sem comentários (anterior em config.json.bak).
+// Todas as opções: docs/configuracao.md
 {
   // Nome usado na saudação ("Bom dia, Marcos").
   "nome": "Marcos",
@@ -16,6 +18,12 @@
   // Esconde a Home depois de abrir um app.
   "esconderAoAbrirApp": true,
 
+  // Caixa de busca no topo; digitar em qualquer lugar da Home também busca.
+  "mostrarBusca": true,
+
+  // Ícone na bandeja do sistema (clique mostra a Home; botão direito: Configurações, Sair).
+  "iconeNaBandeja": true,
+
   "tema": {
     "modo": "escuro",              // "escuro", "claro" ou "sistema"
     "corDestaque": "#4F8CFF",      // títulos e relógio; "#RRGGBB" ou "#AARRGGBB"
@@ -25,7 +33,7 @@
     "fonte": "Segoe UI Variable",
     "cantos": 12,                  // arredondamento dos painéis
     "tamanhoIcone": 48,
-    "opacidadePaineis": 0.35,      // 0 = transparente, 1 = sólido
+    "opacidadePaineis": 0.6,       // 0 = transparente, 1 = sólido
     "espacamento": 16,             // distância entre painéis
     "colunas": 6                   // colunas da grade; cada painel ocupa "largura" colunas
   },

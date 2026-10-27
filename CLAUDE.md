@@ -24,8 +24,10 @@ com painéis configuráveis (relógio, apps de trabalho, pessoal…). Projeto ir
 - Tudo o que for visual ou conteúdo vem de `%APPDATA%\WinHome\config.json` (JSON com comentários `//`).
 - Na primeira execução o arquivo é criado a partir de `src/WinHome/Assets/config.padrao.json`.
 - A Home recarrega sozinha quando o arquivo muda; JSON inválido mostra o erro e mantém a config anterior.
-- Toda opção nova entra no modelo (`Configuracao/Config.cs`) **com valor padrão** e é documentada
-  com comentário no `config.padrao.json`.
+- A tela de Configurações altera a config via `EditorConfig`/`ConfigService.Alterar` e regrava o arquivo
+  (sem comentários; anterior em `config.json.bak`).
+- Toda opção nova entra no modelo (`Configuracao/Config.cs`) **com valor padrão**, ganha controle na tela
+  de Configurações e é documentada no `config.padrao.json` e em `docs/configuracao.md`.
 
 ## Alvo técnico
 - Windows 11 (x64), WinUI 3 (Windows App SDK 2.x, self-contained, sem MSIX), .NET 10, C#.
@@ -44,8 +46,16 @@ O push usa a chave passada **só no comando** (não mexer no gitconfig global ne
 
 ## Estrutura
 - `src/WinHome/` — `Program` (instância única), `App`, `MainWindow` (janela, fundo, atalho)
-  - `Configuracao/` — modelo da config e serviço que carrega/observa o arquivo
-  - `Paineis/` — `HomeBuilder` (monta a grade) e um arquivo por tipo de painel
-  - `Servicos/` — abrir apps, ícones do shell, atalho global, inicialização com o Windows
+  - `Configuracao/` — modelo da config, serviço que carrega/observa/salva o arquivo, `EditorConfig` (operações de edição)
+  - `Paineis/` — `HomeBuilder` (grade e resultados da busca) e um arquivo por tipo de painel
+  - `Telas/` — `PainelConfiguracoes` (painel lateral de Configurações)
+  - `Servicos/` — abrir apps, ícones do shell, apps instalados, atalho global, inicialização com o Windows
 - `scripts/` — compilar, executar, desinstalar
-- `docs/` — plano, reversão
+- `docs/` — plano, opções da config (`configuracao.md`), reversão
+
+## Testar
+- Abrir pelo PowerShell da ferramenta com `run_in_background` (senão o processo cai junto com o comando).
+- Print de janela com `PrintWindow` sai preto (WinUI); peça um print ao usuário.
+- "Sair do WinHome" (menu da bandeja ou Configurações → Geral) **encerra** o app (o `Close()` não passa
+  pelo `AppWindow.Closing`); `Esc`/`—`/Alt+F4 só escondem.
+- Mensagens Win32 da janela (atalho, bandeja) passam por `MensagensJanela`; ícone gerado por `scripts/gerar-icone.ps1`.

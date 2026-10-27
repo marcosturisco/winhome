@@ -9,20 +9,20 @@ public sealed class AtalhoGlobal : IDisposable
     const int Id = 1;
     const uint MOD_ALT = 0x1, MOD_CONTROL = 0x2, MOD_SHIFT = 0x4, MOD_WIN = 0x8, MOD_NOREPEAT = 0x4000;
 
-    const int GWLP_WNDPROC = -4;
-
     readonly IntPtr _hwnd;
-    readonly WndProc _proc; // referência mantida viva enquanto a janela existir
-    readonly IntPtr _original;
     bool _registrado;
 
     public event Action? Pressionado;
 
-    public AtalhoGlobal(IntPtr hwnd)
+    public AtalhoGlobal(MensagensJanela mensagens)
     {
-        _hwnd = hwnd;
-        _proc = Procedimento;
-        _original = SetWindowLongPtr(_hwnd, GWLP_WNDPROC, Marshal.GetFunctionPointerForDelegate(_proc));
+        _hwnd = mensagens.Hwnd;
+        mensagens.Adicionar((msg, wParam, _) =>
+        {
+            if (msg != WM_HOTKEY || wParam != Id) return false;
+            Pressionado?.Invoke();
+            return true;
+        });
     }
 
     // Troca a tecla. Devolve o erro (texto inválido ou tecla já usada por outro programa), se houver.
@@ -81,28 +81,14 @@ public sealed class AtalhoGlobal : IDisposable
         return false;
     }
 
-    IntPtr Procedimento(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam)
-    {
-        if (msg == WM_HOTKEY && wParam == Id) Pressionado?.Invoke();
-        return CallWindowProc(_original, hwnd, msg, wParam, lParam);
-    }
-
     void Liberar()
     {
         if (_registrado) UnregisterHotKey(_hwnd, Id);
         _registrado = false;
     }
 
-    public void Dispose()
-    {
-        Liberar();
-        SetWindowLongPtr(_hwnd, GWLP_WNDPROC, _original);
-    }
-
-    delegate IntPtr WndProc(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
+    public void Dispose() => Liberar();
 
     [DllImport("user32.dll")] static extern bool RegisterHotKey(IntPtr hwnd, int id, uint mods, uint vk);
     [DllImport("user32.dll")] static extern bool UnregisterHotKey(IntPtr hwnd, int id);
-    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] static extern IntPtr SetWindowLongPtr(IntPtr hwnd, int index, IntPtr valor);
-    [DllImport("user32.dll", EntryPoint = "CallWindowProcW")] static extern IntPtr CallWindowProc(IntPtr anterior, IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam);
 }

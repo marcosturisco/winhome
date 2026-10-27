@@ -8,6 +8,8 @@ public sealed class Config
     public string Atalho { get; set; } = "Ctrl+Alt+Space";
     public bool IniciarComWindows { get; set; }
     public bool EsconderAoAbrirApp { get; set; } = true;
+    public bool MostrarBusca { get; set; } = true;
+    public bool IconeNaBandeja { get; set; } = true;
     public Tema Tema { get; set; } = new();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
@@ -23,7 +25,7 @@ public sealed class Tema
     public string Fonte { get; set; } = "Segoe UI Variable";
     public double Cantos { get; set; } = 12;
     public double TamanhoIcone { get; set; } = 48;
-    public double OpacidadePaineis { get; set; } = 0.35;
+    public double OpacidadePaineis { get; set; } = 0.6;
     public double Espacamento { get; set; } = 16;
     public int Colunas { get; set; } = 6;
 }

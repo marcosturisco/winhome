@@ -28,8 +28,8 @@ Não substitui o `explorer.exe`: barra de tarefas, menu Iniciar e área de traba
 ## Fases
 | Versão | Entrega |
 |---|---|
-| **v0.1** | Janela, fundo Mica, `config.json` com recarga ao vivo, painéis relógio e grupos de apps, abrir apps, ícones do shell, atalho global, instância única, iniciar com o Windows |
-| v0.2 | Tela de Configurações (toggles, temas, adicionar/remover/reordenar apps), busca ao digitar, menu de contexto nos apps |
+| **v0.1** ✅ | Janela, fundo Mica, `config.json` com recarga ao vivo, painéis relógio e grupos de apps, abrir apps, ícones do shell, atalho global, instância única, iniciar com o Windows |
+| **v0.2** ✅ | Tela de Configurações (toggles, temas, adicionar/remover/reordenar apps e painéis), busca ao digitar (grupos + todos os apps instalados), menu de contexto nos apps, `config.json.bak`, ícone na bandeja (Mostrar/Configurações/Sair) e ícone próprio |
 | v0.3 | Painéis: projetos recentes, ações rápidas (com confirmação), tarefas, agenda (ICS), dispositivos (TV/box online) |
 | v0.4 | Modo "área de trabalho" (Home atrás das janelas, no lugar do papel de parede), com toggle |
 | v1.0 | Backup/restauração da config, temas prontos, instalador simples |
