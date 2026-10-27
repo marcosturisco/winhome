@@ -10,3 +10,11 @@
 |---|---|---|
 | Valor `WinHome` em `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` | Só com `"iniciarComWindows": true` | Pôr `false` na config, rodar `.\scripts\desinstalar.ps1` ou `reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v WinHome /f` |
 | Pasta `%APPDATA%\WinHome` (config) | Primeira execução | Apagar a pasta (o `desinstalar.ps1` pergunta antes) |
+
+## Alterações que o instalador (`instalador\instalar.ps1`, pacote do `empacotar.ps1`) faz em outro PC
+| O quê | Como desfazer |
+|---|---|
+| Programa em `%LOCALAPPDATA%\WinHome\app` (e dados do WebView2 em `%LOCALAPPDATA%\WinHome\WebView2`) | `desinstalar.cmd` do pacote, ou apagar `%LOCALAPPDATA%\WinHome` com o WinHome fechado |
+| Atalho `WinHome.lnk` no menu Iniciar (`%APPDATA%\Microsoft\Windows\Start Menu\Programs`) | `desinstalar.cmd` ou apagar o atalho |
+| Valor `WinHome` em `HKCU\...\Run` (só se respondido "s") | `desinstalar.cmd`, ou desligar em Configurações → Geral |
+| Remove a marca "baixado da internet" dos arquivos do WinHome copiados (`Unblock-File`) | não se aplica (só os arquivos do próprio WinHome) |

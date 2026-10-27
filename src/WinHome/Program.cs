@@ -24,6 +24,6 @@ public static class Program
         {
             var contexto = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
             SynchronizationContext.SetSynchronizationContext(contexto);
-            _ = new App(instancia);
+            _ = new App(instancia, args);
         });    }
 }

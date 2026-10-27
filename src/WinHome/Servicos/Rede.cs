@@ -15,7 +15,7 @@ public static class Rede
     static HttpClient Criar()
     {
         var http = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("WinHome/0.3 (+https://github.com/marcosturisco/winhome)");
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("WinHome/1.0 (+https://github.com/marcosturisco/winhome)");
         return http;
     }
 

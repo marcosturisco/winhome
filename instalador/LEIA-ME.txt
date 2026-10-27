@@ -1,0 +1,31 @@
+WinHome — Home personalizada para o Windows 11
+==============================================
+
+INSTALAR (ou atualizar) — sem precisar de administrador
+1. Extraia o .zip inteiro numa pasta (botão direito > Extrair tudo).
+2. Dê duplo clique em "instalar.cmd".
+3. Responda às perguntas:
+   - abrir o WinHome ao entrar no Windows;
+   - restaurar um backup (o .zip feito em Configurações > Backup no outro PC).
+4. A Home abre no final. Atalho: Ctrl+Alt+Space mostra/esconde.
+
+O programa fica em %LOCALAPPDATA%\WinHome\app e a configuração em %APPDATA%\WinHome.
+Não precisa instalar .NET nem Windows App SDK: já vão dentro do pacote.
+
+Se o Windows mostrar "O Windows protegeu o computador" ao abrir: clique em "Mais informações" > "Executar assim
+mesmo" (o WinHome não é assinado digitalmente).
+
+PROGRAMAS USADOS POR ALGUNS PAINÉIS (o instalador avisa o que falta)
+- VLC 64 bits ............ painel Vídeos ............... winget install VideoLAN.VLC
+- adb .................... TV e Dispositivos ........... winget install Google.PlatformTools
+- scrcpy ................. Espelhar a TV ............... winget install Genymobile.scrcpy
+- Windows Terminal ....... Ações e Projetos ............ winget install Microsoft.WindowsTerminal
+- VS Code / IntelliJ / Android Studio ... painel Projetos e Apps ancorados
+
+AGENDA
+Backups normalmente não levam o "Endereço secreto no formato iCal" da agenda (por segurança).
+Cole-o de novo em Configurações > Agenda.
+
+DESINSTALAR
+Duplo clique em "desinstalar.cmd". Ele fecha a Home, remove o atalho, o "iniciar com o Windows" e o programa,
+e pergunta antes de apagar a configuração.

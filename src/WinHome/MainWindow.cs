@@ -659,6 +659,20 @@ public sealed class MainWindow : Window
         else Mostrar();
     }
 
+    // Argumentos do instalador: restaurar um backup e ligar "iniciar com o Windows" na primeira abertura.
+    public void AplicarArgumentos(string[] args)
+    {
+        var i = Array.FindIndex(args, a => a.Equals("--restaurar", StringComparison.OrdinalIgnoreCase));
+        if (i >= 0 && i + 1 < args.Length && File.Exists(args[i + 1]))
+        {
+            var (_, erro) = ServicoBackup.Restaurar(args[i + 1]);
+            if (erro is not null) MostrarAviso([erro]);
+            else _config.RecarregarAgora();
+        }
+        if (args.Contains("--iniciar-com-windows", StringComparer.OrdinalIgnoreCase))
+            _editor.Alterar(c => c.IniciarComWindows = true);
+    }
+
     public void Sair()
     {
         _saindo = true;

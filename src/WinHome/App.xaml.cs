@@ -5,11 +5,14 @@ namespace WinHome;
 public partial class App : Application
 {
     readonly InstanciaUnica _instancia;
+    readonly string[] _args;
     MainWindow? _janela;
 
-    public App(InstanciaUnica instancia)
+    // args: os do instalador ("--restaurar <backup.zip>", "--iniciar-com-windows").
+    public App(InstanciaUnica instancia, string[] args)
     {
         _instancia = instancia;
+        _args = args;
         InitializeComponent();
         UnhandledException += (_, e) => RegistrarErro(e.Exception);
         AppDomain.CurrentDomain.UnhandledException += (_, e) => RegistrarErro(e.ExceptionObject as Exception);
@@ -35,5 +38,6 @@ public partial class App : Application
         _instancia.Chamada += () => _janela.DispatcherQueue.TryEnqueue(_janela.Mostrar);
         _instancia.PedidoDeSaida += () => _janela.DispatcherQueue.TryEnqueue(_janela.Sair);
         _janela.Mostrar();
+        _janela.AplicarArgumentos(_args);
     }
 }

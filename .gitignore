@@ -4,5 +4,6 @@ obj/
 *.user
 *.suo
 publish/
+dist/
 .claude/settings.local.json
 .idea/
