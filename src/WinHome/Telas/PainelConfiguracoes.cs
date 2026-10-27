@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expDispositivos;
+    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expDispositivos, _expAgenda;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -61,6 +61,7 @@ public sealed class PainelConfiguracoes
             if (_expAcoes is not null) _expAcoes.Content = ConteudoAcoes();
             if (_expVideos is not null) _expVideos.Content = ConteudoVideos();
             if (_expDispositivos is not null) _expDispositivos.Content = ConteudoDispositivos();
+            if (_expAgenda is not null) _expAgenda.Content = ConteudoAgenda();
         };
 
         var cabecalho = new StackPanel
@@ -135,6 +136,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expAcoes = Secao("Ações rápidas", ConteudoAcoes()));
         _secoes.Children.Add(_expVideos = Secao("Vídeos", ConteudoVideos()));
         _secoes.Children.Add(_expDispositivos = Secao("Dispositivos", ConteudoDispositivos()));
+        _secoes.Children.Add(_expAgenda = Secao("Agenda", ConteudoAgenda()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
         _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
     }
@@ -556,6 +558,67 @@ public sealed class PainelConfiguracoes
             adicionar.Click += (_, _) => _ed.AdicionarAcoesQueFaltam();
             pilha.Children.Add(adicionar);
         }
+        return pilha;
+    }
+
+    UIElement ConteudoAgenda()
+    {
+        var cfg = C.Agenda;
+        var pilha = Pilha(
+            Alternador("Mostrar a agenda na Home", _ed.Exibido(Config.PainelAgenda), on => _ed.Exibir(Config.PainelAgenda, on)),
+            Deslizante("Dias mostrados (1 = só hoje)", 1, 7, 1, cfg.Dias, v => _ed.Alterar(c => c.Agenda.Dias = (int)v)),
+            new TextBlock
+            {
+                Text = "No Google Agenda (navegador): ⚙ Configurações → clique na agenda, à esquerda → Integrar agenda → " +
+                       "copie o \"Endereço secreto no formato iCal\" e cole abaixo.",
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 12,
+                Opacity = 0.7,
+            },
+            new InfoBar
+            {
+                Severity = InfoBarSeverity.Warning,
+                IsOpen = true,
+                IsClosable = false,
+                Title = "Endereço secreto",
+                Message = "Quem tiver este endereço consegue ler a sua agenda. Ele fica só no config.json deste PC " +
+                          "(nunca no git nem em logs). Não compartilhe; se vazar, use \"Redefinir\" no Google Agenda e cole o novo.",
+            });
+
+        foreach (var cal in cfg.Calendarios)
+        {
+            var nome = new TextBox { Text = cal.Nome, PlaceholderText = "Nome", VerticalAlignment = VerticalAlignment.Center };
+            nome.TextChanged += (_, _) => _ed.Alterar(c => cal.Nome = nome.Text);
+            var endereco = new PasswordBox
+            {
+                Password = cal.Endereco,
+                PlaceholderText = "https://calendar.google.com/calendar/ical/…/basic.ics",
+                PasswordRevealMode = PasswordRevealMode.Peek,
+            };
+            endereco.PasswordChanged += (_, _) => _ed.Alterar(c => cal.Endereco = endereco.Password.Trim());
+            var resultado = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, Opacity = 0.8 };
+            var testar = new Button { Content = "Testar" };
+            testar.Click += async (_, _) =>
+            {
+                testar.IsEnabled = false;
+                resultado.Text = "Lendo…";
+                resultado.Text = await Servicos.ServicoAgenda.Testar(endereco.Password);
+                testar.IsEnabled = true;
+            };
+
+            var bloco = Pilha(
+                Linha(BotaoCor("", cal.Cor, v => _ed.Alterar(c => cal.Cor = v), prontas: false), nome, null,
+                    Icone("", "Remover esta agenda", true, () => _ed.RemoverCalendario(cal))),
+                endereco,
+                Linha(testar, resultado, null));
+            bloco.Spacing = 6;
+            bloco.Margin = new Thickness(0, 6, 0, 0);
+            pilha.Children.Add(bloco);
+        }
+
+        var nova = new Button { Content = cfg.Calendarios.Count == 0 ? "+ Adicionar a minha agenda" : "+ Outra agenda" };
+        nova.Click += (_, _) => _ed.NovoCalendario();
+        pilha.Children.Add(nova);
         return pilha;
     }
 

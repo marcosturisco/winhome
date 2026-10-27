@@ -170,6 +170,15 @@
 
   // Painel "videos": arquivos e links pelo VLC instalado, dentro do painel; links do YouTube pelo player do YouTube.
   // Volume e recentes ficam em %APPDATA%\WinHome\videos.json (fora desta config).
+  // Painel "agenda": compromissos dos próximos "dias" do Google Agenda ("Endereço secreto no formato iCal").
+  // O endereço é SECRETO (dá acesso de leitura à agenda): cole pelas Configurações → Agenda; nunca compartilhe.
+  "agenda": {
+    "dias": 2,
+    "calendarios": [
+      // { "nome": "Minha agenda", "endereco": "https://calendar.google.com/calendar/ical/.../basic.ics", "cor": "#4F8CFF" }
+    ]
+  },
+
   // Painel "dispositivos": testa a porta de cada aparelho (só abre e fecha a conexão, sem comandos) a cada
   // "intervalo" segundos; clicar no aparelho mostra as ações do adb para ele (sempre com confirmação).
   "dispositivos": {

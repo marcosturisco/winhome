@@ -20,6 +20,7 @@ public sealed class Config
     public Videos Videos { get; set; } = new();
     public Dictionary<string, AppAncorado> AppsAncorados { get; set; } = []; // id do painel → app
     public Dispositivos Dispositivos { get; set; } = new();
+    public Agenda Agenda { get; set; } = new();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
 
@@ -32,6 +33,7 @@ public sealed class Config
     public const string PainelAcoes = "acoes";
     public const string PainelVideos = "videos";
     public const string PainelDispositivos = "dispositivos";
+    public const string PainelAgenda = "agenda";
 
     // Ajustes de configs antigas, feitos ao carregar (a gravação seguinte já sai no formato novo).
     public void Migrar()
@@ -113,6 +115,21 @@ public sealed class Projetos
 public sealed class Tarefas
 {
     public bool MostrarConcluidas { get; set; } = true;
+}
+
+// Painel "Agenda": compromissos dos próximos "dias" (1 = só hoje) lidos do "Endereço secreto no formato iCal"
+// do Google Agenda. O endereço dá acesso de leitura à agenda: fica só neste config.json (nunca em git ou log).
+public sealed class Agenda
+{
+    public int Dias { get; set; } = 2;
+    public List<Calendario> Calendarios { get; set; } = [];
+}
+
+public sealed class Calendario
+{
+    public string Nome { get; set; } = "Minha agenda";
+    public string Endereco { get; set; } = ""; // secreto
+    public string Cor { get; set; } = "#4F8CFF";
 }
 
 // Painel "Dispositivos": testa a cada "intervalo" segundos se a porta de cada aparelho responde (só abre e fecha

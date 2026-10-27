@@ -82,6 +82,7 @@ public sealed class EditorConfig(ConfigService config)
         (Config.PainelAcoes, "Ações rápidas"),
         (Config.PainelVideos, "Vídeos (VLC e YouTube)"),
         (Config.PainelDispositivos, "Dispositivos (TV, box…)"),
+        (Config.PainelAgenda, "Agenda (Google Agenda)"),
     ];
 
     public bool Tem(string id) => C.Paineis.Any(p => p.Id == id);
@@ -121,6 +122,8 @@ public sealed class EditorConfig(ConfigService config)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Vídeos", Largura = Math.Max(1, c.Tema.Colunas / 2) });
         else if (id == Config.PainelDispositivos)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Dispositivos", Largura = Math.Max(1, c.Tema.Colunas / 3) });
+        else if (id == Config.PainelAgenda)
+            c.Paineis.Add(new Painel { Id = id, Titulo = "Agenda", Largura = Math.Max(1, c.Tema.Colunas / 3) });
     });
 
     public void AdicionarCidade(Cidade cidade) => Estrutura(c =>
@@ -206,6 +209,13 @@ public sealed class EditorConfig(ConfigService config)
         foreach (var padrao in AcaoRapida.Padrao().Where(p => c.AcoesRapidas.All(a => a.Nome != p.Nome)))
             c.AcoesRapidas.Add(padrao);
     });
+
+    public void NovoCalendario() => Estrutura(c => c.Agenda.Calendarios.Add(new Calendario
+    {
+        Nome = c.Agenda.Calendarios.Count == 0 ? "Minha agenda" : $"Agenda {c.Agenda.Calendarios.Count + 1}",
+    }));
+
+    public void RemoverCalendario(Calendario cal) => Estrutura(c => c.Agenda.Calendarios.Remove(cal));
 
     public void NovoDispositivo() => Estrutura(c => c.Dispositivos.Lista.Add(new Dispositivo { Nome = "Novo aparelho" }));
 

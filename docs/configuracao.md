@@ -146,6 +146,23 @@ Painel `id: "videos"`. Cole um link e tecle Enter, use o botão de arquivo ou ar
 | `pausarAoEsconder` | pausa ao esconder ou minimizar a Home | `true` |
 | `pastaVlc` | pasta do VLC 64 bits (com `libvlc.dll`); vazio = `C:\Program Files\VideoLAN\VLC` | `""` |
 
+## Agenda (`agenda`)
+Painel `id: "agenda"`: compromissos de **Hoje**, **Amanhã** e dos dias seguintes (`dias`), de uma ou mais agendas do
+Google Agenda, cada uma com sua cor. Repetições, exceções e fusos são resolvidos (biblioteca Ical.Net). Os que já passaram
+ficam apagados; o atual mostra "agora" e o próximo "em 25 min". Clique abre o dia no Google Agenda (navegador);
+↻ no cabeçalho lê de novo. Atualiza a cada 15 min; sem internet mostra a última leitura (cache em
+`%APPDATA%\WinHome\cache\agenda_<hash>…`).
+
+Onde pegar o endereço: Google Agenda no navegador → ⚙ Configurações → clique na agenda (à esquerda) → **Integrar
+agenda** → **Endereço secreto no formato iCal**. Cole em Configurações → Agenda (campo escondido; botão **Testar**).
+> **O endereço é secreto**: quem o tiver lê a sua agenda. Ele fica só no `config.json` (e no `config.json.bak`) deste PC.
+> Se vazar, use "Redefinir" no Google Agenda e cole o novo.
+
+| Opção | Valores | Padrão |
+|---|---|---|
+| `dias` | dias mostrados a partir de hoje (1 a 7 nas Configurações; até 14 no arquivo) | `2` |
+| `calendarios` | `{ nome, endereco, cor }` (`endereco` aceita `https://` ou `webcal://`) | `[]` |
+
 ## Dispositivos (`dispositivos`)
 Painel `id: "dispositivos"`: uma linha por aparelho com 🟢 latência em ms / 🔴 sem resposta e quando foi o último teste.
 O teste só **abre e fecha uma conexão TCP** na porta (limite de 2 s), em paralelo, a cada `intervalo` segundos e ao
@@ -186,6 +203,7 @@ Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura`
 - `id: "acoes"`: ações rápidas.
 - `id: "videos"`: vídeos (VLC e YouTube).
 - `id: "dispositivos"`: dispositivos (TV, box…).
+- `id: "agenda"`: agenda (Google Agenda).
 - `id: "ancoradoN"`: app ancorado definido em `appsAncorados`.
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
 - Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.

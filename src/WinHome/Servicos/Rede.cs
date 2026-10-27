@@ -26,13 +26,14 @@ public static class Rede
     sealed record Arquivo<T>(DateTime Quando, T Valor);
 
     // Devolve o valor do cache se ainda vale; senão busca. Sem rede, devolve o último valor salvo (ou null).
-    public static async Task<Resultado<T>?> Obter<T>(string chave, TimeSpan validade, Func<Task<T>> buscar) where T : class
+    // forcar = busca de novo mesmo com o cache válido (botão ↻); se falhar, ainda devolve o salvo.
+    public static async Task<Resultado<T>?> Obter<T>(string chave, TimeSpan validade, Func<Task<T>> buscar, bool forcar = false) where T : class
     {
-        if (Memoria.TryGetValue(chave, out var m) && DateTime.Now - m.Quando < validade)
+        if (!forcar && Memoria.TryGetValue(chave, out var m) && DateTime.Now - m.Quando < validade)
             return new((T)m.Valor, m.Quando, true);
 
         var salvo = Memoria.TryGetValue(chave, out m) ? new Arquivo<T>(m.Quando, (T)m.Valor) : await LerDisco<T>(chave);
-        if (salvo is not null && DateTime.Now - salvo.Quando < validade)
+        if (!forcar && salvo is not null && DateTime.Now - salvo.Quando < validade)
         {
             Memoria[chave] = (salvo.Quando, salvo.Valor);
             return new(salvo.Valor, salvo.Quando, true);
