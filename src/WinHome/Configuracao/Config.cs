@@ -16,6 +16,7 @@ public sealed class Config
     public Curiosidades Curiosidades { get; set; } = new();
     public Projetos Projetos { get; set; } = new();
     public Tarefas Tarefas { get; set; } = new();
+    public List<AcaoRapida> AcoesRapidas { get; set; } = AcaoRapida.Padrao();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
 
@@ -25,6 +26,7 @@ public sealed class Config
     public const string PainelCuriosidade = "curiosidade";
     public const string PainelProjetos = "projetos";
     public const string PainelTarefas = "tarefas";
+    public const string PainelAcoes = "acoes";
 
     // Ajustes de configs antigas, feitos ao carregar (a gravação seguinte já sai no formato novo).
     public void Migrar()
@@ -102,6 +104,59 @@ public sealed class Projetos
 public sealed class Tarefas
 {
     public bool MostrarConcluidas { get; set; } = true;
+}
+
+// Painel "Ações rápidas": cada ação executa os passos em ordem, sempre depois da confirmação do usuário.
+public sealed class AcaoRapida
+{
+    public string Nome { get; set; } = "";
+    public string Icone { get; set; } = "⚡"; // emoji
+    public List<PassoAcao> Passos { get; set; } = [];
+
+    public static List<AcaoRapida> Padrao() =>
+    [
+        new()
+        {
+            Nome = "Dia de trabalho",
+            Icone = "💼",
+            Passos =
+            [
+                new() { Nome = "VS Code", Editor = "vscode" },
+                new() { Nome = "IntelliJ IDEA", Editor = "intellij" },
+                new() { Nome = "Teams", App = "MSTeams_8wekyb3d8bbwe!MSTeams" },
+                new() { Nome = "Outlook", App = "Microsoft.OutlookForWindows_8wekyb3d8bbwe!Microsoft.OutlookforWindows" },
+                new() { Nome = "Edge", App = "MSEdge" },
+            ],
+        },
+        new()
+        {
+            Nome = "Conectar TV",
+            Icone = "📺",
+            Passos = [new() { Nome = "Conectar à TV pelo ADB", Caminho = "adb", Args = "connect 192.168.15.11:5555", Esperar = true }],
+        },
+        new()
+        {
+            Nome = "Abrir projetos",
+            Icone = "📁",
+            Passos =
+            [
+                new() { Nome = "Pasta no Explorador", Caminho = "explorer.exe", Args = "\"{pastaProjetos}\"" },
+                new() { Nome = "Pasta no Terminal", Caminho = "wt.exe", Args = "-d \"{pastaProjetos}\"" },
+            ],
+        },
+    ];
+}
+
+// Um passo usa "app" (AppID), "editor" (vscode, intellij, androidStudio: detectado como no painel Projetos)
+// ou "caminho" (programa, pasta ou documento) com "args". "{pastaProjetos}" repete o passo para cada pasta de Projetos.
+public sealed class PassoAcao
+{
+    public string Nome { get; set; } = "";
+    public string? App { get; set; }
+    public string? Editor { get; set; }
+    public string? Caminho { get; set; }
+    public string? Args { get; set; }
+    public bool Esperar { get; set; } // roda escondido, espera até 15 s e mostra a saída (ex.: adb)
 }
 
 // Caminhos dos executáveis; vazio = detectar sozinho.

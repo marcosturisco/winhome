@@ -91,6 +91,25 @@ Se esse arquivo estiver inválido, a Home começa uma lista nova e guarda o anti
 |---|---|---|
 | `mostrarConcluidas` | mostra as concluídas (riscadas) até limpar | `true` |
 
+## Ações rápidas (`acoesRapidas`)
+Painel `id: "acoes"`: um botão por ação. O clique **sempre** abre uma confirmação com cada comando exato, na ordem;
+Enter executa, Esc cancela. Abrindo só apps, a Home se esconde depois (como ao abrir um app); comandos com
+`esperar` mostram a resposta no topo da Home; erros aparecem como aviso.
+Edite em Configurações → Ações rápidas (nome, ícone, ordem, passos de app ou de comando, restaurar as padrão).
+
+Cada ação: `nome`, `icone` (um emoji; `Win+.` abre o seletor) e `passos`. Cada passo:
+| Campo | Uso |
+|---|---|
+| `nome` | texto na confirmação e na dica do botão |
+| `app` | AppID do menu Iniciar (como nos grupos de apps) |
+| `editor` | `vscode` · `intellij` · `androidStudio`: encontrado como no painel Projetos (sobrevive a atualizações da IDE) |
+| `caminho`, `args` | programa, pasta ou documento e argumentos; aceitam `%VARIAVEIS%` |
+| `esperar` | `true`: roda escondido, espera até 15 s e mostra a saída (ex.: `adb connect`) |
+
+`{pastaProjetos}` em `caminho` ou `args` é trocado por cada pasta de `projetos.pastas` (o passo se repete por pasta).
+Padrão: **Dia de trabalho** (VS Code, IntelliJ, Teams, Outlook, Edge), **Conectar TV** (`adb connect 192.168.15.11:5555`)
+e **Abrir projetos** (pasta no Explorador e no Terminal).
+
 ## Painéis (`paineis`)
 Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas) e `titulo` (opcional).
 - `id: "boasVindas"`: saudação, hora e data.
@@ -98,6 +117,7 @@ Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura`
 - `id: "curiosidade"`: curiosidades do dia.
 - `id: "projetos"`: projetos recentes.
 - `id: "tarefas"`: tarefas.
+- `id: "acoes"`: ações rápidas.
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
 - Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.
 

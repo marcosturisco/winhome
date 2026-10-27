@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas;
+    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -58,6 +58,7 @@ public sealed class PainelConfiguracoes
             if (_expCuriosidades is not null) _expCuriosidades.Content = ConteudoCuriosidades();
             if (_expProjetos is not null) _expProjetos.Content = ConteudoProjetos();
             if (_expTarefas is not null) _expTarefas.Content = ConteudoTarefas();
+            if (_expAcoes is not null) _expAcoes.Content = ConteudoAcoes();
         };
 
         var cabecalho = new StackPanel
@@ -129,6 +130,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expCuriosidades = Secao("Curiosidades", ConteudoCuriosidades()));
         _secoes.Children.Add(_expProjetos = Secao("Projetos", ConteudoProjetos()));
         _secoes.Children.Add(_expTarefas = Secao("Tarefas", ConteudoTarefas()));
+        _secoes.Children.Add(_expAcoes = Secao("Ações rápidas", ConteudoAcoes()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
         _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
     }
@@ -447,6 +449,114 @@ public sealed class PainelConfiguracoes
             pasta);
     }
 
+    UIElement ConteudoAcoes()
+    {
+        var pilha = Pilha(
+            Alternador("Mostrar as ações rápidas na Home", _ed.Exibido(Config.PainelAcoes), v => _ed.Exibir(Config.PainelAcoes, v)),
+            new TextBlock
+            {
+                Text = "Cada ação executa os passos em ordem e sempre pede confirmação antes, mostrando o comando exato. " +
+                       $"Nos comandos, {Servicos.ServicoAcoes.MarcaPasta} vira cada pasta de Projetos.",
+                TextWrapping = TextWrapping.Wrap,
+                Opacity = 0.6,
+                FontSize = 12,
+            });
+
+        var lista = C.AcoesRapidas;
+        for (int i = 0; i < lista.Count; i++)
+        {
+            var acao = lista[i];
+            var icone = new TextBox { Text = acao.Icone, Width = 56, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            ToolTipService.SetToolTip(icone, "Ícone (um emoji; Win+. abre o seletor de emojis)");
+            icone.TextChanged += (_, _) => _ed.Alterar(c => acao.Icone = icone.Text);
+            var nome = new TextBox { Text = acao.Nome, PlaceholderText = "Nome da ação", VerticalAlignment = VerticalAlignment.Center };
+            nome.TextChanged += (_, _) => _ed.Alterar(c => acao.Nome = nome.Text);
+
+            var bloco = Pilha(Linha(icone, nome, null,
+                Icone("\uE70E", "Subir", i > 0, () => _ed.MoverAcao(acao, -1)),
+                Icone("\uE70D", "Descer", i < lista.Count - 1, () => _ed.MoverAcao(acao, +1)),
+                Icone("\uE74D", "Remover ação", true, () => _ed.RemoverAcao(acao))));
+            bloco.Spacing = 6;
+
+            var passos = new StackPanel { Spacing = 4, Margin = new Thickness(24, 0, 0, 0) };
+            for (int j = 0; j < acao.Passos.Count; j++)
+            {
+                var passo = acao.Passos[j];
+                var textos = new StackPanel
+                {
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Children =
+                    {
+                        new TextBlock { Text = string.IsNullOrWhiteSpace(passo.Nome) ? "(sem nome)" : passo.Nome, TextTrimming = TextTrimming.CharacterEllipsis },
+                        new TextBlock
+                        {
+                            Text = Servicos.ServicoAcoes.Descrever(passo),
+                            FontSize = 11,
+                            Opacity = 0.6,
+                            TextTrimming = TextTrimming.CharacterEllipsis,
+                        },
+                    },
+                };
+                ToolTipService.SetToolTip(textos, Servicos.ServicoAcoes.Descrever(passo));
+                var glifo = passo.App is not null || passo.Editor is not null ? "\uE7C4" : "\uE756";
+                passos.Children.Add(Linha(new FontIcon { Glyph = glifo, FontSize = 14, VerticalAlignment = VerticalAlignment.Center }, textos, null,
+                    Icone("\uE70E", "Subir", j > 0, () => _ed.MoverPasso(acao, passo, -1)),
+                    Icone("\uE70D", "Descer", j < acao.Passos.Count - 1, () => _ed.MoverPasso(acao, passo, +1)),
+                    Icone("\uE711", "Remover passo", true, () => _ed.RemoverPasso(acao, passo))));
+            }
+            passos.Children.Add(BuscaDeInstalados("Adicionar app", app =>
+                _ed.AdicionarPasso(acao, new PassoAcao { Nome = app.Nome, App = app.App, Caminho = app.App is null ? app.Caminho : null })));
+            passos.Children.Add(BotaoNovoComando(acao));
+
+            bloco.Children.Add(passos);
+            bloco.Margin = new Thickness(0, 8, 0, 0);
+            pilha.Children.Add(bloco);
+        }
+
+        var nova = new Button { Content = "+ Nova ação" };
+        nova.Click += (_, _) => _ed.NovaAcao();
+
+        var restaurar = new Button { Content = "Restaurar as ações padrão…" };
+        var confirmar = new Button { Content = "Substituir as minhas ações pelas padrão" };
+        var flyout = new Flyout { Content = confirmar };
+        confirmar.Click += (_, _) =>
+        {
+            flyout.Hide();
+            _ed.RestaurarAcoesPadrao();
+        };
+        restaurar.Flyout = flyout;
+
+        pilha.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { nova, restaurar } });
+        return pilha;
+    }
+
+    // Passo de comando: programa + argumentos; "esperar" roda escondido e mostra a saída na Home.
+    Button BotaoNovoComando(AcaoRapida acao)
+    {
+        var nome = new TextBox { Header = "Nome do passo", PlaceholderText = "Ex.: Conectar ao box" };
+        var programa = new TextBox { Header = "Programa, pasta ou documento", PlaceholderText = "Ex.: adb, wt.exe, C:\\...\\app.exe" };
+        var args = new TextBox { Header = "Argumentos (opcional)", PlaceholderText = $"Ex.: connect 192.168.15.13:5555  ou  -d \"{Servicos.ServicoAcoes.MarcaPasta}\"" };
+        var esperar = new CheckBox { Content = "Esperar e mostrar o resultado (comandos de terminal)" };
+        var adicionar = new Button { Content = "Adicionar passo", Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
+        var flyout = new Flyout
+        {
+            Content = new StackPanel { Spacing = 10, Width = 380, Children = { nome, programa, args, esperar, adicionar } },
+        };
+        adicionar.Click += (_, _) =>
+        {
+            if (string.IsNullOrWhiteSpace(programa.Text)) { programa.Focus(FocusState.Programmatic); return; }
+            flyout.Hide();
+            _ed.AdicionarPasso(acao, new PassoAcao
+            {
+                Nome = string.IsNullOrWhiteSpace(nome.Text) ? programa.Text.Trim() : nome.Text.Trim(),
+                Caminho = programa.Text.Trim(),
+                Args = string.IsNullOrWhiteSpace(args.Text) ? null : args.Text.Trim(),
+                Esperar = esperar.IsChecked == true,
+            });
+        };
+        return new Button { Content = "+ Adicionar comando…", Flyout = flyout };
+    }
+
     UIElement ConteudoPaineis()
     {
         var pilha = Pilha(new TextBlock
@@ -573,7 +683,7 @@ public sealed class PainelConfiguracoes
                 Icone("\uE74D", "Remover do grupo", true, () => _ed.RemoverApp(grupo, app))));
         }
 
-        pilha.Children.Add(BuscaDeInstalados(grupo));
+        pilha.Children.Add(BuscaDeInstalados("Adicionar app instalado", app => _ed.AdicionarApp(grupo, app)));
         var arquivo = new Button { Content = "Adicionar programa ou arquivo…" };
         arquivo.Click += async (_, _) =>
         {
@@ -585,12 +695,12 @@ public sealed class PainelConfiguracoes
         return pilha;
     }
 
-    // Caixa com sugestões dos apps do menu Iniciar; Enter ou clique adiciona ao grupo.
-    UIElement BuscaDeInstalados(string grupo)
+    // Caixa com sugestões dos apps do menu Iniciar; Enter ou clique entrega o app escolhido.
+    UIElement BuscaDeInstalados(string titulo, Action<AppItem> adicionar)
     {
         var caixa = new AutoSuggestBox
         {
-            Header = "Adicionar app instalado",
+            Header = titulo,
             PlaceholderText = "Digite o nome do app…",
             QueryIcon = new SymbolIcon(Symbol.Add),
         };
@@ -612,7 +722,7 @@ public sealed class PainelConfiguracoes
             if (escolhido is null) return;
             s.Text = "";
             s.ItemsSource = null;
-            _ed.AdicionarApp(grupo, escolhido.ParaItem());
+            adicionar(escolhido.ParaItem());
         };
         return caixa;
     }

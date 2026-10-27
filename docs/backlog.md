@@ -9,8 +9,18 @@
     vários monitores — botões [⚙][—][❐][✕], faixa do topo arrasta a Home para qualquer monitor (mesmo ocupando a tela),
     último monitor e modo lembrados em `%APPDATA%\WinHome\estado.json`.
 
-## Próximo passo
-- **v0.4-c — Ações rápidas** (decisões abaixo). Fazer numa branch `v0.4-c-acoes` e só juntar na `main` depois do teste.
+## Em andamento
+### v0.4-c — Ações rápidas (código pronto, **falta testar**)
+- Branch local `v0.4-c-acoes` (não enviada ao GitHub).
+- Painel `acoes` + `acoesRapidas` na config (passos `app`, `editor`, `caminho`/`args`, `esperar`, `{pastaProjetos}`);
+  confirmação com os comandos exatos; seção Configurações → Ações rápidas.
+- **Para retomar:** `git switch v0.4-c-acoes`, `.\scripts\executar.ps1` e testar:
+  1. Configurações → Ações rápidas → ligar "Mostrar as ações rápidas na Home".
+  2. Cada botão abre a confirmação com os comandos exatos; Cancelar/Esc não executa nada.
+  3. Dia de trabalho: abre os 5 apps e a Home se esconde. Abrir projetos: Explorador + Terminal na pasta.
+  4. Conectar TV: mostra a resposta do adb no topo da Home (TV ligada ou desligada).
+  5. Configurações: renomear, trocar ícone, mover, adicionar app/comando, remover, restaurar as padrão.
+  - Aprovado: merge na `main`, commit de docs e push.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
 | Etapa | O quê | Decisões |

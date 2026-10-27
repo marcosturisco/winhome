@@ -93,9 +93,39 @@
     "mostrarConcluidas": true      // concluídas aparecem riscadas no fim da lista
   },
 
+  // Painel "acoes": cada ação executa os passos em ordem, SEMPRE depois de confirmar (mostrando o comando exato).
+  // Passo: "app" (AppID), "editor" (vscode, intellij, androidStudio — detectado como em Projetos)
+  // ou "caminho" + "args". "{pastaProjetos}" repete o passo para cada pasta de "projetos.pastas".
+  // "esperar": true roda escondido, espera até 15 s e mostra a saída (ex.: adb).
+  "acoesRapidas": [
+    {
+      "nome": "Dia de trabalho", "icone": "💼",
+      "passos": [
+        { "nome": "VS Code", "editor": "vscode" },
+        { "nome": "IntelliJ IDEA", "editor": "intellij" },
+        { "nome": "Teams", "app": "MSTeams_8wekyb3d8bbwe!MSTeams" },
+        { "nome": "Outlook", "app": "Microsoft.OutlookForWindows_8wekyb3d8bbwe!Microsoft.OutlookforWindows" },
+        { "nome": "Edge", "app": "MSEdge" }
+      ]
+    },
+    {
+      "nome": "Conectar TV", "icone": "📺",
+      "passos": [
+        { "nome": "Conectar à TV pelo ADB", "caminho": "adb", "args": "connect 192.168.15.11:5555", "esperar": true }
+      ]
+    },
+    {
+      "nome": "Abrir projetos", "icone": "📁",
+      "passos": [
+        { "nome": "Pasta no Explorador", "caminho": "explorer.exe", "args": "\"{pastaProjetos}\"" },
+        { "nome": "Pasta no Terminal", "caminho": "wt.exe", "args": "-d \"{pastaProjetos}\"" }
+      ]
+    }
+  ],
+
   // Painéis em ordem de exibição. "visivel" liga/desliga o painel.
   // Ids especiais: "boasVindas" (saudação, hora, clima, cotações), "mensagem" (mensagem do dia),
-  // "curiosidade" (curiosidades do dia), "projetos" (projetos recentes) e "tarefas";
+  // "curiosidade" (curiosidades do dia), "projetos" (projetos recentes), "tarefas" e "acoes" (ações rápidas);
   // os demais ids são grupos de apps definidos em "grupos".
   "paineis": [
     { "id": "boasVindas", "visivel": true, "largura": 6 },

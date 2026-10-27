@@ -80,7 +80,7 @@ public sealed class MainWindow : Window
 
         _config = new ConfigService(DispatcherQueue);
         _editor = new EditorConfig(_config);
-        _acoes = new Acoes(AbrirApp, _editor, ResultadoAbertura, EscolherPasta);
+        _acoes = new Acoes(AbrirApp, _editor, ResultadoAbertura, EscolherPasta, Informar);
         _configuracoes = new Telas.PainelConfiguracoes(_editor, _hwnd, AbrirConfig, Sair);
         // Com as Configurações abertas, a Home encolhe para o lado em vez de ficar coberta.
         _configuracoes.AbertoMudou += aberto =>
@@ -505,8 +505,17 @@ public sealed class MainWindow : Window
         }
     }
 
+    void Informar(string texto)
+    {
+        _aviso.Severity = InfoBarSeverity.Informational;
+        _aviso.Title = "";
+        _aviso.Message = texto;
+        _aviso.IsOpen = true;
+    }
+
     void MostrarAviso(List<string> erros)
     {
+        _aviso.Severity = InfoBarSeverity.Warning;
         _aviso.Title = erros.Count > 0 ? "Atenção" : "";
         _aviso.Message = string.Join("\n", erros);
         _aviso.IsOpen = erros.Count > 0;
