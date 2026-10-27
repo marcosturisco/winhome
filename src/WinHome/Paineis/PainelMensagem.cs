@@ -38,7 +38,8 @@ public static class PainelMensagem
         };
     }
 
-    public static UIElement Criar(Mensagens config, Estilo estilo)
+    // "outra" = botão ↻ do cabeçalho do cartão (lugar fixo, criado pelo HomeBuilder).
+    public static UIElement Criar(Mensagens config, Estilo estilo, Button outra)
     {
         var texto = new TextBlock
         {
@@ -66,23 +67,8 @@ public static class PainelMensagem
         }
         Mostrar();
 
-        var outra = new Button
-        {
-            Content = new FontIcon { Glyph = "", FontSize = 14 },
-            Padding = new Thickness(8),
-            HorizontalAlignment = HorizontalAlignment.Right,
-        };
-        ToolTipService.SetToolTip(outra, "Outra mensagem");
         outra.Click += (_, _) => { _extra++; Mostrar(); };
 
-        var rodape = new Grid();
-        rodape.ColumnDefinitions.Add(new ColumnDefinition());
-        rodape.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(outra, 1);
-        autor.VerticalAlignment = VerticalAlignment.Center;
-        rodape.Children.Add(autor);
-        rodape.Children.Add(outra);
-
-        return new StackPanel { Spacing = 12, Children = { texto, rodape } };
+        return new StackPanel { Spacing = 12, Children = { texto, autor } };
     }
 }

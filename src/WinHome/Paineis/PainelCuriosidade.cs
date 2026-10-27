@@ -14,7 +14,8 @@ public static class PainelCuriosidade
 {
     static int _extra; // quantas vezes o usuário pediu outro fato nesta sessão
 
-    public static UIElement Criar(Curiosidades opcoes, Estilo estilo)
+    // "outro" = botão ↻ do cabeçalho do cartão (lugar fixo, criado pelo HomeBuilder).
+    public static UIElement Criar(Curiosidades opcoes, Estilo estilo, Button outro)
     {
         var foto = new Border
         {
@@ -27,13 +28,6 @@ public static class PainelCuriosidade
         var quando = new TextBlock { FontFamily = estilo.Fonte, FontSize = 13, Foreground = estilo.Destaque, FontWeight = FontWeights.SemiBold };
         var texto = new TextBlock { FontFamily = estilo.Fonte, FontSize = 16, TextWrapping = TextWrapping.Wrap, Text = "Carregando…" };
         var ler = new HyperlinkButton { Content = "Ler na Wikipédia", Padding = new Thickness(0), Visibility = Visibility.Collapsed };
-        var outro = new Button
-        {
-            Content = new FontIcon { Glyph = "", FontSize = 14 },
-            Padding = new Thickness(8),
-            HorizontalAlignment = HorizontalAlignment.Right,
-        };
-        ToolTipService.SetToolTip(outro, "Outra curiosidade");
 
         List<Fato> fatos = [];
         string? link = null;
@@ -92,16 +86,9 @@ public static class PainelCuriosidade
 
         outro.Click += (_, _) => { _extra++; Mostrar(); };
 
-        var rodape = new Grid();
-        rodape.ColumnDefinitions.Add(new ColumnDefinition());
-        rodape.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        ler.VerticalAlignment = VerticalAlignment.Center;
-        Grid.SetColumn(outro, 1);
-        rodape.Children.Add(ler);
-        rodape.Children.Add(outro);
 
         var fonte = new TextBlock { Text = "Fonte: Wikipédia (CC BY-SA)", FontSize = 11, Opacity = 0.5, FontFamily = estilo.Fonte };
-        var direita = new StackPanel { Spacing = 8, Children = { quando, texto, rodape, fonte } };
+        var direita = new StackPanel { Spacing = 8, Children = { quando, texto, ler, fonte } };
 
         var grade = new Grid { ColumnSpacing = 16 };
         grade.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

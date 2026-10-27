@@ -1,7 +1,9 @@
 using System.Globalization;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using WinHome.Configuracao;
 using WinHome.Servicos;
 
@@ -26,7 +28,8 @@ public static class HomeBuilder
                 usado = 0;
             }
 
-            var cartao = Cartao(painel.Titulo, Conteudo(painel, config, estilo, acoes), estilo);
+            var (conteudo, acao) = Conteudo(painel, config, estilo, acoes);
+            var cartao = Cartao(painel.Titulo, conteudo, estilo, acao);
             Grid.SetColumn(cartao, usado);
             Grid.SetColumnSpan(cartao, largura);
             linha.Children.Add(cartao);
@@ -72,21 +75,49 @@ public static class HomeBuilder
         return pilha;
     }
 
-    static UIElement Conteudo(Painel painel, Config config, Estilo estilo, Acoes acoes)
+    // Conteúdo do painel e, opcionalmente, um botão para o cabeçalho (ex.: ↻ das mensagens e curiosidades).
+    static (UIElement Conteudo, Button? Acao) Conteudo(Painel painel, Config config, Estilo estilo, Acoes acoes)
     {
-        if (painel.Id == Config.PainelBoasVindas) return PainelBoasVindas.Criar(config.Nome, config.BoasVindas, estilo);
-        if (painel.Id == Config.PainelMensagem) return PainelMensagem.Criar(config.Mensagens, estilo);
-        if (painel.Id == Config.PainelCuriosidade) return PainelCuriosidade.Criar(config.Curiosidades, estilo);
-        if (painel.Id == Config.PainelProjetos) return PainelProjetos.Criar(config.Projetos, estilo, acoes);
-        if (painel.Id == Config.PainelTarefas) return PainelTarefas.Criar(config.Tarefas, estilo);
-        if (config.Grupos.TryGetValue(painel.Id, out var apps)) return PainelApps.Criar(apps, painel.Id, estilo, acoes);
-        return new TextBlock
+        if (painel.Id == Config.PainelBoasVindas) return (PainelBoasVindas.Criar(config.Nome, config.BoasVindas, estilo), null);
+        if (painel.Id == Config.PainelMensagem)
+        {
+            var outra = BotaoCabecalho("", "Outra mensagem");
+            return (PainelMensagem.Criar(config.Mensagens, estilo, outra), outra);
+        }
+        if (painel.Id == Config.PainelCuriosidade)
+        {
+            var outra = BotaoCabecalho("", "Outra curiosidade");
+            return (PainelCuriosidade.Criar(config.Curiosidades, estilo, outra), outra);
+        }
+        if (painel.Id == Config.PainelProjetos) return (PainelProjetos.Criar(config.Projetos, estilo, acoes), null);
+        if (painel.Id == Config.PainelTarefas) return (PainelTarefas.Criar(config.Tarefas, estilo), null);
+        if (config.Grupos.TryGetValue(painel.Id, out var apps)) return (PainelApps.Criar(apps, painel.Id, estilo, acoes), null);
+        return (new TextBlock
         {
             Text = $"Painel \"{painel.Id}\" não existe ainda e não há grupo com esse nome em \"grupos\".",
             TextWrapping = TextWrapping.Wrap,
             Opacity = 0.7,
             FontFamily = estilo.Fonte,
+        }, null);
+    }
+
+    // Botão discreto do canto do cabeçalho: lugar fixo, que não depende do tamanho do conteúdo.
+    static Button BotaoCabecalho(string glifo, string dica)
+    {
+        var botao = new Button
+        {
+            Content = new FontIcon { Glyph = glifo, FontSize = 14 },
+            Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+            BorderThickness = new Thickness(0),
+            Width = 36,
+            Height = 36,
+            Padding = new Thickness(0),
+            Margin = new Thickness(0, -8, -10, -8), // não aumenta a altura do cabeçalho
+            VerticalAlignment = VerticalAlignment.Center,
         };
+        ToolTipService.SetToolTip(botao, dica);
+        AutomationProperties.SetName(botao, dica);
+        return botao;
     }
 
     static Grid NovaLinha(Estilo estilo)
@@ -97,19 +128,30 @@ public static class HomeBuilder
         return grid;
     }
 
-    static Border Cartao(string? titulo, UIElement conteudo, Estilo estilo)
+    static Border Cartao(string? titulo, UIElement conteudo, Estilo estilo, Button? acao = null)
     {
         var pilha = new StackPanel { Spacing = 12 };
-        if (!string.IsNullOrWhiteSpace(titulo))
+        if (!string.IsNullOrWhiteSpace(titulo) || acao is not null)
         {
-            pilha.Children.Add(new TextBlock
+            var cabecalho = new Grid();
+            cabecalho.ColumnDefinitions.Add(new ColumnDefinition());
+            cabecalho.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            cabecalho.Children.Add(new TextBlock
             {
-                Text = titulo,
+                Text = titulo ?? "",
                 FontFamily = estilo.Fonte,
                 FontSize = 18,
                 FontWeight = FontWeights.SemiBold,
                 Foreground = estilo.Destaque,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = VerticalAlignment.Center,
             });
+            if (acao is not null)
+            {
+                Grid.SetColumn(acao, 1);
+                cabecalho.Children.Add(acao);
+            }
+            pilha.Children.Add(cabecalho);
         }
         pilha.Children.Add(conteudo);
 
