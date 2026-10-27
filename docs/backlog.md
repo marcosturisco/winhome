@@ -15,6 +15,10 @@
     YouTube pelo player oficial num WebView2 — serviço autorizado); botão ↻ fixo no cabeçalho de Mensagem/Curiosidades.
 - **Atalhos nos painéis** ✅ (27/10/2026): ✥ mover arrastando (ou menu início/trás/frente/fim), borda direita ajusta a
   largura em colunas (duplo clique ocupa o espaço livre), ✕ oculta com Desfazer — tudo sem abrir as Configurações.
+- **App ancorado** ✅ (27/10/2026): painel com a janela real de um programa posicionada sobre ele (`appsAncorados`),
+  vários lado a lado; IntelliJ, VS Code, Android Studio, Terminal, "Escolher uma janela aberta…" e "Outro app instalado…";
+  acompanha rolagem/✥/↔/altura/monitor, recorta o que sai da tela, fica logo acima da Home, minimiza junto; Soltar ou
+  sair devolve a janela. Sem `SetParent`/dono (seguro se o WinHome cair). `WinHome.exe --sair` = saída normal (scripts).
 
 ## Próximo passo
 - **v0.4-d — Dispositivos** (decisões abaixo). Fazer numa branch `v0.4-d-dispositivos` e só juntar na `main` depois do teste.
