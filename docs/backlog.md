@@ -36,8 +36,8 @@
 ## Em andamento: v1.0 — Acabamento (ordem combinada com o usuário)
 1. **Backup e restauração** ✅ (27/10/2026): Configurações → Backup (.zip com config, tarefas, vídeos; endereços da
    agenda só se marcado; ao restaurar mantém os deste PC; reserva em `antes-da-restauracao-<data>`).
-2. **Temas prontos** — próximo passo.
-3. **Build Release + pacote de instalação** para outro notebook: `.zip` self-contained + `instalar.ps1` (sem
+2. **Temas prontos** ✅ (27/10/2026): galeria em Aparência (Padrão, Grafite, Oceano, Claro, Sépia, Alto contraste) + "Salvar o visual atual como tema" (`temasSalvos`); aplica só o visual.
+3. **Build Release + pacote de instalação** — próximo passo para outro notebook: `.zip` self-contained + `instalar.ps1` (sem
    administrador, `%LOCALAPPDATA%\WinHome`, atalho no menu Iniciar, iniciar com o Windows opcional, restaurar backup,
    avisar o que falta: VLC, adb/scrcpy, IDEs) + desinstalar.
 
