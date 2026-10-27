@@ -71,11 +71,45 @@ public sealed class EditorConfig(ConfigService config)
         return id;
     }
 
-    public void AdicionarRelogio() => Estrutura(c =>
+    // Painéis especiais (não são grupos de apps): no máximo um de cada.
+    public static readonly (string Id, string Nome)[] Especiais =
+    [
+        (Config.PainelBoasVindas, "Boas-vindas (saudação, hora e data)"),
+        (Config.PainelMensagem, "Mensagem do dia"),
+    ];
+
+    public bool Tem(string id) => C.Paineis.Any(p => p.Id == id);
+
+    public bool Exibido(string id) => C.Paineis.Any(p => p.Id == id && p.Visivel);
+
+    // Toggle de exibição de um painel especial: ligar adiciona o painel (se ainda não existe) ou o reexibe.
+    public void Exibir(string id, bool exibir)
     {
-        if (c.Paineis.All(p => p.Id != "relogio"))
-            c.Paineis.Insert(0, new Painel { Id = "relogio", Largura = c.Tema.Colunas });
+        if (exibir && !Tem(id))
+        {
+            AdicionarEspecial(id);
+            return;
+        }
+        Estrutura(c =>
+        {
+            foreach (var p in c.Paineis.Where(p => p.Id == id)) p.Visivel = exibir;
+        });
+    }
+
+    public void AdicionarEspecial(string id) => Estrutura(c =>
+    {
+        if (c.Paineis.Any(p => p.Id == id)) return;
+        if (id == Config.PainelBoasVindas)
+            c.Paineis.Insert(0, new Painel { Id = id, Largura = c.Tema.Colunas }); // topo, largura total
+        else if (id == Config.PainelMensagem)
+            c.Paineis.Add(new Painel { Id = id, Titulo = "Mensagem do dia", Largura = Math.Max(1, c.Tema.Colunas / 2) });
     });
+
+    public void AdicionarFrase() => Estrutura(c => c.Mensagens.Minhas.Add(new Frase()));
+
+    public void RemoverFrase(Frase frase) => Estrutura(c => c.Mensagens.Minhas.Remove(frase));
+
+    public void DefinirVisivel(Painel painel, bool visivel) => Estrutura(_ => painel.Visivel = visivel);
 
     public void MoverPainel(Painel painel, int delta) => Estrutura(c =>
     {

@@ -74,7 +74,8 @@ public static class HomeBuilder
 
     static UIElement Conteudo(Painel painel, Config config, Estilo estilo, Acoes acoes)
     {
-        if (painel.Id == "relogio") return PainelRelogio.Criar(config.Nome, estilo);
+        if (painel.Id == Config.PainelBoasVindas) return PainelBoasVindas.Criar(config.Nome, config.BoasVindas, estilo);
+        if (painel.Id == Config.PainelMensagem) return PainelMensagem.Criar(config.Mensagens, estilo);
         if (config.Grupos.TryGetValue(painel.Id, out var apps)) return PainelApps.Criar(apps, painel.Id, estilo, acoes);
         return new TextBlock
         {

@@ -11,8 +11,40 @@ public sealed class Config
     public bool MostrarBusca { get; set; } = true;
     public bool IconeNaBandeja { get; set; } = true;
     public Tema Tema { get; set; } = new();
+    public BoasVindas BoasVindas { get; set; } = new();
+    public Mensagens Mensagens { get; set; } = new();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
+
+    // Ids dos painéis que não são grupos de apps.
+    public const string PainelBoasVindas = "boasVindas";
+    public const string PainelMensagem = "mensagem";
+
+    // Ajustes de configs antigas, feitos ao carregar (a gravação seguinte já sai no formato novo).
+    public void Migrar()
+    {
+        foreach (var p in Paineis.Where(p => p.Id == "relogio")) p.Id = PainelBoasVindas; // até a v0.2
+    }
+}
+
+// Painel do topo: saudação, hora e data (e, mais adiante, clima e cotações).
+public sealed class BoasVindas
+{
+    public bool MostrarSaudacao { get; set; } = true;
+    public bool MostrarData { get; set; } = true;
+    public bool MostrarSegundos { get; set; }
+}
+
+public sealed class Mensagens
+{
+    public string Fonte { get; set; } = "ambas"; // "ambas", "embutidas" ou "minhas"
+    public List<Frase> Minhas { get; set; } = [];
+}
+
+public sealed class Frase
+{
+    public string Texto { get; set; } = "";
+    public string Autor { get; set; } = "";
 }
 
 public sealed class Tema

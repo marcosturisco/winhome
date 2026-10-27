@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expPaineis, _expApps;
+    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -53,6 +53,8 @@ public sealed class PainelConfiguracoes
             if (!Aberto) return;
             if (_expPaineis is not null) _expPaineis.Content = ConteudoPaineis();
             if (_expApps is not null) _expApps.Content = ConteudoApps();
+            if (_expMensagens is not null) _expMensagens.Content = ConteudoMensagens();
+            if (_expBoasVindas is not null) _expBoasVindas.Content = ConteudoBoasVindas();
         };
 
         var cabecalho = new StackPanel
@@ -119,6 +121,8 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Clear();
         _secoes.Children.Add(Secao("Geral", ConteudoGeral()));
         _secoes.Children.Add(Secao("Aparência", ConteudoAparencia()));
+        _secoes.Children.Add(_expBoasVindas = Secao("Boas-vindas", ConteudoBoasVindas()));
+        _secoes.Children.Add(_expMensagens = Secao("Mensagens", ConteudoMensagens()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
         _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
     }
@@ -190,6 +194,45 @@ public sealed class PainelConfiguracoes
             Deslizante("Colunas da grade", 1, 12, 1, t.Colunas, v => _ed.Alterar(c => c.Tema.Colunas = (int)v)));
     }
 
+    UIElement ConteudoBoasVindas() => Pilha(
+        Alternador("Mostrar o painel de boas-vindas na Home", _ed.Exibido(Config.PainelBoasVindas),
+            v => _ed.Exibir(Config.PainelBoasVindas, v)),
+        new TextBlock
+        {
+            Text = "Painel do topo da Home. Clima e cotações chegam na próxima etapa.",
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.7,
+        },
+        Alternador("Mostrar a saudação", C.BoasVindas.MostrarSaudacao, v => _ed.Alterar(c => c.BoasVindas.MostrarSaudacao = v)),
+        Alternador("Mostrar a data", C.BoasVindas.MostrarData, v => _ed.Alterar(c => c.BoasVindas.MostrarData = v)),
+        Alternador("Mostrar os segundos", C.BoasVindas.MostrarSegundos, v => _ed.Alterar(c => c.BoasVindas.MostrarSegundos = v)));
+
+    UIElement ConteudoMensagens()
+    {
+        var pilha = Pilha(
+            Alternador("Mostrar a mensagem do dia na Home", _ed.Exibido(Config.PainelMensagem),
+                v => _ed.Exibir(Config.PainelMensagem, v)),
+            Escolha("Frases exibidas",
+                [("Minhas e as do WinHome", "ambas"), ("Só as do WinHome", "embutidas"), ("Só as minhas", "minhas")],
+                C.Mensagens.Fonte, v => _ed.Alterar(c => c.Mensagens.Fonte = v)),
+            new TextBlock { Text = "Minhas frases", Margin = new Thickness(0, 4, 0, 0) });
+
+        foreach (var frase in C.Mensagens.Minhas)
+        {
+            var texto = new TextBox { Text = frase.Texto, PlaceholderText = "Frase", TextWrapping = TextWrapping.Wrap };
+            texto.TextChanged += (_, _) => _ed.Alterar(c => frase.Texto = texto.Text);
+            var autor = new TextBox { Text = frase.Autor, PlaceholderText = "Autor", Width = 130, VerticalAlignment = VerticalAlignment.Top };
+            autor.TextChanged += (_, _) => _ed.Alterar(c => frase.Autor = autor.Text);
+            var linha = Linha(new Border(), texto, autor, Icone("", "Remover frase", true, () => _ed.RemoverFrase(frase)));
+            pilha.Children.Add(linha);
+        }
+
+        var nova = new Button { Content = "+ Nova frase" };
+        nova.Click += (_, _) => _ed.AdicionarFrase();
+        pilha.Children.Add(nova);
+        return pilha;
+    }
+
     UIElement ConteudoPaineis()
     {
         var pilha = Pilha(new TextBlock
@@ -202,16 +245,16 @@ public sealed class PainelConfiguracoes
         for (int i = 0; i < C.Paineis.Count; i++)
         {
             var painel = C.Paineis[i];
-            var ehRelogio = painel.Id == "relogio";
+            var especial = EditorConfig.Especiais.FirstOrDefault(e => e.Id == painel.Id).Nome;
 
             var visivel = new CheckBox { IsChecked = painel.Visivel, MinWidth = 0, VerticalAlignment = VerticalAlignment.Center };
             ToolTipService.SetToolTip(visivel, "Exibir este painel");
-            visivel.Click += (_, _) => _ed.Alterar(c => painel.Visivel = visivel.IsChecked == true);
+            visivel.Click += (_, _) => _ed.DefinirVisivel(painel, visivel.IsChecked == true);
 
             var titulo = new TextBox
             {
                 Text = painel.Titulo ?? "",
-                PlaceholderText = ehRelogio ? "Relógio (sem título)" : painel.Id,
+                PlaceholderText = especial is not null ? $"{especial} — sem título" : painel.Id,
                 VerticalAlignment = VerticalAlignment.Center,
             };
             titulo.TextChanged += (_, _) =>
@@ -239,20 +282,22 @@ public sealed class PainelConfiguracoes
             pilha.Children.Add(linha);
         }
 
-        var novo = new Button { Content = "+ Novo grupo de apps" };
-        novo.Click += (_, _) =>
+        // "+ Adicionar painel": grupo de apps novo ou um dos painéis especiais que ainda não estão na Home.
+        var menu = new MenuFlyout();
+        var grupo = new MenuFlyoutItem { Text = "Grupo de apps", Icon = new FontIcon { Glyph = "" } };
+        grupo.Click += (_, _) =>
         {
             _grupoApps = _ed.NovoGrupo();
             if (_expApps is not null) _expApps.IsExpanded = true;
         };
-        var acoes = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { novo } };
-        if (C.Paineis.All(p => p.Id != "relogio"))
+        menu.Items.Add(grupo);
+        foreach (var (id, nome) in EditorConfig.Especiais.Where(e => !_ed.Tem(e.Id)))
         {
-            var relogio = new Button { Content = "+ Relógio" };
-            relogio.Click += (_, _) => _ed.AdicionarRelogio();
-            acoes.Children.Add(relogio);
+            var item = new MenuFlyoutItem { Text = nome };
+            item.Click += (_, _) => _ed.AdicionarEspecial(id);
+            menu.Items.Add(item);
         }
-        pilha.Children.Add(acoes);
+        pilha.Children.Add(new DropDownButton { Content = "+ Adicionar painel", Flyout = menu });
         return pilha;
     }
 

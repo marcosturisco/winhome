@@ -38,12 +38,29 @@
     "colunas": 6                   // colunas da grade; cada painel ocupa "largura" colunas
   },
 
+  // Painel do topo (id "boasVindas").
+  "boasVindas": {
+    "mostrarSaudacao": true,
+    "mostrarData": true,
+    "mostrarSegundos": false
+  },
+
+  // Painel "mensagem": frase do dia. "fonte": "ambas", "embutidas" (do WinHome) ou "minhas".
+  "mensagens": {
+    "fonte": "ambas",
+    "minhas": [
+      // { "texto": "Minha frase", "autor": "Eu" }
+    ]
+  },
+
   // Painéis em ordem de exibição. "visivel" liga/desliga o painel.
-  // "relogio" é o relógio; os demais ids são grupos de apps definidos em "grupos".
+  // Ids especiais: "boasVindas" (saudação, hora e data) e "mensagem" (mensagem do dia);
+  // os demais ids são grupos de apps definidos em "grupos".
   "paineis": [
-    { "id": "relogio",  "visivel": true, "largura": 6 },
-    { "id": "trabalho", "visivel": true, "largura": 4, "titulo": "Trabalho" },
-    { "id": "pessoal",  "visivel": true, "largura": 2, "titulo": "Pessoal" }
+    { "id": "boasVindas", "visivel": true, "largura": 6 },
+    { "id": "trabalho",   "visivel": true, "largura": 4, "titulo": "Trabalho" },
+    { "id": "pessoal",    "visivel": true, "largura": 2, "titulo": "Pessoal" },
+    { "id": "mensagem",   "visivel": true, "largura": 3, "titulo": "Mensagem do dia" }
   ],
 
   // Cada app usa "app" (AppID do menu Iniciar; veja com Get-StartApps no PowerShell)

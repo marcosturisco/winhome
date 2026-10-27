@@ -33,10 +33,27 @@ editar o arquivo à mão também funciona: a Home recarrega ao salvar.
 | `espacamento` | distância entre painéis (px) | `16` |
 | `colunas` | colunas da grade (1 a 24) | `6` |
 
+## Boas-vindas (`boasVindas`)
+Painel do topo (`id: "boasVindas"`; configs antigas com `"relogio"` são convertidas ao carregar).
+| Opção | Valores | Padrão |
+|---|---|---|
+| `mostrarSaudacao` | "Bom dia, …" | `true` |
+| `mostrarData` | data por extenso | `true` |
+| `mostrarSegundos` | hora com segundos | `false` |
+
+## Mensagens (`mensagens`)
+Painel `id: "mensagem"`: uma frase por dia (a mesma o dia todo); o botão ↻ mostra outra.
+| Opção | Valores | Padrão |
+|---|---|---|
+| `fonte` | `ambas` · `embutidas` (lista do WinHome, `Assets/mensagens.json`) · `minhas` | `ambas` |
+| `minhas` | lista de `{ "texto": "...", "autor": "..." }` | `[]` |
+
 ## Painéis (`paineis`)
 Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas) e `titulo` (opcional).
-- `id: "relogio"`: saudação, hora e data.
+- `id: "boasVindas"`: saudação, hora e data.
+- `id: "mensagem"`: mensagem do dia.
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
+- Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.
 
 ## Grupos de apps (`grupos`)
 Cada grupo é uma lista de apps:

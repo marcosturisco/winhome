@@ -116,7 +116,9 @@ public sealed class ConfigService : IDisposable
         {
             if (!File.Exists(Arquivo)) return null;
             var texto = File.ReadAllText(Arquivo);
-            Atual = JsonSerializer.Deserialize<Config>(texto, Opcoes) ?? new Config();
+            var nova = JsonSerializer.Deserialize<Config>(texto, Opcoes) ?? new Config();
+            nova.Migrar();
+            Atual = nova;
             return null;
         }
         catch (JsonException ex)
