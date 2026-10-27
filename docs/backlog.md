@@ -13,6 +13,8 @@
   cada uma com descrição; edição em Configurações → Ações rápidas.
   - Extras pedidos na mesma etapa: painel **Vídeos** (VLC instalado dentro do painel via LibVLCSharp.WinUI;
     YouTube pelo player oficial num WebView2 — serviço autorizado); botão ↻ fixo no cabeçalho de Mensagem/Curiosidades.
+- **Atalhos nos painéis** ✅ (27/10/2026): ✥ mover arrastando (ou menu início/trás/frente/fim), borda direita ajusta a
+  largura em colunas (duplo clique ocupa o espaço livre), ✕ oculta com Desfazer — tudo sem abrir as Configurações.
 
 ## Próximo passo
 - **v0.4-d — Dispositivos** (decisões abaixo). Fazer numa branch `v0.4-d-dispositivos` e só juntar na `main` depois do teste.
