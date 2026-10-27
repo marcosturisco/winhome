@@ -33,18 +33,17 @@
   —, ✕) manda de volta, Win+D não a esconde. Sem truques no shell. Padrões adotados: atalho traz à frente; ícones da
   área de trabalho intocados; monitor = onde a Home está.
 
-## Em andamento: v1.0 — Acabamento (ordem combinada com o usuário)
+## v1.0 — Acabamento ✅ (27/10/2026)
 1. **Backup e restauração** ✅ (27/10/2026): Configurações → Backup (.zip com config, tarefas, vídeos; endereços da
    agenda só se marcado; ao restaurar mantém os deste PC; reserva em `antes-da-restauracao-<data>`).
 2. **Temas prontos** ✅ (27/10/2026): galeria em Aparência (Padrão, Grafite, Oceano, Claro, Sépia, Alto contraste) + "Salvar o visual atual como tema" (`temasSalvos`); aplica só o visual.
-3. **Build Release + pacote de instalação** — em teste para outro notebook: `.zip` self-contained + `instalar.ps1` (sem
+3. **Build Release + pacote de instalação** ✅ (testado em outro notebook): `.\scripts\empacotar.ps1` → `.zip` self-contained + `instalar.ps1` (sem
    administrador, `%LOCALAPPDATA%\WinHome`, atalho no menu Iniciar, iniciar com o Windows opcional, restaurar backup,
    avisar o que falta: VLC, adb/scrcpy, IDEs) + desinstalar.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
 | Etapa | O quê | Decisões |
 |---|---|---|
-| v1.0 | Acabamento | Backup/restauração da config, temas prontos, build Release/instalador simples |
 
 ## A verificar com o usuário
 - Ainda sem confirmação explícita: busca ao digitar ("calc" + Enter), menu de contexto nos apps,
