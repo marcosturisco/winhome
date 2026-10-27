@@ -34,6 +34,12 @@ editar o arquivo à mão também funciona: a Home recarrega ao salvar.
 | `espacamento` | distância entre painéis (px) | `16` |
 | `colunas` | colunas da grade (1 a 24) | `6` |
 
+### Temas prontos e salvos (`temasSalvos`)
+Configurações → Aparência → **Temas prontos**: Padrão, Grafite, Oceano, Claro, Sépia e Alto contraste, mais os seus.
+Clicar aplica só o visual (`modo`, `corDestaque`, `fundo`, `corFundo`, `fonte`, `cantos`, `opacidadePaineis`);
+`colunas`, `espacamento` e `tamanhoIcone` ficam como estão. **Salvar o visual atual como tema…** guarda em
+`temasSalvos` (`{ nome, tema }`; mesmo nome substitui); botão direito na miniatura remove.
+
 ## Boas-vindas (`boasVindas`)
 Painel do topo (`id: "boasVindas"`; configs antigas com `"relogio"` são convertidas ao carregar).
 | Opção | Valores | Padrão |

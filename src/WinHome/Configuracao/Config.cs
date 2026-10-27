@@ -12,6 +12,7 @@ public sealed class Config
     public bool IconeNaBandeja { get; set; } = true;
     public bool ModoAreaDeTrabalho { get; set; } // Home atrás das janelas, no lugar do papel de parede
     public Tema Tema { get; set; } = new();
+    public List<TemaSalvo> TemasSalvos { get; set; } = []; // "Salvar o visual atual como tema"
     public BoasVindas BoasVindas { get; set; } = new();
     public Mensagens Mensagens { get; set; } = new();
     public Curiosidades Curiosidades { get; set; } = new();

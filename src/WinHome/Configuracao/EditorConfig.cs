@@ -210,6 +210,17 @@ public sealed class EditorConfig(ConfigService config)
             c.AcoesRapidas.Add(padrao);
     });
 
+    public void AplicarTema(Tema modelo) => Estrutura(c => TemasProntos.Aplicar(modelo, c.Tema));
+
+    // Salva o visual atual com um nome (mesmo nome = substitui).
+    public void SalvarTemaAtual(string nome) => Estrutura(c =>
+    {
+        c.TemasSalvos.RemoveAll(t => string.Equals(t.Nome, nome, StringComparison.OrdinalIgnoreCase));
+        c.TemasSalvos.Add(new TemaSalvo { Nome = nome, Tema = TemasProntos.Copiar(c.Tema) });
+    });
+
+    public void RemoverTemaSalvo(TemaSalvo tema) => Estrutura(c => c.TemasSalvos.Remove(tema));
+
     public void NovoCalendario() => Estrutura(c => c.Agenda.Calendarios.Add(new Calendario
     {
         Nome = c.Agenda.Calendarios.Count == 0 ? "Minha agenda" : $"Agenda {c.Agenda.Calendarios.Count + 1}",

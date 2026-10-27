@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expDispositivos, _expAgenda;
+    Expander? _expAparencia, _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expDispositivos, _expAgenda;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -52,6 +52,7 @@ public sealed class PainelConfiguracoes
         {
             if (!Aberto) return;
             if (_expPaineis is not null) _expPaineis.Content = ConteudoPaineis();
+            if (_expAparencia is not null) _expAparencia.Content = ConteudoAparencia(); // tema aplicado: controles e galeria
             if (_expApps is not null) _expApps.Content = ConteudoApps();
             if (_expMensagens is not null) _expMensagens.Content = ConteudoMensagens();
             if (_expBoasVindas is not null) _expBoasVindas.Content = ConteudoBoasVindas();
@@ -127,7 +128,7 @@ public sealed class PainelConfiguracoes
     {
         _secoes.Children.Clear();
         _secoes.Children.Add(Secao("Geral", ConteudoGeral()));
-        _secoes.Children.Add(Secao("Aparência", ConteudoAparencia()));
+        _secoes.Children.Add(_expAparencia = Secao("Aparência", ConteudoAparencia()));
         _secoes.Children.Add(_expBoasVindas = Secao("Boas-vindas", ConteudoBoasVindas()));
         _secoes.Children.Add(_expMensagens = Secao("Mensagens", ConteudoMensagens()));
         _secoes.Children.Add(_expCuriosidades = Secao("Curiosidades", ConteudoCuriosidades()));
@@ -201,6 +202,8 @@ public sealed class PainelConfiguracoes
         fonte.TextSubmitted += (_, e) => _ed.Alterar(c => c.Tema.Fonte = e.Text);
 
         return Pilha(
+            GaleriaDeTemas(),
+            Subtitulo("Ajuste fino"),
             Escolha("Tema", [("Escuro", "escuro"), ("Claro", "claro"), ("Igual ao Windows", "sistema")],
                 t.Modo, v => _ed.Alterar(c => c.Tema.Modo = v)),
             BotaoCor("Cor de destaque", t.CorDestaque, v => _ed.Alterar(c => c.Tema.CorDestaque = v), prontas: true),
@@ -570,6 +573,97 @@ public sealed class PainelConfiguracoes
             pilha.Children.Add(adicionar);
         }
         return pilha;
+    }
+
+    // Temas prontos + os salvos pelo usuário; clique aplica (só o visual; colunas e espaçamento ficam).
+    UIElement GaleriaDeTemas()
+    {
+        var grade = new VariableSizedWrapGrid { Orientation = Orientation.Horizontal, ItemWidth = 132, ItemHeight = 104 };
+        foreach (var t in TemasProntos.Lista) grade.Children.Add(Miniatura(t, remover: null));
+        foreach (var t in C.TemasSalvos) grade.Children.Add(Miniatura(t, remover: () => _ed.RemoverTemaSalvo(t)));
+
+        var nome = new TextBox { PlaceholderText = "Nome do tema", Width = 220 };
+        var salvar = new Button { Content = "Salvar", Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
+        var flyout = new Flyout { Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { nome, salvar } } };
+        void Salvar()
+        {
+            var texto = nome.Text.Trim();
+            if (texto.Length == 0) return;
+            flyout.Hide();
+            nome.Text = "";
+            _ed.SalvarTemaAtual(texto);
+        }
+        salvar.Click += (_, _) => Salvar();
+        nome.KeyDown += (_, e) => { if (e.Key == VirtualKey.Enter) Salvar(); };
+        var salvarAtual = new Button { Content = "Salvar o visual atual como tema…", Flyout = flyout };
+
+        return Pilha(Subtitulo("Temas prontos"), grade, salvarAtual);
+    }
+
+    FrameworkElement Miniatura(TemaSalvo tema, Action? remover)
+    {
+        var t = tema.Tema;
+        var claro = t.Modo == "claro";
+        Color Hex(string h, Color padrao) => Estilo.Cor(h, padrao);
+        var fundo = t.Fundo switch
+        {
+            "cor" => Hex(t.CorFundo, Colors.Black),
+            "acrilico" => claro ? Color.FromArgb(255, 226, 236, 242) : Color.FromArgb(255, 24, 36, 44),
+            _ => claro ? Color.FromArgb(255, 243, 243, 243) : Color.FromArgb(255, 32, 32, 32), // Mica, Mica alt., imagem
+        };
+        var alfa = (byte)(Math.Clamp(t.OpacidadePaineis, 0, 1) * 255);
+        var painel = claro ? Color.FromArgb(alfa, 255, 255, 255) : Color.FromArgb(alfa, 44, 44, 50);
+        var cantos = Math.Min(t.Cantos, 12) * 0.6;
+
+        var miniPainel = new Border
+        {
+            Width = 76,
+            Height = 36,
+            CornerRadius = new CornerRadius(cantos),
+            Background = new SolidColorBrush(painel),
+            Padding = new Thickness(8, 6, 8, 6),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Child = new StackPanel
+            {
+                Spacing = 3,
+                Children =
+                {
+                    new Border { Width = 26, Height = 4, CornerRadius = new CornerRadius(2), Background = new SolidColorBrush(Hex(t.CorDestaque, Colors.DodgerBlue)), HorizontalAlignment = HorizontalAlignment.Left },
+                    new TextBlock { Text = "Aa", FontSize = 12, FontFamily = new FontFamily(t.Fonte), Foreground = new SolidColorBrush(claro ? Colors.Black : Colors.White) },
+                },
+            },
+        };
+        var atual = TemasProntos.Igual(t, C.Tema);
+        var amostra = new Border
+        {
+            Width = 116,
+            Height = 64,
+            CornerRadius = new CornerRadius(Math.Max(2, cantos)),
+            Background = new SolidColorBrush(fundo),
+            BorderThickness = new Thickness(atual ? 2 : 1),
+            BorderBrush = new SolidColorBrush(atual ? Hex(C.Tema.CorDestaque, Colors.DodgerBlue) : Color.FromArgb(60, 128, 128, 128)),
+            Child = miniPainel,
+        };
+        var rotulo = new TextBlock { Text = tema.Nome, FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis, HorizontalAlignment = HorizontalAlignment.Center };
+        var botao = new Button
+        {
+            Content = new StackPanel { Spacing = 4, Children = { amostra, rotulo } },
+            Padding = new Thickness(4),
+            Background = new SolidColorBrush(Colors.Transparent),
+            BorderThickness = new Thickness(0),
+        };
+        ToolTipService.SetToolTip(botao, remover is null ? $"Aplicar \"{tema.Nome}\"" : $"Aplicar \"{tema.Nome}\" (botão direito: remover)");
+        botao.Click += (_, _) => _ed.AplicarTema(t);
+        if (remover is not null)
+        {
+            var menu = new MenuFlyout();
+            var item = new MenuFlyoutItem { Text = "Remover este tema", Icon = new FontIcon { Glyph = "" } };
+            item.Click += (_, _) => remover();
+            menu.Items.Add(item);
+            botao.ContextFlyout = menu;
+        }
+        return botao;
     }
 
     UIElement ConteudoBackup()
