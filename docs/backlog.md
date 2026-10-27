@@ -8,31 +8,18 @@
   - Extras pedidos na mesma etapa: botão **Pastas…** no painel Projetos (trocar/remover/adicionar pasta pela Home);
     vários monitores — botões [⚙][—][❐][✕], faixa do topo arrasta a Home para qualquer monitor (mesmo ocupando a tela),
     último monitor e modo lembrados em `%APPDATA%\WinHome\estado.json`.
+- **v0.4-c — Ações rápidas** ✅ (27/10/2026): painel `acoes` com confirmação mostrando os comandos exatos; ações
+  Dia de trabalho, Abrir projetos e da TV (Conectar, Espelhar com scrcpy, Print, Logs, Instalar APK, Desconectar),
+  cada uma com descrição; edição em Configurações → Ações rápidas.
+  - Extras pedidos na mesma etapa: painel **Vídeos** (VLC instalado dentro do painel via LibVLCSharp.WinUI;
+    YouTube pelo player oficial num WebView2 — serviço autorizado); botão ↻ fixo no cabeçalho de Mensagem/Curiosidades.
 
-## Em andamento
-### v0.4-c — Ações rápidas (código pronto, **falta testar**)
-- Branch local `v0.4-c-acoes` (não enviada ao GitHub).
-- Painel `acoes` + `acoesRapidas` na config (passos `app`, `editor`, `caminho`/`args`, `esperar`, `{pastaProjetos}`);
-  confirmação com os comandos exatos; seção Configurações → Ações rápidas.
-- **Para retomar:** `git switch v0.4-c-acoes`, `.\scripts\executar.ps1` e testar:
-  1. Configurações → Ações rápidas → ligar "Mostrar as ações rápidas na Home".
-  2. Cada botão abre a confirmação com os comandos exatos; Cancelar/Esc não executa nada.
-  3. Dia de trabalho: abre os 5 apps e a Home se esconde. Abrir projetos: Explorador + Terminal na pasta.
-  4. Conectar TV: mostra a resposta do adb no topo da Home (TV ligada ou desligada).
-  5. Configurações: renomear, trocar ícone, mover, adicionar app/comando, remover, restaurar as padrão.
-  6. Configurações → Ações rápidas → "+ Adicionar as ações padrão que faltam" (Espelhar, Print, Logs, Instalar APK,
-     Desconectar). Dica e confirmação mostram a descrição. Espelhar TV (scrcpy) não derruba a conexão do adb.
-     Print salva em Imagens\WinHome e abre. Logs abre o Terminal. Instalar APK pede o arquivo. TV desligada: passos pulados.
-  7. Painel Vídeos (Configurações → Vídeos → ligar): arquivo local, arrastar arquivo, link direto, link do YouTube,
-     recentes, volume, ⤢ abre no VLC. Mudar uma config com vídeo tocando: continua do mesmo ponto. Esconder pausa.
-- Pedidos do usuário nesta etapa: ações prontas da TV com descrições (scrcpy instalado via winget, ver reversao.md)
-  e painel Vídeos (VLC instalado via LibVLCSharp.WinUI; YouTube autorizado).
-  - Aprovado: merge na `main`, commit de docs e push.
+## Próximo passo
+- **v0.4-d — Dispositivos** (decisões abaixo). Fazer numa branch `v0.4-d-dispositivos` e só juntar na `main` depois do teste.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
 | Etapa | O quê | Decisões |
 |---|---|---|
-| v0.4-c | **Ações rápidas** | Prontas: **Dia de trabalho** (abre VS Code, IntelliJ, Teams, Outlook, Edge), **Conectar TV (ADB)** (`adb connect 192.168.15.11:5555`, só conecta), **Abrir projetos** (`D:\Documents\dev` no Explorer e no Terminal). **Sempre** confirmar mostrando o comando exato |
 | v0.4-d | **Dispositivos** | TV `192.168.15.11:5555` e box `192.168.15.13:5555`: só teste de conexão TCP + latência, a cada minuto; nenhum comando nos aparelhos |
 | v0.4-e | **Agenda** | **Google Agenda** via "Endereço secreto no formato iCal": hoje e amanhã. O link é secreto: fica só na config local, nunca em git/log; avisar na tela. Registrar `calendar.google.com` como serviço autorizado no CLAUDE.md |
 | v0.5 | Modo "área de trabalho" | Home atrás das janelas, no lugar do papel de parede, com toggle |
