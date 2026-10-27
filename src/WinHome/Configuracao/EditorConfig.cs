@@ -76,6 +76,7 @@ public sealed class EditorConfig(ConfigService config)
     [
         (Config.PainelBoasVindas, "Boas-vindas (saudação, hora e data)"),
         (Config.PainelMensagem, "Mensagem do dia"),
+        (Config.PainelCuriosidade, "Curiosidades do dia"),
     ];
 
     public bool Tem(string id) => C.Paineis.Any(p => p.Id == id);
@@ -103,6 +104,8 @@ public sealed class EditorConfig(ConfigService config)
             c.Paineis.Insert(0, new Painel { Id = id, Largura = c.Tema.Colunas }); // topo, largura total
         else if (id == Config.PainelMensagem)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Mensagem do dia", Largura = Math.Max(1, c.Tema.Colunas / 2) });
+        else if (id == Config.PainelCuriosidade)
+            c.Paineis.Add(new Painel { Id = id, Titulo = "Curiosidades do dia", Largura = Math.Max(1, c.Tema.Colunas / 2) });
     });
 
     public void AdicionarCidade(Cidade cidade) => Estrutura(c =>

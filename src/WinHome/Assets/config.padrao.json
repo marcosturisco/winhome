@@ -67,14 +67,21 @@
     ]
   },
 
+  // Painel "curiosidade": fatos da data de hoje com foto (Wikipédia "Neste dia").
+  "curiosidades": {
+    "incluirNascimentos": false,
+    "incluirMortes": false
+  },
+
   // Painéis em ordem de exibição. "visivel" liga/desliga o painel.
-  // Ids especiais: "boasVindas" (saudação, hora e data) e "mensagem" (mensagem do dia);
-  // os demais ids são grupos de apps definidos em "grupos".
+  // Ids especiais: "boasVindas" (saudação, hora, clima, cotações), "mensagem" (mensagem do dia)
+  // e "curiosidade" (curiosidades do dia); os demais ids são grupos de apps definidos em "grupos".
   "paineis": [
     { "id": "boasVindas", "visivel": true, "largura": 6 },
     { "id": "trabalho",   "visivel": true, "largura": 4, "titulo": "Trabalho" },
     { "id": "pessoal",    "visivel": true, "largura": 2, "titulo": "Pessoal" },
-    { "id": "mensagem",   "visivel": true, "largura": 3, "titulo": "Mensagem do dia" }
+    { "id": "mensagem",   "visivel": true, "largura": 3, "titulo": "Mensagem do dia" },
+    { "id": "curiosidade", "visivel": true, "largura": 3, "titulo": "Curiosidades do dia" }
   ],
 
   // Cada app usa "app" (AppID do menu Iniciar; veja com Get-StartApps no PowerShell)

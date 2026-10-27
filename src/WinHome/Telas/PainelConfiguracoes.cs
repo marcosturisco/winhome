@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas;
+    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -55,6 +55,7 @@ public sealed class PainelConfiguracoes
             if (_expApps is not null) _expApps.Content = ConteudoApps();
             if (_expMensagens is not null) _expMensagens.Content = ConteudoMensagens();
             if (_expBoasVindas is not null) _expBoasVindas.Content = ConteudoBoasVindas();
+            if (_expCuriosidades is not null) _expCuriosidades.Content = ConteudoCuriosidades();
         };
 
         var cabecalho = new StackPanel
@@ -123,6 +124,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(Secao("Aparência", ConteudoAparencia()));
         _secoes.Children.Add(_expBoasVindas = Secao("Boas-vindas", ConteudoBoasVindas()));
         _secoes.Children.Add(_expMensagens = Secao("Mensagens", ConteudoMensagens()));
+        _secoes.Children.Add(_expCuriosidades = Secao("Curiosidades", ConteudoCuriosidades()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
         _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
     }
@@ -341,6 +343,19 @@ public sealed class PainelConfiguracoes
         pilha.Children.Add(nova);
         return pilha;
     }
+
+    UIElement ConteudoCuriosidades() => Pilha(
+        Alternador("Mostrar as curiosidades do dia na Home", _ed.Exibido(Config.PainelCuriosidade),
+            v => _ed.Exibir(Config.PainelCuriosidade, v)),
+        Alternador("Incluir nascimentos", C.Curiosidades.IncluirNascimentos, v => _ed.Alterar(c => c.Curiosidades.IncluirNascimentos = v)),
+        Alternador("Incluir mortes", C.Curiosidades.IncluirMortes, v => _ed.Alterar(c => c.Curiosidades.IncluirMortes = v)),
+        new TextBlock
+        {
+            Text = "Fatos da data de hoje, com foto, da Wikipédia em português (\"Neste dia\"). Primeiro os destacados pela Wikipédia, depois os demais eventos. Uma busca por dia; sem conexão, aparece o texto salvo.",
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.6,
+            FontSize = 12,
+        });
 
     UIElement ConteudoPaineis()
     {

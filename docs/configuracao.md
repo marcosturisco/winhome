@@ -56,10 +56,19 @@ Painel `id: "mensagem"`: uma frase por dia (a mesma o dia todo); o botão ↻ mo
 | `fonte` | `ambas` · `embutidas` (lista do WinHome, `Assets/mensagens.json`) · `minhas` | `ambas` |
 | `minhas` | lista de `{ "texto": "...", "autor": "..." }` | `[]` |
 
+## Curiosidades (`curiosidades`)
+Painel `id: "curiosidade"`: um fato da data de hoje com foto, da [Wikipédia em português](https://pt.wikipedia.org) ("Neste dia").
+Primeiro os destacados pela Wikipédia, depois os demais eventos; ↻ mostra outro. Uma busca por dia (cache de 12 h).
+| Opção | Valores | Padrão |
+|---|---|---|
+| `incluirNascimentos` | inclui quem nasceu nesta data | `false` |
+| `incluirMortes` | inclui quem morreu nesta data | `false` |
+
 ## Painéis (`paineis`)
 Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas) e `titulo` (opcional).
 - `id: "boasVindas"`: saudação, hora e data.
 - `id: "mensagem"`: mensagem do dia.
+- `id: "curiosidade"`: curiosidades do dia.
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
 - Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.
 

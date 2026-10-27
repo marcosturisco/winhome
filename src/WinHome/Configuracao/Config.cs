@@ -13,12 +13,14 @@ public sealed class Config
     public Tema Tema { get; set; } = new();
     public BoasVindas BoasVindas { get; set; } = new();
     public Mensagens Mensagens { get; set; } = new();
+    public Curiosidades Curiosidades { get; set; } = new();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
 
     // Ids dos painéis que não são grupos de apps.
     public const string PainelBoasVindas = "boasVindas";
     public const string PainelMensagem = "mensagem";
+    public const string PainelCuriosidade = "curiosidade";
 
     // Ajustes de configs antigas, feitos ao carregar (a gravação seguinte já sai no formato novo).
     public void Migrar()
@@ -69,6 +71,13 @@ public sealed class Mensagens
 {
     public string Fonte { get; set; } = "ambas"; // "ambas", "embutidas" ou "minhas"
     public List<Frase> Minhas { get; set; } = [];
+}
+
+// Painel "Curiosidades do dia" (Wikipédia "Neste dia"): destacados e eventos sempre; nascimentos/mortes opcionais.
+public sealed class Curiosidades
+{
+    public bool IncluirNascimentos { get; set; }
+    public bool IncluirMortes { get; set; }
 }
 
 public sealed class Frase
