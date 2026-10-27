@@ -48,6 +48,10 @@ public sealed class MainWindow : Window
     // Monitor, modo e retângulo ficam em estado.json (EstadoJanela) para a próxima vez que o WinHome abrir.
     bool _emJanela;
     RectInt32? _retanguloJanela;
+
+    // Modo área de trabalho ("modoAreaDeTrabalho"): a Home fica no fundo, atrás das janelas, como um papel de parede.
+    // _naFrente = trazida pelo atalho/bandeja; volta ao fundo quando outro programa é ativado ou com Esc/—/✕.
+    bool _naFrente = true;
     readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _gravarEstado;
 
     // Faixa do topo: arrastar leva a Home a qualquer monitor (em qualquer modo); duplo clique alterna o modo.
@@ -143,7 +147,38 @@ public sealed class MainWindow : Window
         Activated += (_, e) =>
         {
             if (e.WindowActivationState != WindowActivationState.Deactivated) Ancoragem.HomeAtivada();
+            // Modo área de trabalho: trazida pelo atalho, volta para o fundo quando outro programa é ativado
+            // (um app ancorado conta como parte da Home).
+            else if (_config.Atual.ModoAreaDeTrabalho && _naFrente)
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    var frente = GetForegroundWindow();
+                    if (frente != _hwnd && !Ancoragem.EhAncorada(frente)) MandarParaOFundo();
+                });
         };
+
+        // Modo área de trabalho: a cada mudança na ordem das janelas, a Home pede para ficar no fundo; se algo a
+        // minimizar (Win+D), volta sozinha — ela faz o papel do papel de parede.
+        _mensagens.Adicionar((msg, wParam, lParam) =>
+        {
+            if (!_config.Atual.ModoAreaDeTrabalho) return false;
+            if (msg == WM_WINDOWPOSCHANGING && !_naFrente)
+            {
+                var pos = Marshal.PtrToStructure<PosicaoJanela>(lParam);
+                if ((pos.Flags & SWP_NOZORDER) == 0)
+                {
+                    pos.Depois = HWND_BOTTOM;
+                    Marshal.StructureToPtr(pos, lParam, false);
+                }
+            }
+            else if (msg == WM_SIZE && wParam == SIZE_MINIMIZED)
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    ShowWindow(_hwnd, SW_SHOWNOACTIVATE);
+                    MandarParaOFundo();
+                });
+            return false; // segue o tratamento normal
+        });
 
         Closed += (_, _) =>
         {
@@ -183,6 +218,8 @@ public sealed class MainWindow : Window
 
         AplicarFundo(tema, erros);
         AjustarJanela(config.Janela);
+        // No modo área de trabalho a Home é o "papel de parede": fora da barra de tarefas e do Alt+Tab.
+        AppWindow.IsShownInSwitchers = !config.ModoAreaDeTrabalho;
 
         var erroAtalho = _atalho.Definir(config.Atalho);
         if (erroAtalho is not null) erros.Add(erroAtalho);
@@ -480,7 +517,10 @@ public sealed class MainWindow : Window
         if (atalhoValido) formas.Add(config.Atalho);
         if (config.IconeNaBandeja) formas.Add("o ícone na bandeja");
         var volta = formas.Count > 0 ? $" — volte com {string.Join(" ou ", formas)}" : "";
-        if (_botaoEsconder is not null) ToolTipService.SetToolTip(_botaoEsconder, $"Esconder (Esc){volta}");
+        if (_botaoEsconder is not null)
+            ToolTipService.SetToolTip(_botaoEsconder, config.ModoAreaDeTrabalho
+                ? $"Voltar para trás das janelas (Esc){volta}"
+                : $"Esconder (Esc){volta}");
         _bandeja.Definir(config.IconeNaBandeja, atalhoValido ? $"WinHome — {config.Atalho}" : "WinHome");
     }
 
@@ -569,6 +609,7 @@ public sealed class MainWindow : Window
 
     public void Mostrar()
     {
+        _naFrente = true; // no modo área de trabalho, liberada para vir à frente até outro programa ser ativado
         if (IsIconic(_hwnd)) ShowWindow(_hwnd, SW_RESTORE); // minimizada pelo —
         AjustarJanela(_config.Atual.Janela);
         AppWindow.Show();
@@ -581,21 +622,37 @@ public sealed class MainWindow : Window
         }
     }
 
+    // No modo área de trabalho, "esconder" é voltar para trás das janelas (a Home nunca some).
     void Esconder()
     {
-        AppWindow.Hide();
+        if (_config.Atual.ModoAreaDeTrabalho) MandarParaOFundo();
+        else AppWindow.Hide();
         PainelVideos.HomeEscondida(_config.Atual.Videos);
     }
 
     // Vai para a barra de tarefas (Esconder tira a Home dela; volta pelo atalho ou pela bandeja).
     void Minimizar()
     {
-        ShowWindow(_hwnd, SW_MINIMIZE);
+        if (_config.Atual.ModoAreaDeTrabalho) MandarParaOFundo();
+        else ShowWindow(_hwnd, SW_MINIMIZE);
         PainelVideos.HomeEscondida(_config.Atual.Videos);
+    }
+
+    void MandarParaOFundo()
+    {
+        _naFrente = false;
+        if (!AppWindow.IsVisible) AppWindow.Show(false);
+        SetWindowPos(_hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
     void Alternar()
     {
+        if (_config.Atual.ModoAreaDeTrabalho)
+        {
+            if (_naFrente) Esconder(); // volta para trás
+            else Mostrar();
+            return;
+        }
         // Um app ancorado em primeiro plano conta como a Home: o atalho esconde tudo.
         var frente = GetForegroundWindow();
         if (AppWindow.IsVisible && (frente == _hwnd || Ancoragem.EhAncorada(frente))) Esconder();
@@ -609,6 +666,20 @@ public sealed class MainWindow : Window
     }
 
     [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr hwnd);
+    [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr hwnd, IntPtr depois, int x, int y, int cx, int cy, uint flags);
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct PosicaoJanela
+    {
+        public IntPtr Janela, Depois;
+        public int X, Y, Largura, Altura;
+        public uint Flags;
+    }
+
+    const uint WM_WINDOWPOSCHANGING = 0x0046, WM_SIZE = 0x0005;
+    const int SW_SHOWNOACTIVATE = 4;
+    const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10;
+    static readonly IntPtr HWND_BOTTOM = 1, SIZE_MINIMIZED = 1;
     [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr hwnd, int comando);
     [DllImport("user32.dll")] static extern bool IsIconic(IntPtr hwnd);

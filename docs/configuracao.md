@@ -17,6 +17,7 @@ editar o arquivo à mão também funciona: a Home recarrega ao salvar.
 | `esconderAoAbrirApp` | esconde a Home depois de abrir um app | `true` |
 | `mostrarBusca` | caixa de busca no topo (e digitar em qualquer lugar busca) | `true` |
 | `iconeNaBandeja` | ícone na bandeja do sistema: clique mostra a Home; botão direito tem Mostrar, Configurações e Sair | `true` |
+| `modoAreaDeTrabalho` | a Home fica **atrás das janelas**, como um papel de parede: sai da barra de tarefas e do Alt+Tab; o atalho/bandeja a trazem para a frente e clicar em outro programa (ou Esc, —, ✕) a manda de volta; se algo a minimizar (Win+D), volta sozinha. Não altera nada no Windows | `false` |
 
 ## Tema (`tema`)
 | Opção | Valores | Padrão |

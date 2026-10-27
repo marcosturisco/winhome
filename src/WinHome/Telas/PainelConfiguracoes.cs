@@ -159,6 +159,16 @@ public sealed class PainelConfiguracoes
         Alternador("Esconder a Home ao abrir um app", C.EsconderAoAbrirApp, v => _ed.Alterar(c => c.EsconderAoAbrirApp = v)),
         Alternador("Mostrar a busca", C.MostrarBusca, v => _ed.Alterar(c => c.MostrarBusca = v)),
         Alternador("Ícone na bandeja do sistema", C.IconeNaBandeja, v => _ed.Alterar(c => c.IconeNaBandeja = v)),
+        Alternador("Modo área de trabalho (a Home fica atrás das janelas)", C.ModoAreaDeTrabalho,
+            v => _ed.Alterar(c => c.ModoAreaDeTrabalho = v)),
+        new TextBlock
+        {
+            Text = "Ligado: a Home sai da barra de tarefas e do Alt+Tab e fica no fundo, como um papel de parede. " +
+                   "O atalho ou a bandeja a trazem para a frente; clicar em outro programa, Esc, — ou ✕ a mandam de volta.",
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.6,
+            FontSize = 12,
+        },
         sair);
     }
 

@@ -10,6 +10,7 @@ public sealed class Config
     public bool EsconderAoAbrirApp { get; set; } = true;
     public bool MostrarBusca { get; set; } = true;
     public bool IconeNaBandeja { get; set; } = true;
+    public bool ModoAreaDeTrabalho { get; set; } // Home atrás das janelas, no lugar do papel de parede
     public Tema Tema { get; set; } = new();
     public BoasVindas BoasVindas { get; set; } = new();
     public Mensagens Mensagens { get; set; } = new();

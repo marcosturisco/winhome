@@ -24,6 +24,10 @@
   // Ícone na bandeja do sistema (clique mostra a Home; botão direito: Configurações, Sair).
   "iconeNaBandeja": true,
 
+  // true = a Home fica atrás das janelas, como um papel de parede (fora da barra de tarefas e do Alt+Tab);
+  // o atalho traz para a frente e clicar em outro programa manda de volta.
+  "modoAreaDeTrabalho": false,
+
   "tema": {
     "modo": "escuro",              // "escuro", "claro" ou "sistema"
     "corDestaque": "#4F8CFF",      // títulos e relógio; "#RRGGBB" ou "#AARRGGBB"
