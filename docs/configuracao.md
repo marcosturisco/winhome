@@ -119,6 +119,11 @@ Cada grupo é uma lista de apps:
 | `Enter` na busca | abre o primeiro resultado |
 | `↓` na busca, setas | navega pelos apps |
 | botão direito / tecla Menu | abrir, mover, trocar de grupo, remover, adicionar ao grupo |
-| `Esc` ou botão `—` | fecha Configurações → limpa a busca → esconde a Home (ela continua rodando) |
+| `Esc` ou botão `✕` | fecha Configurações → limpa a busca → esconde a Home (ela continua rodando) |
+| botão `—` | minimiza para a barra de tarefas |
+| botão `❐` | alterna entre ocupar a tela e **modo janela** (com borda, redimensionável): arraste pela faixa do topo para levar a Home a outro monitor; `❐` ou duplo clique na faixa voltam a ocupar a tela **naquele** monitor |
+
+A Home sempre ocupa o monitor onde está (o modo janela vale só até fechar o WinHome; `janela` continua dizendo
+como ela ocupa a tela).
 
 Para **sair** de vez: botão direito no ícone da bandeja → "Sair do WinHome", ou Configurações → Geral → "Sair do WinHome".

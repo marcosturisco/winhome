@@ -65,5 +65,6 @@ O push usa a chave passada **só no comando** (não mexer no gitconfig global ne
 - Abrir pelo PowerShell da ferramenta com `run_in_background` (senão o processo cai junto com o comando).
 - Print de janela com `PrintWindow` sai preto (WinUI); peça um print ao usuário.
 - "Sair do WinHome" (menu da bandeja ou Configurações → Geral) **encerra** o app (o `Close()` não passa
-  pelo `AppWindow.Closing`); `Esc`/`—`/Alt+F4 só escondem.
+  pelo `AppWindow.Closing`); `Esc`/`✕`/Alt+F4 só escondem; `—` minimiza; `❐` alterna para o modo janela
+  (arrastável, para trocar de monitor) e de volta.
 - Mensagens Win32 da janela (atalho, bandeja) passam por `MensagensJanela`; ícone gerado por `scripts/gerar-icone.ps1`.
