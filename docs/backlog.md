@@ -24,13 +24,16 @@
   comandos); clique no aparelho = menu com Conectar, Espelhar, Print, Logs, Instalar APK, Desconectar (com o endereço
   do aparelho e a confirmação das Ações rápidas), Testar agora, Copiar endereço.
 
+- **v0.4-e — Agenda Google** ✅ (27/10/2026): painel com hoje/amanhã (dias configurável) de uma ou mais agendas pelo
+  "Endereço secreto no formato iCal" (Ical.Net: repetições, exceções, fusos); cores, "agora"/"em X min", clique abre o
+  dia no Google, ↻; endereço em campo de senha, cache com hash, nunca exposto. **Fecha a v0.4.**
+
 ## Próximo passo
-- **v0.4-e — Agenda Google** (decisões abaixo). Fazer numa branch `v0.4-e-agenda` e só juntar na `main` depois do teste.
+- **v0.5 — Modo "área de trabalho"** (decisões abaixo): detalhar o plano com o usuário antes de começar.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
 | Etapa | O quê | Decisões |
 |---|---|---|
-| v0.4-e | **Agenda** | **Google Agenda** via "Endereço secreto no formato iCal": hoje e amanhã. O link é secreto: fica só na config local, nunca em git/log; avisar na tela. Registrar `calendar.google.com` como serviço autorizado no CLAUDE.md |
 | v0.5 | Modo "área de trabalho" | Home atrás das janelas, no lugar do papel de parede, com toggle |
 | v1.0 | Acabamento | Backup/restauração da config, temas prontos, build Release/instalador simples |
 
