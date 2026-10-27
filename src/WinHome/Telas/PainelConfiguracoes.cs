@@ -34,8 +34,13 @@ public sealed class PainelConfiguracoes
 
     Config C => _ed.Servico.Atual;
 
+    public const double Largura = 460;
+
     public FrameworkElement Raiz => _borda;
     public bool Aberto => _borda.Visibility == Visibility.Visible;
+
+    // Disparado ao abrir (true) e fechar (false), para a Home abrir espaço ao lado.
+    public event Action<bool>? AbertoMudou;
 
     public PainelConfiguracoes(EditorConfig editor, IntPtr hwnd, Action abrirArquivo, Action sair)
     {
@@ -71,7 +76,7 @@ public sealed class PainelConfiguracoes
         var conteudo = new StackPanel { Spacing = 16, Children = { cabecalho, _secoes } };
         _borda = new Border
         {
-            Width = 460,
+            Width = Largura,
             HorizontalAlignment = HorizontalAlignment.Right,
             BorderThickness = new Thickness(1, 0, 0, 0),
             Visibility = Visibility.Collapsed,
@@ -88,9 +93,14 @@ public sealed class PainelConfiguracoes
     {
         Montar();
         _borda.Visibility = Visibility.Visible;
+        AbertoMudou?.Invoke(true);
     }
 
-    public void Fechar() => _borda.Visibility = Visibility.Collapsed;
+    public void Fechar()
+    {
+        _borda.Visibility = Visibility.Collapsed;
+        AbertoMudou?.Invoke(false);
+    }
 
     // Config relida do arquivo (edição externa): os controles precisam refletir os valores novos.
     public void Recarregar()
