@@ -1,34 +1,20 @@
 # Backlog do WinHome (atualizado em 27/10/2026)
 
 ## Concluído recentemente
-- **v0.4-a — Projetos recentes** ✅ (testado e aprovado em 27/10/2026): recentes do IntelliJ, Android Studio e VS Code
+- **v0.4-a — Projetos recentes** ✅ (27/10/2026): recentes do IntelliJ, Android Studio e VS Code
   + subpastas com git de `D:\Documents\dev`; abrir na IDE de origem, Terminal, Explorer, WSL remoto, fixar/ocultar.
+- **v0.4-b — Tarefas** ✅ (27/10/2026): painel `tarefas` (dados em `%APPDATA%\WinHome\tarefas.json`), adicionar,
+  concluir, editar, mover, limpar concluídas.
+  - Extras pedidos na mesma etapa: botão **Pastas…** no painel Projetos (trocar/remover/adicionar pasta pela Home);
+    vários monitores — botões [⚙][—][❐][✕], faixa do topo arrasta a Home para qualquer monitor (mesmo ocupando a tela),
+    último monitor e modo lembrados em `%APPDATA%\WinHome\estado.json`.
 
-## Em andamento
-### v0.4-b — Tarefas + pastas de projetos pela Home (código pronto, **falta testar**)
-- Branch local `v0.4-b-tarefas` (não enviada ao GitHub).
-- Painel `tarefas` (dados em `%APPDATA%\WinHome\tarefas.json`) e opção `tarefas.mostrarConcluidas`; seção Configurações → Tarefas.
-- Painel Projetos ganhou o botão **Pastas…** (trocar, remover, adicionar pasta sem abrir as Configurações).
-- Vários monitores: botões — (minimizar), ❐ (modo janela ↔ ocupar a tela no monitor atual), ✕ (esconder);
-  faixa do topo arrasta a Home para qualquer monitor; último monitor lembrado em `%APPDATA%\WinHome\estado.json`.
-- **Para retomar:** `git switch v0.4-b-tarefas`, `.\scripts\executar.ps1` e testar:
-  1. Configurações → Tarefas → ligar "Mostrar as tarefas na Home".
-  2. Enter adiciona; marcar risca e manda para o fim; desmarcar volta; ✕ remove; "Limpar concluídas".
-  3. Duplo clique / botão direito → Editar (Enter grava, Esc desiste); Mover para cima/baixo.
-  4. Fechar e abrir o WinHome: as tarefas continuam lá. Digitar na caixa de tarefas não abre a busca.
-  5. Projetos → Pastas…: trocar a pasta, remover, adicionar; a lista se atualiza.
-  6. Botões [⚙][—][❐][✕]: — minimiza (volta pela barra de tarefas, atalho ou bandeja); ✕ esconde;
-     ❐ vira janela → arrastar pela faixa do topo para o outro monitor → ❐ (ou duplo clique na faixa) ocupa aquele monitor;
-     esconder e reabrir pelo atalho mantém o monitor.
-  7. Ocupando a tela, arrastar a alça do topo para o outro monitor: encolhe, segue o mouse e ocupa o monitor ao soltar.
-     Clique simples na faixa não faz nada.
-  8. Sair do WinHome e abrir de novo: volta no último monitor (e no modo janela, se estava assim).
-  - Aprovado: merge na `main`, commit de docs e push.
+## Próximo passo
+- **v0.4-c — Ações rápidas** (decisões abaixo). Fazer numa branch `v0.4-c-acoes` e só juntar na `main` depois do teste.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
 | Etapa | O quê | Decisões |
 |---|---|---|
-| v0.4-b | **Tarefas** | Lista simples (Enter adiciona, marcar conclui, limpar concluídas); dados em `%APPDATA%\WinHome\tarefas.json`, fora da config |
 | v0.4-c | **Ações rápidas** | Prontas: **Dia de trabalho** (abre VS Code, IntelliJ, Teams, Outlook, Edge), **Conectar TV (ADB)** (`adb connect 192.168.15.11:5555`, só conecta), **Abrir projetos** (`D:\Documents\dev` no Explorer e no Terminal). **Sempre** confirmar mostrando o comando exato |
 | v0.4-d | **Dispositivos** | TV `192.168.15.11:5555` e box `192.168.15.13:5555`: só teste de conexão TCP + latência, a cada minuto; nenhum comando nos aparelhos |
 | v0.4-e | **Agenda** | **Google Agenda** via "Endereço secreto no formato iCal": hoje e amanhã. O link é secreto: fica só na config local, nunca em git/log; avisar na tela. Registrar `calendar.google.com` como serviço autorizado no CLAUDE.md |
