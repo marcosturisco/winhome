@@ -20,13 +20,16 @@
   acompanha rolagem/✥/↔/altura/monitor, recorta o que sai da tela, fica logo acima da Home, minimiza junto; Soltar ou
   sair devolve a janela. Sem `SetParent`/dono (seguro se o WinHome cair). `WinHome.exe --sair` = saída normal (scripts).
 
+- **v0.4-d — Dispositivos** ✅ (27/10/2026): painel com TV e box (teste TCP da porta, latência, a cada 60 s, sem
+  comandos); clique no aparelho = menu com Conectar, Espelhar, Print, Logs, Instalar APK, Desconectar (com o endereço
+  do aparelho e a confirmação das Ações rápidas), Testar agora, Copiar endereço.
+
 ## Próximo passo
-- **v0.4-d — Dispositivos** (decisões abaixo). Fazer numa branch `v0.4-d-dispositivos` e só juntar na `main` depois do teste.
+- **v0.4-e — Agenda Google** (decisões abaixo). Fazer numa branch `v0.4-e-agenda` e só juntar na `main` depois do teste.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
 | Etapa | O quê | Decisões |
 |---|---|---|
-| v0.4-d | **Dispositivos** | TV `192.168.15.11:5555` e box `192.168.15.13:5555`: só teste de conexão TCP + latência, a cada minuto; nenhum comando nos aparelhos |
 | v0.4-e | **Agenda** | **Google Agenda** via "Endereço secreto no formato iCal": hoje e amanhã. O link é secreto: fica só na config local, nunca em git/log; avisar na tela. Registrar `calendar.google.com` como serviço autorizado no CLAUDE.md |
 | v0.5 | Modo "área de trabalho" | Home atrás das janelas, no lugar do papel de parede, com toggle |
 | v1.0 | Acabamento | Backup/restauração da config, temas prontos, build Release/instalador simples |
