@@ -92,8 +92,19 @@ public static class Ancoragem
     // Home ativada: as janelas ancoradas voltam para cima dela.
     public static void HomeAtivada()
     {
-        foreach (var item in Itens.Values.Where(i => i.Janela != IntPtr.Zero && !i.Minimizada))
-            SetWindowPos(item.Janela, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        foreach (var item in Itens.Values.Where(i => i.Janela != IntPtr.Zero && !i.Minimizada)) AcimaDaHome(item.Janela);
+    }
+
+    // Coloca a janela logo acima da Home (não no topo de tudo: programas que o usuário trouxe para a frente
+    // continuam por cima). Só mexe se ela estiver atrás.
+    static void AcimaDaHome(IntPtr janela)
+    {
+        for (var h = GetWindow(_home, GW_HWNDPREV); h != IntPtr.Zero; h = GetWindow(h, GW_HWNDPREV))
+            if (h == janela) return; // já está acima
+        var acima = GetWindow(_home, GW_HWNDPREV);
+        // Inserir abaixo de uma janela "sempre visível" tornaria a ancorada "sempre visível" também.
+        if (acima != IntPtr.Zero && (GetWindowLongPtr(acima, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0) acima = HWND_TOP;
+        SetWindowPos(janela, acima, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
     static void Acompanhar()
@@ -132,8 +143,8 @@ public static class Ancoragem
                 ShowWindow(item.Janela, SW_SHOWNOACTIVATE);
                 if (IsZoomed(item.Janela)) ShowWindow(item.Janela, SW_RESTORE);
                 item.Minimizada = false;
-                SetWindowPos(item.Janela, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
             }
+            AcimaDaHome(item.Janela);
 
             // A parte visível da janela (sem as bordas transparentes do Windows 11) cobre exatamente a área do painel.
             var r = alvo.Value;
@@ -291,7 +302,9 @@ public static class Ancoragem
     delegate bool EnumCb(IntPtr h, IntPtr l);
     const int SW_SHOWNORMAL = 1, SW_SHOWMINIMIZED = 2, SW_SHOWMINNOACTIVE = 7, SW_SHOWNOACTIVATE = 4, SW_RESTORE = 9;
     const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10;
-    const uint GW_OWNER = 4;
+    const uint GW_OWNER = 4, GW_HWNDPREV = 3;
+    const long WS_EX_TOPMOST = 0x8;
+    const int GWL_EXSTYLE = -20;
     const int GWL_STYLE = -16, DWMWA_EXTENDED_FRAME_BOUNDS = 9, DWMWA_CLOAKED = 14;
     const long WS_CAPTION = 0x00C00000, WS_THICKFRAME = 0x00040000;
     static readonly IntPtr HWND_TOP = IntPtr.Zero;
