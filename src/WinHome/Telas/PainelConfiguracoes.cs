@@ -79,6 +79,23 @@ public sealed class PainelConfiguracoes
                 },
             },
         };
+        // Versão em uso, com link para as novidades dela no GitHub.
+        var novidades = new HyperlinkButton { Content = "Novidades desta versão", Padding = new Thickness(0), FontSize = 12 };
+        novidades.Click += (_, _) =>
+        {
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(VersaoApp.PaginaDoRelease) { UseShellExecute = true }); }
+            catch (Exception) { }
+        };
+        cabecalho.Children.Insert(1, new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 12,
+            Children =
+            {
+                new TextBlock { Text = VersaoApp.Texto, FontSize = 12, Opacity = 0.7, VerticalAlignment = VerticalAlignment.Center },
+                novidades,
+            },
+        });
         var arquivo = new HyperlinkButton { Content = "Editar o config.json à mão", Padding = new Thickness(0) };
         arquivo.Click += (_, _) => _abrirArquivo();
         cabecalho.Children.Add(arquivo);

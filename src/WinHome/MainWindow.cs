@@ -521,7 +521,7 @@ public sealed class MainWindow : Window
             ToolTipService.SetToolTip(_botaoEsconder, config.ModoAreaDeTrabalho
                 ? $"Voltar para trás das janelas (Esc){volta}"
                 : $"Esconder (Esc){volta}");
-        _bandeja.Definir(config.IconeNaBandeja, atalhoValido ? $"WinHome — {config.Atalho}" : "WinHome");
+        _bandeja.Definir(config.IconeNaBandeja, atalhoValido ? $"{VersaoApp.Texto} — {config.Atalho}" : VersaoApp.Texto);
     }
 
     void AbrirApp(AppItem item) => ResultadoAbertura(Lancador.Abrir(item));
