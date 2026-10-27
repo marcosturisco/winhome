@@ -4,8 +4,18 @@
 - **v0.4-a — Projetos recentes** ✅ (testado e aprovado em 27/10/2026): recentes do IntelliJ, Android Studio e VS Code
   + subpastas com git de `D:\Documents\dev`; abrir na IDE de origem, Terminal, Explorer, WSL remoto, fixar/ocultar.
 
-## Próximo passo
-- **v0.4-b — Tarefas** (decisões abaixo). Fazer numa branch `v0.4-b-tarefas` e só juntar na `main` depois do teste.
+## Em andamento
+### v0.4-b — Tarefas + pastas de projetos pela Home (código pronto, **falta testar**)
+- Branch local `v0.4-b-tarefas` (não enviada ao GitHub).
+- Painel `tarefas` (dados em `%APPDATA%\WinHome\tarefas.json`) e opção `tarefas.mostrarConcluidas`; seção Configurações → Tarefas.
+- Painel Projetos ganhou o botão **Pastas…** (trocar, remover, adicionar pasta sem abrir as Configurações).
+- **Para retomar:** `git switch v0.4-b-tarefas`, `.\scripts\executar.ps1` e testar:
+  1. Configurações → Tarefas → ligar "Mostrar as tarefas na Home".
+  2. Enter adiciona; marcar risca e manda para o fim; desmarcar volta; ✕ remove; "Limpar concluídas".
+  3. Duplo clique / botão direito → Editar (Enter grava, Esc desiste); Mover para cima/baixo.
+  4. Fechar e abrir o WinHome: as tarefas continuam lá. Digitar na caixa de tarefas não abre a busca.
+  5. Projetos → Pastas…: trocar a pasta, remover, adicionar; a lista se atualiza.
+  - Aprovado: merge na `main`, commit de docs e push.
 
 ## Próximas etapas (decisões já tomadas com o usuário)
 | Etapa | O quê | Decisões |

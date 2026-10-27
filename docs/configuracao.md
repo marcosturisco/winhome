@@ -69,6 +69,7 @@ Painel `id: "projetos"`: projetos abertos recentemente no IntelliJ, Android Stud
 com git das `pastas`, sem repetição. Mostra a branch do git, se é do WSL e quando foi aberto.
 Clique abre no editor padrão; botão direito: abrir no VS Code / IntelliJ / Android Studio / Terminal / Explorer, fixar, ocultar.
 Projetos do WSL abrem no VS Code em modo remoto. Nada sai do PC: tudo é lido dos arquivos locais das IDEs.
+O botão **Pastas…** no rodapé do painel troca, remove ou adiciona pastas sem abrir as Configurações.
 | Opção | Valores | Padrão |
 |---|---|---|
 | `usarIntellij` | lê `%APPDATA%\JetBrains\IntelliJIdea*\options\recentProjects.xml` | `true` |
@@ -81,12 +82,22 @@ Projetos do WSL abrem no VS Code em modo remoto. Nada sai do PC: tudo é lido do
 | `ocultos` | caminhos que não aparecem (Configurações → Projetos mostra de novo) | `[]` |
 | `editores.vsCode`, `editores.intellij`, `editores.androidStudio` | caminho do executável; vazio = detectar sozinho | `""` |
 
+## Tarefas (`tarefas`)
+Painel `id: "tarefas"`: lista de tarefas. Enter adiciona; marcar conclui (fica riscada, no fim); ✕ remove;
+duplo clique ou botão direito edita, move para cima/baixo ou remove; "Limpar concluídas" apaga as marcadas.
+A lista fica em `%APPDATA%\WinHome\tarefas.json`, **fora** da config (as Configurações não a regravam).
+Se esse arquivo estiver inválido, a Home começa uma lista nova e guarda o antigo em `tarefas.json.erro`.
+| Opção | Valores | Padrão |
+|---|---|---|
+| `mostrarConcluidas` | mostra as concluídas (riscadas) até limpar | `true` |
+
 ## Painéis (`paineis`)
 Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas) e `titulo` (opcional).
 - `id: "boasVindas"`: saudação, hora e data.
 - `id: "mensagem"`: mensagem do dia.
 - `id: "curiosidade"`: curiosidades do dia.
 - `id: "projetos"`: projetos recentes.
+- `id: "tarefas"`: tarefas.
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
 - Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.
 

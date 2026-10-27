@@ -88,9 +88,14 @@
     "editores": { "vsCode": "", "intellij": "", "androidStudio": "" }
   },
 
+  // Painel "tarefas": a lista fica em %APPDATA%\WinHome\tarefas.json (fora desta config).
+  "tarefas": {
+    "mostrarConcluidas": true      // concluídas aparecem riscadas no fim da lista
+  },
+
   // Painéis em ordem de exibição. "visivel" liga/desliga o painel.
   // Ids especiais: "boasVindas" (saudação, hora, clima, cotações), "mensagem" (mensagem do dia),
-  // "curiosidade" (curiosidades do dia) e "projetos" (projetos recentes);
+  // "curiosidade" (curiosidades do dia), "projetos" (projetos recentes) e "tarefas";
   // os demais ids são grupos de apps definidos em "grupos".
   "paineis": [
     { "id": "boasVindas", "visivel": true, "largura": 6 },

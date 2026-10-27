@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos;
+    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -57,6 +57,7 @@ public sealed class PainelConfiguracoes
             if (_expBoasVindas is not null) _expBoasVindas.Content = ConteudoBoasVindas();
             if (_expCuriosidades is not null) _expCuriosidades.Content = ConteudoCuriosidades();
             if (_expProjetos is not null) _expProjetos.Content = ConteudoProjetos();
+            if (_expTarefas is not null) _expTarefas.Content = ConteudoTarefas();
         };
 
         var cabecalho = new StackPanel
@@ -127,6 +128,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expMensagens = Secao("Mensagens", ConteudoMensagens()));
         _secoes.Children.Add(_expCuriosidades = Secao("Curiosidades", ConteudoCuriosidades()));
         _secoes.Children.Add(_expProjetos = Secao("Projetos", ConteudoProjetos()));
+        _secoes.Children.Add(_expTarefas = Secao("Tarefas", ConteudoTarefas()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
         _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
     }
@@ -424,6 +426,25 @@ public sealed class PainelConfiguracoes
             FontSize = 12,
         });
         return pilha;
+    }
+
+    UIElement ConteudoTarefas()
+    {
+        var pasta = new HyperlinkButton { Content = "Abrir a pasta do tarefas.json", Padding = new Thickness(0) };
+        pasta.Click += (_, _) => _ = Launcher.LaunchFolderPathAsync(ConfigService.Pasta);
+        return Pilha(
+            Alternador("Mostrar as tarefas na Home", _ed.Exibido(Config.PainelTarefas), v => _ed.Exibir(Config.PainelTarefas, v)),
+            Alternador("Mostrar as concluídas (riscadas, no fim da lista)", C.Tarefas.MostrarConcluidas,
+                v => _ed.Alterar(c => c.Tarefas.MostrarConcluidas = v)),
+            new TextBlock
+            {
+                Text = "Na Home: Enter adiciona, marcar conclui, ✕ remove; duplo clique ou botão direito edita e move. " +
+                       "A lista fica em tarefas.json, separada da config, e não sai do PC.",
+                TextWrapping = TextWrapping.Wrap,
+                Opacity = 0.6,
+                FontSize = 12,
+            },
+            pasta);
     }
 
     UIElement ConteudoPaineis()

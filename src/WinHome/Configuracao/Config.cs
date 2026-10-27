@@ -15,6 +15,7 @@ public sealed class Config
     public Mensagens Mensagens { get; set; } = new();
     public Curiosidades Curiosidades { get; set; } = new();
     public Projetos Projetos { get; set; } = new();
+    public Tarefas Tarefas { get; set; } = new();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
 
@@ -23,6 +24,7 @@ public sealed class Config
     public const string PainelMensagem = "mensagem";
     public const string PainelCuriosidade = "curiosidade";
     public const string PainelProjetos = "projetos";
+    public const string PainelTarefas = "tarefas";
 
     // Ajustes de configs antigas, feitos ao carregar (a gravação seguinte já sai no formato novo).
     public void Migrar()
@@ -94,6 +96,12 @@ public sealed class Projetos
     public List<string> Fixados { get; set; } = [];
     public List<string> Ocultos { get; set; } = [];
     public Editores Editores { get; set; } = new();
+}
+
+// Painel "Tarefas": a lista fica em tarefas.json (ServicoTarefas), fora da config.
+public sealed class Tarefas
+{
+    public bool MostrarConcluidas { get; set; } = true;
 }
 
 // Caminhos dos executáveis; vazio = detectar sozinho.

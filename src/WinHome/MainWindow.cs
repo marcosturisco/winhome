@@ -51,7 +51,7 @@ public sealed class MainWindow : Window
 
         _config = new ConfigService(DispatcherQueue);
         _editor = new EditorConfig(_config);
-        _acoes = new Acoes(AbrirApp, _editor, ResultadoAbertura);
+        _acoes = new Acoes(AbrirApp, _editor, ResultadoAbertura, EscolherPasta);
         _configuracoes = new Telas.PainelConfiguracoes(_editor, _hwnd, AbrirConfig, Sair);
         // Com as Configurações abertas, a Home encolhe para o lado em vez de ficar coberta.
         _configuracoes.AbertoMudou += aberto =>
@@ -295,6 +295,14 @@ public sealed class MainWindow : Window
     {
         if (erro is not null) MostrarAviso([erro]);
         else if (_config.Atual.EsconderAoAbrirApp) Esconder();
+    }
+
+    async Task<string?> EscolherPasta()
+    {
+        var seletor = new Windows.Storage.Pickers.FolderPicker();
+        WinRT.Interop.InitializeWithWindow.Initialize(seletor, _hwnd);
+        seletor.FileTypeFilter.Add("*");
+        return (await seletor.PickSingleFolderAsync())?.Path;
     }
 
     void AbrirConfig()

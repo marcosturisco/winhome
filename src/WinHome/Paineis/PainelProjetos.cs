@@ -37,7 +37,7 @@ public static class PainelProjetos
             {
                 lista.Children.Add(new TextBlock
                 {
-                    Text = "Nenhum projeto encontrado. Confira as fontes e pastas em Configurações → Projetos.",
+                    Text = "Nenhum projeto encontrado. Confira as pastas abaixo e as fontes em Configurações → Projetos.",
                     TextWrapping = TextWrapping.Wrap,
                     Opacity = 0.7,
                     FontFamily = estilo.Fonte,
@@ -49,7 +49,99 @@ public static class PainelProjetos
         }
 
         lista.Loaded += (_, _) => Carregar();
-        return lista;
+        return new StackPanel { Spacing = 8, Children = { lista, BotaoPastas(cfg, estilo, acoes) } };
+    }
+
+    // Rodapé: pastas cujas subpastas com git entram na lista; trocar, remover ou adicionar sem abrir as Configurações.
+    static Button BotaoPastas(Projetos cfg, Estilo estilo, Acoes acoes)
+    {
+        var flyout = new Flyout();
+        var conteudo = new StackPanel { Spacing = 6, MinWidth = 320, MaxWidth = 520 };
+        conteudo.Children.Add(new TextBlock
+        {
+            Text = "Pastas com projetos (cada subpasta com git vira um projeto)",
+            FontFamily = estilo.Fonte,
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.8,
+        });
+
+        async void Escolher(string? antiga)
+        {
+            flyout.Hide();
+            if (await acoes.EscolherPasta() is not { } nova) return;
+            if (antiga is null) acoes.Editor.AdicionarPastaProjetos(nova);
+            else acoes.Editor.TrocarPastaProjetos(antiga, nova);
+        }
+
+        Button Icone(string glifo, string dica, Action acao)
+        {
+            var b = new Button
+            {
+                Content = new FontIcon { Glyph = glifo, FontSize = 12 },
+                Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                BorderThickness = new Thickness(0),
+                Padding = new Thickness(6),
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            ToolTipService.SetToolTip(b, dica);
+            b.Click += (_, _) => acao();
+            return b;
+        }
+
+        if (cfg.Pastas.Count == 0)
+            conteudo.Children.Add(new TextBlock { Text = "Nenhuma pasta.", Opacity = 0.6, FontFamily = estilo.Fonte });
+        foreach (var pasta in cfg.Pastas)
+        {
+            var nome = new TextBlock
+            {
+                Text = pasta,
+                FontFamily = estilo.Fonte,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+            };
+            ToolTipService.SetToolTip(nome, pasta);
+            var trocar = Icone("", "Trocar por outra pasta…", () => Escolher(pasta));
+            var remover = Icone("", "Remover pasta", () =>
+            {
+                flyout.Hide();
+                acoes.Editor.RemoverPastaProjetos(pasta);
+            });
+
+            var linha = new Grid { ColumnSpacing = 4 };
+            linha.ColumnDefinitions.Add(new ColumnDefinition());
+            linha.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            linha.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            Grid.SetColumn(trocar, 1);
+            Grid.SetColumn(remover, 2);
+            linha.Children.Add(nome);
+            linha.Children.Add(trocar);
+            linha.Children.Add(remover);
+            conteudo.Children.Add(linha);
+        }
+
+        var adicionar = new Button { Content = "+ Adicionar pasta…", Margin = new Thickness(0, 4, 0, 0) };
+        adicionar.Click += (_, _) => Escolher(null);
+        conteudo.Children.Add(adicionar);
+        flyout.Content = conteudo;
+
+        var botao = new Button
+        {
+            Content = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 6,
+                Children =
+                {
+                    new FontIcon { Glyph = "", FontSize = 12 },
+                    new TextBlock { Text = "Pastas…", FontFamily = estilo.Fonte, FontSize = 12 },
+                },
+            },
+            Padding = new Thickness(8, 4, 8, 4),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Flyout = flyout,
+        };
+        ToolTipService.SetToolTip(botao, "Trocar ou adicionar as pastas de projetos");
+        return botao;
     }
 
     static Button Linha(Projeto p, bool fixado, Projetos cfg, Estilo estilo, Acoes acoes)

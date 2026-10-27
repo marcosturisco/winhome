@@ -78,6 +78,7 @@ public sealed class EditorConfig(ConfigService config)
         (Config.PainelMensagem, "Mensagem do dia"),
         (Config.PainelCuriosidade, "Curiosidades do dia"),
         (Config.PainelProjetos, "Projetos recentes"),
+        (Config.PainelTarefas, "Tarefas"),
     ];
 
     public bool Tem(string id) => C.Paineis.Any(p => p.Id == id);
@@ -109,6 +110,8 @@ public sealed class EditorConfig(ConfigService config)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Curiosidades do dia", Largura = Math.Max(1, c.Tema.Colunas / 2) });
         else if (id == Config.PainelProjetos)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Projetos recentes", Largura = Math.Max(1, c.Tema.Colunas / 2) });
+        else if (id == Config.PainelTarefas)
+            c.Paineis.Add(new Painel { Id = id, Titulo = "Tarefas", Largura = Math.Max(1, c.Tema.Colunas / 2) });
     });
 
     public void AdicionarCidade(Cidade cidade) => Estrutura(c =>
@@ -160,6 +163,16 @@ public sealed class EditorConfig(ConfigService config)
     });
 
     public void RemoverPastaProjetos(string pasta) => Estrutura(c => c.Projetos.Pastas.Remove(pasta));
+
+    // Troca no mesmo lugar da lista; se a nova já estiver lá, só tira a antiga.
+    public void TrocarPastaProjetos(string antiga, string nova) => Estrutura(c =>
+    {
+        var pastas = c.Projetos.Pastas;
+        var i = pastas.IndexOf(antiga);
+        if (i < 0) return;
+        if (pastas.Any(p => string.Equals(p, nova, StringComparison.OrdinalIgnoreCase))) pastas.RemoveAt(i);
+        else pastas[i] = nova;
+    });
 
     public void AdicionarFrase() => Estrutura(c => c.Mensagens.Minhas.Add(new Frase()));
 

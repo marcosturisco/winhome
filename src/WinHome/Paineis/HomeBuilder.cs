@@ -78,6 +78,7 @@ public static class HomeBuilder
         if (painel.Id == Config.PainelMensagem) return PainelMensagem.Criar(config.Mensagens, estilo);
         if (painel.Id == Config.PainelCuriosidade) return PainelCuriosidade.Criar(config.Curiosidades, estilo);
         if (painel.Id == Config.PainelProjetos) return PainelProjetos.Criar(config.Projetos, estilo, acoes);
+        if (painel.Id == Config.PainelTarefas) return PainelTarefas.Criar(config.Tarefas, estilo);
         if (config.Grupos.TryGetValue(painel.Id, out var apps)) return PainelApps.Criar(apps, painel.Id, estilo, acoes);
         return new TextBlock
         {
