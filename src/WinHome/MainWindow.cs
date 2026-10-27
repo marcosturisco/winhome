@@ -74,10 +74,10 @@ public sealed class MainWindow : Window
         },
     };
 
-    // Barra ⚙ — ❐ ✕ compacta: botões de 28 px e a faixa de cima (barra + alça de arrastar) com 34 px; os painéis,
+    // Barra ⚙ — ❐ ✕ compacta: botões de 22 px e a faixa de cima (barra + alça de arrastar) com 26 px; os painéis,
     // as Configurações e os apps ancorados começam logo abaixo dela.
-    public const double AlturaBarra = 28;
-    public const double AreaDoTopo = AlturaBarra + 6;
+    public const double AlturaBarra = 22;
+    public const double AreaDoTopo = AlturaBarra + 4;
 
     static readonly string ArquivoIcone = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
 
@@ -484,7 +484,7 @@ public sealed class MainWindow : Window
         {
             var b = new Button
             {
-                Content = new FontIcon { Glyph = glifo, FontSize = 12 },
+                Content = new FontIcon { Glyph = glifo, FontSize = 10 },
                 Background = new SolidColorBrush(Colors.Transparent),
                 BorderThickness = new Thickness(0),
                 Padding = new Thickness(0),
@@ -503,7 +503,7 @@ public sealed class MainWindow : Window
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(0, 2, 6, 0),
+            Margin = new Thickness(0, 0, 4, 0),
             Spacing = 0,
             Children =
             {
