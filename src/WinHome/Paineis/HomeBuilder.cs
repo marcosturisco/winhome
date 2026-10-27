@@ -15,6 +15,7 @@ public static class HomeBuilder
     public static UIElement Montar(Config config, Estilo estilo, Acoes acoes)
     {
         var linhas = new StackPanel { Spacing = estilo.Espaco };
+        var arrasto = new ArrastoPaineis(linhas, acoes.Editor);
         Grid? linha = null;
         int usado = 0;
 
@@ -29,7 +30,7 @@ public static class HomeBuilder
             }
 
             var (conteudo, acao) = Conteudo(painel, config, estilo, acoes);
-            var cartao = CartaoDoPainel(painel, conteudo, acao, estilo, acoes, linha, usado);
+            var cartao = CartaoDoPainel(painel, conteudo, acao, estilo, acoes, linha, usado, arrasto);
             Grid.SetColumn(cartao, usado);
             Grid.SetColumnSpan(cartao, largura);
             linha.Children.Add(cartao);
@@ -174,9 +175,9 @@ public static class HomeBuilder
         return new Grid { Children = { borda, ferramentas } };
     }
 
-    // Cartão de um painel da Home: ✕ oculta (com "Desfazer") e a borda direita ajusta a largura em colunas.
+    // Cartão de um painel da Home: ✥ muda de lugar, ✕ oculta (com "Desfazer") e a borda direita ajusta a largura.
     static FrameworkElement CartaoDoPainel(Painel painel, UIElement conteudo, Button? acao, Estilo estilo, Acoes acoes,
-        Grid linha, int coluna)
+        Grid linha, int coluna, ArrastoPaineis arrasto)
     {
         var titulo = painel.Titulo is { Length: > 0 } t ? t
             : EditorConfig.Especiais.FirstOrDefault(e => e.Id == painel.Id).Nome ?? painel.Id;
@@ -193,13 +194,38 @@ public static class HomeBuilder
             acao.Margin = new Thickness(0);
             ferramentas.Children.Add(acao);
         }
+        var mover = new AlcaMover(painel, arrasto) { Opacity = 0 };
+        ferramentas.Children.Add(mover);
         ferramentas.Children.Add(fechar);
 
         var cartao = Cartao(painel.Titulo, conteudo, estilo, ferramentas);
         var alca = new AlcaLargura(painel, estilo, acoes, linha, coluna);
-        var raiz = new Grid { Children = { cartao, alca } };
-        raiz.PointerEntered += (_, _) => { fechar.Opacity = 0.8; alca.Destacar(true); };
-        raiz.PointerExited += (_, _) => { fechar.Opacity = 0; alca.Destacar(false); };
+        // Barras que mostram onde o painel arrastado vai cair: no vão entre os cartões, antes ou depois deste.
+        Border Indicador(HorizontalAlignment lado) => new()
+        {
+            Width = 4,
+            CornerRadius = new CornerRadius(2),
+            Background = estilo.Destaque,
+            HorizontalAlignment = lado,
+            Margin = lado == HorizontalAlignment.Left
+                ? new Thickness(-(estilo.Espaco / 2) - 2, 0, 0, 0)
+                : new Thickness(0, 0, -(estilo.Espaco / 2) - 2, 0),
+            Visibility = Visibility.Collapsed,
+            IsHitTestVisible = false,
+        };
+        var antes = Indicador(HorizontalAlignment.Left);
+        var depois = Indicador(HorizontalAlignment.Right);
+        var raiz = new Grid { Children = { cartao, alca, antes, depois } };
+        arrasto.Registrar(raiz, painel, antes, depois);
+
+        void Ferramentas(bool ver)
+        {
+            fechar.Opacity = ver ? 0.8 : 0;
+            mover.Opacity = ver ? 0.8 : 0;
+            alca.Destacar(ver);
+        }
+        raiz.PointerEntered += (_, _) => Ferramentas(true);
+        raiz.PointerExited += (_, _) => Ferramentas(false);
         fechar.GotFocus += (_, _) => fechar.Opacity = 0.8; // acessível pelo teclado
         return raiz;
     }

@@ -210,6 +210,15 @@ public sealed class EditorConfig(ConfigService config)
 
     public void DefinirVisivel(Painel painel, bool visivel) => Estrutura(_ => painel.Visivel = visivel);
 
+    // Reposiciona antes ou depois de outro painel (a lista inclui os ocultos, que ficam onde estão).
+    public void MoverPainelPara(Painel painel, Painel alvo, bool depois) => Estrutura(c =>
+    {
+        if (painel == alvo || !c.Paineis.Remove(painel)) return;
+        var i = c.Paineis.IndexOf(alvo);
+        if (i < 0) c.Paineis.Add(painel);
+        else c.Paineis.Insert(depois ? i + 1 : i, painel);
+    });
+
     public void DefinirLargura(Painel painel, int largura) => Estrutura(c => painel.Largura = Math.Clamp(largura, 1, c.Tema.Colunas));
 
     public void MoverPainel(Painel painel, int delta) => Estrutura(c =>
