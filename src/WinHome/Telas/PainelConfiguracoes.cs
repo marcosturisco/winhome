@@ -471,12 +471,27 @@ public sealed class PainelConfiguracoes
             icone.TextChanged += (_, _) => _ed.Alterar(c => acao.Icone = icone.Text);
             var nome = new TextBox { Text = acao.Nome, PlaceholderText = "Nome da ação", VerticalAlignment = VerticalAlignment.Center };
             nome.TextChanged += (_, _) => _ed.Alterar(c => acao.Nome = nome.Text);
+            var descricao = new TextBox
+            {
+                Text = acao.Descricao,
+                PlaceholderText = "Para que serve (aparece na dica e na confirmação)",
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 12,
+            };
+            descricao.TextChanged += (_, _) => _ed.Alterar(c => acao.Descricao = descricao.Text);
 
             var bloco = Pilha(Linha(icone, nome, null,
                 Icone("\uE70E", "Subir", i > 0, () => _ed.MoverAcao(acao, -1)),
                 Icone("\uE70D", "Descer", i < lista.Count - 1, () => _ed.MoverAcao(acao, +1)),
-                Icone("\uE74D", "Remover ação", true, () => _ed.RemoverAcao(acao))));
+                Icone("\uE74D", "Remover ação", true, () => _ed.RemoverAcao(acao))),
+                descricao);
             bloco.Spacing = 6;
+            if (Servicos.ServicoAcoes.PedeArquivo(acao))
+            {
+                var tipo = new TextBox { Header = "Tipo do arquivo pedido ({arquivo})", Text = acao.TipoArquivo, PlaceholderText = ".apk  ou  *" };
+                tipo.TextChanged += (_, _) => _ed.Alterar(c => acao.TipoArquivo = string.IsNullOrWhiteSpace(tipo.Text) ? "*" : tipo.Text.Trim());
+                bloco.Children.Add(tipo);
+            }
 
             var passos = new StackPanel { Spacing = 4, Margin = new Thickness(24, 0, 0, 0) };
             for (int j = 0; j < acao.Passos.Count; j++)
@@ -526,7 +541,17 @@ public sealed class PainelConfiguracoes
         };
         restaurar.Flyout = flyout;
 
-        pilha.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { nova, restaurar } });
+        var botoes = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { nova, restaurar } };
+        pilha.Children.Add(botoes);
+
+        var faltam = _ed.AcoesPadraoQueFaltam();
+        if (faltam.Count > 0)
+        {
+            var adicionar = new Button { Content = $"+ Adicionar as ações padrão que faltam ({faltam.Count})" };
+            ToolTipService.SetToolTip(adicionar, string.Join("\n", faltam));
+            adicionar.Click += (_, _) => _ed.AdicionarAcoesQueFaltam();
+            pilha.Children.Add(adicionar);
+        }
         return pilha;
     }
 

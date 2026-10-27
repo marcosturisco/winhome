@@ -71,14 +71,23 @@ public static class PainelAcoes
             BorderThickness = new Thickness(0),
             CornerRadius = new CornerRadius(Math.Max(0, estilo.Tema.Cantos * 0.5)),
         };
-        ToolTipService.SetToolTip(botao, acao.Passos.Count == 0
-            ? "Ação sem passos"
-            : string.Join("\n", acao.Passos.Select(p => "• " + (string.IsNullOrWhiteSpace(p.Nome) ? ServicoAcoes.Descrever(p) : p.Nome))));
+        // Dica: para que serve e, embaixo, os passos.
+        var dica = string.Join("\n", acao.Passos.Select(p => "• " + (string.IsNullOrWhiteSpace(p.Nome) ? ServicoAcoes.Descrever(p) : p.Nome)));
+        if (acao.Passos.Count == 0) dica = "Ação sem passos";
+        if (!string.IsNullOrWhiteSpace(acao.Descricao)) dica = acao.Descricao + "\n\n" + dica;
+        ToolTipService.SetToolTip(botao, new TextBlock { Text = dica, TextWrapping = TextWrapping.Wrap, MaxWidth = 360 });
 
         botao.Click += async (_, _) =>
         {
             if (_confirmando) return;
-            var (passos, problemas) = ServicoAcoes.Preparar(acao, projetos);
+            string? arquivo = null;
+            if (ServicoAcoes.PedeArquivo(acao))
+            {
+                var tipos = acao.TipoArquivo.Split([',', ';', ' '], StringSplitOptions.RemoveEmptyEntries);
+                arquivo = await acoes.EscolherArquivo(tipos);
+                if (arquivo is null) return; // desistiu na escolha
+            }
+            var (passos, problemas) = ServicoAcoes.Preparar(acao, projetos, arquivo);
             if (passos.Count == 0)
             {
                 acoes.Resultado(problemas.Count > 0 ? string.Join("\n", problemas) : $"A ação \"{acao.Nome}\" não tem passos.");
@@ -109,7 +118,9 @@ public static class PainelAcoes
     static async Task<bool> Confirmar(XamlRoot raiz, AcaoRapida acao, List<PassoPronto> passos, List<string> problemas)
     {
         var lista = new StackPanel { Spacing = 10 };
-        lista.Children.Add(new TextBlock { Text = "Estes comandos serão executados, nesta ordem:", TextWrapping = TextWrapping.Wrap });
+        if (!string.IsNullOrWhiteSpace(acao.Descricao))
+            lista.Children.Add(new TextBlock { Text = acao.Descricao, TextWrapping = TextWrapping.Wrap, Opacity = 0.85, Margin = new Thickness(0, 0, 0, 4) });
+        lista.Children.Add(new TextBlock { Text = "Estes comandos serão executados, nesta ordem:", TextWrapping = TextWrapping.Wrap, FontSize = 12, Opacity = 0.7 });
         foreach (var p in passos)
         {
             lista.Children.Add(new StackPanel

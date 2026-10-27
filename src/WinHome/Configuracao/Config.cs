@@ -32,6 +32,10 @@ public sealed class Config
     public void Migrar()
     {
         foreach (var p in Paineis.Where(p => p.Id == "relogio")) p.Id = PainelBoasVindas; // até a v0.2
+        // Ações padrão gravadas antes de existir "descricao" (v0.4-c): ganham a descrição pelo nome.
+        foreach (var padrao in AcaoRapida.Padrao())
+            foreach (var a in AcoesRapidas.Where(a => a.Nome == padrao.Nome && string.IsNullOrWhiteSpace(a.Descricao)))
+                a.Descricao = padrao.Descricao;
     }
 }
 
@@ -111,7 +115,14 @@ public sealed class AcaoRapida
 {
     public string Nome { get; set; } = "";
     public string Icone { get; set; } = "⚡"; // emoji
+    public string Descricao { get; set; } = ""; // o que a ação faz e para que serve (dica e confirmação)
+    public string TipoArquivo { get; set; } = "*"; // filtro do seletor quando algum passo usa {arquivo} (ex.: ".apk")
     public List<PassoAcao> Passos { get; set; } = [];
+
+    const string Tv = "192.168.15.11:5555";
+
+    // Antes de qualquer comando na TV: conecta (se já estiver conectada, o adb só confirma).
+    static PassoAcao ConectarTv() => new() { Nome = "Conectar à TV", Caminho = "adb", Args = $"connect {Tv}", Esperar = true };
 
     public static List<AcaoRapida> Padrao() =>
     [
@@ -119,6 +130,7 @@ public sealed class AcaoRapida
         {
             Nome = "Dia de trabalho",
             Icone = "💼",
+            Descricao = "Abre de uma vez os programas do trabalho: VS Code, IntelliJ, Teams, Outlook e Edge.",
             Passos =
             [
                 new() { Nome = "VS Code", Editor = "vscode" },
@@ -130,25 +142,85 @@ public sealed class AcaoRapida
         },
         new()
         {
-            Nome = "Conectar TV",
-            Icone = "📺",
-            Passos = [new() { Nome = "Conectar à TV pelo ADB", Caminho = "adb", Args = "connect 192.168.15.11:5555", Esperar = true }],
-        },
-        new()
-        {
             Nome = "Abrir projetos",
             Icone = "📁",
+            Descricao = "Abre a pasta de projetos (botão Pastas… do painel Projetos) no Explorador e no Terminal.",
             Passos =
             [
                 new() { Nome = "Pasta no Explorador", Caminho = "explorer.exe", Args = "\"{pastaProjetos}\"" },
                 new() { Nome = "Pasta no Terminal", Caminho = "wt.exe", Args = "-d \"{pastaProjetos}\"" },
             ],
         },
+        new()
+        {
+            Nome = "Conectar TV",
+            Icone = "📺",
+            Descricao = "Liga a depuração sem fio com a TV. Depois disso, a TV aparece no Android Studio (Run/Debug sem cabo) " +
+                        "e aceita os comandos do adb. Não muda nada na TV.",
+            Passos = [ConectarTv()],
+        },
+        new()
+        {
+            Nome = "Espelhar TV",
+            Icone = "🪞",
+            Descricao = "Mostra a tela da TV numa janela do PC e deixa controlar com mouse e teclado (scrcpy): " +
+                        "clique = toque/OK, botão direito = voltar, Ctrl+H = Home. Fechar a janela encerra o espelhamento.",
+            Passos =
+            [
+                ConectarTv(),
+                new() { Nome = "Espelhar com o scrcpy", Caminho = "scrcpy", Args = $"-s {Tv} --window-title \"TV\"" },
+            ],
+        },
+        new()
+        {
+            Nome = "Print da TV",
+            Icone = "📸",
+            Descricao = "Tira um print do que está na tela da TV, salva em Imagens\\WinHome e abre a imagem.",
+            Passos =
+            [
+                ConectarTv(),
+                new() { Nome = "Capturar a tela na TV", Caminho = "adb", Args = $"-s {Tv} shell screencap -p /sdcard/winhome-print.png", Esperar = true },
+                new() { Nome = "Copiar o print para o PC", Caminho = "adb", Args = $"-s {Tv} pull /sdcard/winhome-print.png \"{{imagens}}\\tv-{{dataHora}}.png\"", Esperar = true },
+                new() { Nome = "Abrir o print", Caminho = @"{imagens}\tv-{dataHora}.png" },
+            ],
+        },
+        new()
+        {
+            Nome = "Logs da TV",
+            Icone = "📜",
+            Descricao = "Abre um Terminal com o log da TV ao vivo (adb logcat), para acompanhar erros do launcher. " +
+                        "Ctrl+C ou fechar a aba encerra.",
+            Passos =
+            [
+                ConectarTv(),
+                new() { Nome = "Log ao vivo no Terminal", Caminho = "wt.exe", Args = $"--title \"Logs da TV\" adb -s {Tv} logcat -v color" },
+            ],
+        },
+        new()
+        {
+            Nome = "Instalar APK na TV",
+            Icone = "📦",
+            Descricao = "Escolha um arquivo .apk e ele é instalado na TV (atualiza se o app já existir, mantendo os dados).",
+            TipoArquivo = ".apk",
+            Passos =
+            [
+                ConectarTv(),
+                new() { Nome = "Instalar o APK", Caminho = "adb", Args = $"-s {Tv} install -r \"{{arquivo}}\"", Esperar = true },
+            ],
+        },
+        new()
+        {
+            Nome = "Desconectar TV",
+            Icone = "🔌",
+            Descricao = "Encerra a depuração sem fio com a TV (o Android Studio deixa de vê-la).",
+            Passos = [new() { Nome = "Desconectar a TV", Caminho = "adb", Args = $"disconnect {Tv}", Esperar = true }],
+        },
     ];
 }
 
 // Um passo usa "app" (AppID), "editor" (vscode, intellij, androidStudio: detectado como no painel Projetos)
-// ou "caminho" (programa, pasta ou documento) com "args". "{pastaProjetos}" repete o passo para cada pasta de Projetos.
+// ou "caminho" (programa, pasta ou documento) com "args". Marcadores: {pastaProjetos} (repete o passo para cada
+// pasta de Projetos), {imagens} (Imagens\WinHome), {dataHora} e {arquivo} (pede para escolher um arquivo).
 public sealed class PassoAcao
 {
     public string Nome { get; set; } = "";
@@ -156,7 +228,7 @@ public sealed class PassoAcao
     public string? Editor { get; set; }
     public string? Caminho { get; set; }
     public string? Args { get; set; }
-    public bool Esperar { get; set; } // roda escondido, espera até 15 s e mostra a saída (ex.: adb)
+    public bool Esperar { get; set; } // roda escondido, espera o fim (até 2 min) e mostra a saída; se falhar, pula o resto
 }
 
 // Caminhos dos executáveis; vazio = detectar sozinho.

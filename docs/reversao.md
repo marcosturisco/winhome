@@ -3,6 +3,7 @@
 | Data | Alteração | Como desfazer |
 |---|---|---|
 | 26/10/2026 | Instalado .NET 10 SDK (10.0.403) via winget, para compilar o projeto | `winget uninstall --id Microsoft.DotNet.SDK.10 --exact` |
+| 27/10/2026 | Instalado scrcpy 5.0.1 via winget (escopo do usuário; pasta do pacote adicionada ao PATH do usuário), para a ação "Espelhar TV" | `winget uninstall --id Genymobile.scrcpy --exact` |
 
 ## Alterações que o próprio WinHome faz
 | O quê | Quando | Como desfazer |

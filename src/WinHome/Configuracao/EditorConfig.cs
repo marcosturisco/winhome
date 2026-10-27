@@ -191,6 +191,16 @@ public sealed class EditorConfig(ConfigService config)
 
     public void RestaurarAcoesPadrao() => Estrutura(c => c.AcoesRapidas = AcaoRapida.Padrao());
 
+    // Ações padrão que ainda não estão na lista (pelo nome); as minhas ficam como estão.
+    public List<string> AcoesPadraoQueFaltam() =>
+        AcaoRapida.Padrao().Select(a => a.Nome).Where(n => C.AcoesRapidas.All(a => a.Nome != n)).ToList();
+
+    public void AdicionarAcoesQueFaltam() => Estrutura(c =>
+    {
+        foreach (var padrao in AcaoRapida.Padrao().Where(p => c.AcoesRapidas.All(a => a.Nome != p.Nome)))
+            c.AcoesRapidas.Add(padrao);
+    });
+
     public void AdicionarFrase() => Estrutura(c => c.Mensagens.Minhas.Add(new Frase()));
 
     public void RemoverFrase(Frase frase) => Estrutura(c => c.Mensagens.Minhas.Remove(frase));
