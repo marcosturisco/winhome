@@ -42,7 +42,21 @@
   "boasVindas": {
     "mostrarSaudacao": true,
     "mostrarData": true,
-    "mostrarSegundos": false
+    "mostrarSegundos": false,
+    // Clima (Open-Meteo). Adicione cidades pela busca em Configurações → Boas-vindas.
+    "clima": {
+      "visivel": true,
+      "unidade": "C",
+      "cidades": [
+        { "nome": "São Paulo", "regiao": "São Paulo", "pais": "Brasil", "latitude": -23.5475, "longitude": -46.63611, "fuso": "America/Sao_Paulo" },
+        { "nome": "Orlando", "regiao": "Flórida", "pais": "EUA", "latitude": 28.53834, "longitude": -81.37924, "fuso": "America/New_York" }
+      ]
+    },
+    // Cotações em reais (AwesomeAPI): USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, ARS, BTC, ETH.
+    "cotacoes": {
+      "visivel": true,
+      "moedas": [ "USD", "EUR" ]
+    }
   },
 
   // Painel "mensagem": frase do dia. "fonte": "ambas", "embutidas" (do WinHome) ou "minhas".

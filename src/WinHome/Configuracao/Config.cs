@@ -27,12 +27,42 @@ public sealed class Config
     }
 }
 
-// Painel do topo: saudação, hora e data (e, mais adiante, clima e cotações).
+// Painel do topo: saudação, hora e data à esquerda; clima e cotações à direita.
 public sealed class BoasVindas
 {
     public bool MostrarSaudacao { get; set; } = true;
     public bool MostrarData { get; set; } = true;
     public bool MostrarSegundos { get; set; }
+    public Clima Clima { get; set; } = new();
+    public Cotacoes Cotacoes { get; set; } = new();
+}
+
+public sealed class Clima
+{
+    public bool Visivel { get; set; } = true;
+    public string Unidade { get; set; } = "C"; // "C" ou "F"
+    public List<Cidade> Cidades { get; set; } =
+    [
+        new() { Nome = "São Paulo", Regiao = "São Paulo", Pais = "Brasil", Latitude = -23.5475, Longitude = -46.63611, Fuso = "America/Sao_Paulo" },
+        new() { Nome = "Orlando", Regiao = "Flórida", Pais = "EUA", Latitude = 28.53834, Longitude = -81.37924, Fuso = "America/New_York" },
+    ];
+}
+
+// Coordenadas e fuso vêm da busca de cidades (Open-Meteo) ao adicionar pela tela de Configurações.
+public sealed class Cidade
+{
+    public string Nome { get; set; } = "";
+    public string? Regiao { get; set; }
+    public string? Pais { get; set; }
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+    public string? Fuso { get; set; }
+}
+
+public sealed class Cotacoes
+{
+    public bool Visivel { get; set; } = true;
+    public List<string> Moedas { get; set; } = ["USD", "EUR"]; // sempre em relação ao real (BRL)
 }
 
 public sealed class Mensagens

@@ -40,6 +40,14 @@ Painel do topo (`id: "boasVindas"`; configs antigas com `"relogio"` são convert
 | `mostrarSaudacao` | "Bom dia, …" | `true` |
 | `mostrarData` | data por extenso | `true` |
 | `mostrarSegundos` | hora com segundos | `false` |
+| `clima.visivel` | cartões de clima à direita | `true` |
+| `clima.unidade` | `C` · `F` | `C` |
+| `clima.cidades` | lista de `{ nome, regiao, pais, latitude, longitude, fuso }` (adicione pela busca em Configurações → Boas-vindas) | São Paulo e Orlando |
+| `cotacoes.visivel` | cartão de cotações | `true` |
+| `cotacoes.moedas` | códigos em relação ao real: `USD`, `EUR`, `GBP`, `JPY`, `CAD`, `AUD`, `CHF`, `CNY`, `ARS`, `BTC`, `ETH` | `["USD", "EUR"]` |
+
+Clima e cotações vêm da internet ([Open-Meteo](https://open-meteo.com) a cada 30 min; [AwesomeAPI](https://docs.awesomeapi.com.br) a cada 15 min)
+e ficam em cache em `%APPDATA%\WinHome\cache\`. Sem conexão, os cartões mostram o último valor salvo.
 
 ## Mensagens (`mensagens`)
 Painel `id: "mensagem"`: uma frase por dia (a mesma o dia todo); o botão ↻ mostra outra.

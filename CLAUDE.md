@@ -20,6 +20,14 @@ com painéis configuráveis (relógio, apps de trabalho, pessoal…). Projeto ir
 - Editar arquivos com Edit/Write, não com `Set-Content` do PowerShell 5.1 (corrompe acentos).
   Scripts `.ps1` ficam **sem acentos** (o PS 5.1 lê UTF-8 sem BOM como ANSI).
 
+## Internet (serviços autorizados)
+- Só serviços gratuitos, sem chave e sem login, autorizados pelo usuário:
+  Open-Meteo (clima e busca de cidades), AwesomeAPI (cotações), Wikipédia "Neste dia" (curiosidades, v0.3-c).
+- Nada pessoal sai do PC (só nome/coordenadas da cidade, códigos de moedas, dia/mês).
+- Toda chamada passa por `Servicos/Rede.cs`: tempo limite de 8 s, cache em memória + `%APPDATA%\WinHome\cache\`,
+  falha de rede nunca trava nem derruba a Home (mostra o último valor salvo).
+- Serviço novo: pedir autorização e registrar aqui.
+
 ## Configuração (princípio do projeto)
 - Tudo o que for visual ou conteúdo vem de `%APPDATA%\WinHome\config.json` (JSON com comentários `//`).
 - Na primeira execução o arquivo é criado a partir de `src/WinHome/Assets/config.padrao.json`.

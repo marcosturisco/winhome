@@ -194,18 +194,127 @@ public sealed class PainelConfiguracoes
             Deslizante("Colunas da grade", 1, 12, 1, t.Colunas, v => _ed.Alterar(c => c.Tema.Colunas = (int)v)));
     }
 
-    UIElement ConteudoBoasVindas() => Pilha(
-        Alternador("Mostrar o painel de boas-vindas na Home", _ed.Exibido(Config.PainelBoasVindas),
-            v => _ed.Exibir(Config.PainelBoasVindas, v)),
-        new TextBlock
+    UIElement ConteudoBoasVindas()
+    {
+        var bv = C.BoasVindas;
+        var pilha = Pilha(
+            Alternador("Mostrar o painel de boas-vindas na Home", _ed.Exibido(Config.PainelBoasVindas),
+                v => _ed.Exibir(Config.PainelBoasVindas, v)),
+            Alternador("Mostrar a saudação", bv.MostrarSaudacao, v => _ed.Alterar(c => c.BoasVindas.MostrarSaudacao = v)),
+            Alternador("Mostrar a data", bv.MostrarData, v => _ed.Alterar(c => c.BoasVindas.MostrarData = v)),
+            Alternador("Mostrar os segundos", bv.MostrarSegundos, v => _ed.Alterar(c => c.BoasVindas.MostrarSegundos = v)),
+
+            Subtitulo("Clima"),
+            Alternador("Mostrar o clima", bv.Clima.Visivel, v => _ed.Alterar(c => c.BoasVindas.Clima.Visivel = v)),
+            Escolha("Unidade", [("Celsius (°C)", "C"), ("Fahrenheit (°F)", "F")], bv.Clima.Unidade,
+                v => _ed.Alterar(c => c.BoasVindas.Clima.Unidade = v)));
+
+        var cidades = bv.Clima.Cidades;
+        for (int i = 0; i < cidades.Count; i++)
         {
-            Text = "Painel do topo da Home. Clima e cotações chegam na próxima etapa.",
+            var cidade = cidades[i];
+            var nome = new TextBlock
+            {
+                Text = Servicos.ServicoClima.Descrever(cidade),
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+            };
+            pilha.Children.Add(Linha(new FontIcon { Glyph = "", FontSize = 14, VerticalAlignment = VerticalAlignment.Center }, nome, null,
+                Icone("", "Subir", i > 0, () => _ed.MoverCidade(cidade, -1)),
+                Icone("", "Descer", i < cidades.Count - 1, () => _ed.MoverCidade(cidade, +1)),
+                Icone("", "Remover cidade", true, () => _ed.RemoverCidade(cidade))));
+        }
+        pilha.Children.Add(BuscaDeCidades());
+
+        pilha.Children.Add(Subtitulo("Cotações (em reais)"));
+        pilha.Children.Add(Alternador("Mostrar as cotações", bv.Cotacoes.Visivel, v => _ed.Alterar(c => c.BoasVindas.Cotacoes.Visivel = v)));
+        var moedas = bv.Cotacoes.Moedas;
+        for (int i = 0; i < moedas.Count; i++)
+        {
+            var codigo = moedas[i];
+            var nome = new TextBlock
+            {
+                Text = $"{codigo} — {Servicos.ServicoCotacoes.Nome(codigo)}",
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            pilha.Children.Add(Linha(new FontIcon { Glyph = "", FontSize = 14, VerticalAlignment = VerticalAlignment.Center }, nome, null,
+                Icone("", "Subir", i > 0, () => _ed.MoverMoeda(codigo, -1)),
+                Icone("", "Descer", i < moedas.Count - 1, () => _ed.MoverMoeda(codigo, +1)),
+                Icone("", "Remover moeda", true, () => _ed.RemoverMoeda(codigo))));
+        }
+
+        var disponiveis = Servicos.ServicoCotacoes.Conhecidas.Where(m => !moedas.Contains(m.Codigo)).ToList();
+        if (disponiveis.Count > 0)
+        {
+            var menu = new MenuFlyout();
+            foreach (var (cod, nomeMoeda) in disponiveis)
+            {
+                var item = new MenuFlyoutItem { Text = $"{cod} — {nomeMoeda}" };
+                item.Click += (_, _) => _ed.AdicionarMoeda(cod);
+                menu.Items.Add(item);
+            }
+            pilha.Children.Add(new DropDownButton { Content = "+ Adicionar moeda", Flyout = menu });
+        }
+
+        pilha.Children.Add(new TextBlock
+        {
+            Text = "Dados da internet: clima pelo Open-Meteo (atualiza a cada 30 min) e cotações pela AwesomeAPI (a cada 15 min). Sem conexão, aparece o último valor salvo.",
             TextWrapping = TextWrapping.Wrap,
-            Opacity = 0.7,
-        },
-        Alternador("Mostrar a saudação", C.BoasVindas.MostrarSaudacao, v => _ed.Alterar(c => c.BoasVindas.MostrarSaudacao = v)),
-        Alternador("Mostrar a data", C.BoasVindas.MostrarData, v => _ed.Alterar(c => c.BoasVindas.MostrarData = v)),
-        Alternador("Mostrar os segundos", C.BoasVindas.MostrarSegundos, v => _ed.Alterar(c => c.BoasVindas.MostrarSegundos = v)));
+            Opacity = 0.6,
+            FontSize = 12,
+        });
+        return pilha;
+    }
+
+    // Caixa que busca cidades no Open-Meteo enquanto digita (espera uma pausa na digitação).
+    UIElement BuscaDeCidades()
+    {
+        var caixa = new AutoSuggestBox
+        {
+            Header = "Adicionar cidade",
+            PlaceholderText = "Digite o nome da cidade…",
+            QueryIcon = new SymbolIcon(Symbol.Add),
+        };
+        var achadas = new List<Cidade>();
+        var espera = _borda.DispatcherQueue.CreateTimer();
+        espera.Interval = TimeSpan.FromMilliseconds(400);
+        espera.IsRepeating = false;
+        espera.Tick += async (_, _) =>
+        {
+            var termo = caixa.Text.Trim();
+            if (termo.Length < 2) return;
+            var lista = await Servicos.ServicoClima.BuscarCidades(termo);
+            if (caixa.Text.Trim() != termo) return; // continuou digitando
+            achadas = lista;
+            caixa.ItemsSource = lista.Count > 0
+                ? lista.Select(Servicos.ServicoClima.Descrever).ToList()
+                : ["Nenhuma cidade encontrada (ou sem conexão)"];
+        };
+        caixa.TextChanged += (s, e) =>
+        {
+            if (e.Reason != AutoSuggestionBoxTextChangeReason.UserInput) return;
+            espera.Stop();
+            espera.Start();
+        };
+        caixa.QuerySubmitted += (s, e) =>
+        {
+            var escolhida = e.ChosenSuggestion is string texto
+                ? achadas.FirstOrDefault(c => Servicos.ServicoClima.Descrever(c) == texto)
+                : achadas.FirstOrDefault();
+            if (escolhida is null) return;
+            s.Text = "";
+            s.ItemsSource = null;
+            _ed.AdicionarCidade(escolhida);
+        };
+        return caixa;
+    }
+
+    static TextBlock Subtitulo(string texto) => new()
+    {
+        Text = texto,
+        FontWeight = FontWeights.SemiBold,
+        Margin = new Thickness(0, 8, 0, 0),
+    };
 
     UIElement ConteudoMensagens()
     {

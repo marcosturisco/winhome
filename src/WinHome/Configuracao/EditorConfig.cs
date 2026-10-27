@@ -105,6 +105,34 @@ public sealed class EditorConfig(ConfigService config)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Mensagem do dia", Largura = Math.Max(1, c.Tema.Colunas / 2) });
     });
 
+    public void AdicionarCidade(Cidade cidade) => Estrutura(c =>
+    {
+        var lista = c.BoasVindas.Clima.Cidades;
+        if (!lista.Any(x => Math.Abs(x.Latitude - cidade.Latitude) < 0.01 && Math.Abs(x.Longitude - cidade.Longitude) < 0.01))
+            lista.Add(cidade);
+    });
+
+    public void RemoverCidade(Cidade cidade) => Estrutura(c => c.BoasVindas.Clima.Cidades.Remove(cidade));
+
+    public void MoverCidade(Cidade cidade, int delta) => Estrutura(c => Trocar(c.BoasVindas.Clima.Cidades, cidade, delta));
+
+    public void AdicionarMoeda(string codigo) => Estrutura(c =>
+    {
+        if (!c.BoasVindas.Cotacoes.Moedas.Contains(codigo)) c.BoasVindas.Cotacoes.Moedas.Add(codigo);
+    });
+
+    public void RemoverMoeda(string codigo) => Estrutura(c => c.BoasVindas.Cotacoes.Moedas.Remove(codigo));
+
+    public void MoverMoeda(string codigo, int delta) => Estrutura(c => Trocar(c.BoasVindas.Cotacoes.Moedas, codigo, delta));
+
+    static void Trocar<T>(List<T> lista, T item, int delta)
+    {
+        var i = lista.IndexOf(item);
+        var j = i + delta;
+        if (i < 0 || j < 0 || j >= lista.Count) return;
+        (lista[i], lista[j]) = (lista[j], lista[i]);
+    }
+
     public void AdicionarFrase() => Estrutura(c => c.Mensagens.Minhas.Add(new Frase()));
 
     public void RemoverFrase(Frase frase) => Estrutura(c => c.Mensagens.Minhas.Remove(frase));
