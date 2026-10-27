@@ -178,7 +178,7 @@ public static class Ancoragem
     static Ret? AreaLivre()
     {
         if (Retangulo(_visivel) is not { } r || _visivel?.XamlRoot is not { } raiz) return null;
-        r.Topo += (int)Math.Round(56 * raiz.RasterizationScale);
+        r.Topo += (int)Math.Round(MainWindow.AreaDoTopo * raiz.RasterizationScale);
         return r;
     }
 

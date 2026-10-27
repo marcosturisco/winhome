@@ -109,7 +109,7 @@ public sealed class PainelConfiguracoes
             Visibility = Visibility.Collapsed,
             Child = new ScrollViewer
             {
-                Padding = new Thickness(24, 64, 24, 24),
+                Padding = new Thickness(24, MainWindow.AreaDoTopo + 8, 24, 24),
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Content = conteudo,
             },

@@ -59,7 +59,7 @@ public sealed class MainWindow : Window
     Windows.Foundation.Point? _inicioArrasto;
     readonly Border _faixa = new()
     {
-        Height = 40,
+        Height = AreaDoTopo,
         VerticalAlignment = VerticalAlignment.Top,
         Background = new SolidColorBrush(Colors.Transparent), // precisa de fundo para receber o clique
         Child = new Border // alça discreta, como em outras janelas arrastáveis
@@ -73,6 +73,11 @@ public sealed class MainWindow : Window
             VerticalAlignment = VerticalAlignment.Center,
         },
     };
+
+    // Barra ⚙ — ❐ ✕ compacta: botões de 28 px e a faixa de cima (barra + alça de arrastar) com 34 px; os painéis,
+    // as Configurações e os apps ancorados começam logo abaixo dela.
+    public const double AlturaBarra = 28;
+    public const double AreaDoTopo = AlturaBarra + 6;
 
     static readonly string ArquivoIcone = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
 
@@ -227,7 +232,7 @@ public sealed class MainWindow : Window
         AtualizarDicas(config, atalhoValido: erroAtalho is null && !string.IsNullOrWhiteSpace(config.Atalho));
 
         var margem = Math.Max(24, estilo.Espaco * 3);
-        _rolagem.Padding = new Thickness(margem, margem + 24, margem, margem);
+        _rolagem.Padding = new Thickness(margem, AreaDoTopo, margem, margem); // painéis logo abaixo da barra de botões
         _busca.Visibility = config.MostrarBusca ? Visibility.Visible : Visibility.Collapsed;
         _busca.FontFamily = estilo.Fonte;
         _busca.CornerRadius = new CornerRadius(Math.Min(estilo.Tema.Cantos, 20));
@@ -479,10 +484,14 @@ public sealed class MainWindow : Window
         {
             var b = new Button
             {
-                Content = new FontIcon { Glyph = glifo, FontSize = 14 },
+                Content = new FontIcon { Glyph = glifo, FontSize = 12 },
                 Background = new SolidColorBrush(Colors.Transparent),
                 BorderThickness = new Thickness(0),
-                Padding = new Thickness(10),
+                Padding = new Thickness(0),
+                Width = AlturaBarra + 10,
+                Height = AlturaBarra,
+                MinHeight = 0,
+                MinWidth = 0,
             };
             ToolTipService.SetToolTip(b, dica);
             b.Click += (_, _) => acao();
@@ -494,8 +503,8 @@ public sealed class MainWindow : Window
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(12),
-            Spacing = 4,
+            Margin = new Thickness(0, 2, 6, 0),
+            Spacing = 0,
             Children =
             {
                 Botao("", "Configurações", AlternarConfiguracoes),
