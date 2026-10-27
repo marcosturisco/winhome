@@ -77,6 +77,7 @@ public sealed class EditorConfig(ConfigService config)
         (Config.PainelBoasVindas, "Boas-vindas (saudação, hora e data)"),
         (Config.PainelMensagem, "Mensagem do dia"),
         (Config.PainelCuriosidade, "Curiosidades do dia"),
+        (Config.PainelProjetos, "Projetos recentes"),
     ];
 
     public bool Tem(string id) => C.Paineis.Any(p => p.Id == id);
@@ -106,6 +107,8 @@ public sealed class EditorConfig(ConfigService config)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Mensagem do dia", Largura = Math.Max(1, c.Tema.Colunas / 2) });
         else if (id == Config.PainelCuriosidade)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Curiosidades do dia", Largura = Math.Max(1, c.Tema.Colunas / 2) });
+        else if (id == Config.PainelProjetos)
+            c.Paineis.Add(new Painel { Id = id, Titulo = "Projetos recentes", Largura = Math.Max(1, c.Tema.Colunas / 2) });
     });
 
     public void AdicionarCidade(Cidade cidade) => Estrutura(c =>
@@ -135,6 +138,28 @@ public sealed class EditorConfig(ConfigService config)
         if (i < 0 || j < 0 || j >= lista.Count) return;
         (lista[i], lista[j]) = (lista[j], lista[i]);
     }
+
+    // Fixados e ocultos guardam o caminho; a comparação ignora maiúsculas e barras (ServicoProjetos.Chave).
+    public void FixarProjeto(string caminho, bool fixar) => Estrutura(c =>
+    {
+        var chave = Servicos.ServicoProjetos.Chave(caminho);
+        c.Projetos.Fixados.RemoveAll(f => Servicos.ServicoProjetos.Chave(f) == chave);
+        if (fixar) c.Projetos.Fixados.Add(caminho);
+    });
+
+    public void OcultarProjeto(string caminho, bool ocultar) => Estrutura(c =>
+    {
+        var chave = Servicos.ServicoProjetos.Chave(caminho);
+        c.Projetos.Ocultos.RemoveAll(f => Servicos.ServicoProjetos.Chave(f) == chave);
+        if (ocultar) c.Projetos.Ocultos.Add(caminho);
+    });
+
+    public void AdicionarPastaProjetos(string pasta) => Estrutura(c =>
+    {
+        if (!c.Projetos.Pastas.Any(p => string.Equals(p, pasta, StringComparison.OrdinalIgnoreCase))) c.Projetos.Pastas.Add(pasta);
+    });
+
+    public void RemoverPastaProjetos(string pasta) => Estrutura(c => c.Projetos.Pastas.Remove(pasta));
 
     public void AdicionarFrase() => Estrutura(c => c.Mensagens.Minhas.Add(new Frase()));
 

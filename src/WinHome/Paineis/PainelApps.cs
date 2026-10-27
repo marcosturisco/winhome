@@ -7,8 +7,9 @@ using WinHome.Servicos;
 
 namespace WinHome.Paineis;
 
-// O que um botão de app pode fazer: abrir e editar a config pelo menu de contexto.
-public sealed record Acoes(Action<AppItem> Abrir, EditorConfig Editor);
+// O que os painéis podem fazer: abrir apps, editar a config pelo menu de contexto e informar o resultado
+// de uma abertura feita por eles mesmos (null = abriu, a Home pode se esconder; texto = erro a mostrar).
+public sealed record Acoes(Action<AppItem> Abrir, EditorConfig Editor, Action<string?> Resultado);
 
 // Grade de botões de apps; navegável por setas, Enter abre, botão direito mostra o menu.
 public static class PainelApps

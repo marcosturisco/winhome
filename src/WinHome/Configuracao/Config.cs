@@ -14,6 +14,7 @@ public sealed class Config
     public BoasVindas BoasVindas { get; set; } = new();
     public Mensagens Mensagens { get; set; } = new();
     public Curiosidades Curiosidades { get; set; } = new();
+    public Projetos Projetos { get; set; } = new();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
 
@@ -21,6 +22,7 @@ public sealed class Config
     public const string PainelBoasVindas = "boasVindas";
     public const string PainelMensagem = "mensagem";
     public const string PainelCuriosidade = "curiosidade";
+    public const string PainelProjetos = "projetos";
 
     // Ajustes de configs antigas, feitos ao carregar (a gravação seguinte já sai no formato novo).
     public void Migrar()
@@ -78,6 +80,28 @@ public sealed class Curiosidades
 {
     public bool IncluirNascimentos { get; set; }
     public bool IncluirMortes { get; set; }
+}
+
+// Painel "Projetos recentes": histórico das IDEs + subpastas com git das pastas listadas.
+public sealed class Projetos
+{
+    public bool UsarIntellij { get; set; } = true;
+    public bool UsarAndroidStudio { get; set; } = true;
+    public bool UsarVsCode { get; set; } = true;
+    public List<string> Pastas { get; set; } = [@"D:\Documents\dev"];
+    public int Maximo { get; set; } = 8;
+    public string EditorPadrao { get; set; } = "origem"; // "origem" (a IDE onde foi aberto), "vscode", "intellij", "androidStudio"
+    public List<string> Fixados { get; set; } = [];
+    public List<string> Ocultos { get; set; } = [];
+    public Editores Editores { get; set; } = new();
+}
+
+// Caminhos dos executáveis; vazio = detectar sozinho.
+public sealed class Editores
+{
+    public string VsCode { get; set; } = "";
+    public string Intellij { get; set; } = "";
+    public string AndroidStudio { get; set; } = "";
 }
 
 public sealed class Frase

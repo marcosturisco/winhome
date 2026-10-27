@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades;
+    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -56,6 +56,7 @@ public sealed class PainelConfiguracoes
             if (_expMensagens is not null) _expMensagens.Content = ConteudoMensagens();
             if (_expBoasVindas is not null) _expBoasVindas.Content = ConteudoBoasVindas();
             if (_expCuriosidades is not null) _expCuriosidades.Content = ConteudoCuriosidades();
+            if (_expProjetos is not null) _expProjetos.Content = ConteudoProjetos();
         };
 
         var cabecalho = new StackPanel
@@ -125,6 +126,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expBoasVindas = Secao("Boas-vindas", ConteudoBoasVindas()));
         _secoes.Children.Add(_expMensagens = Secao("Mensagens", ConteudoMensagens()));
         _secoes.Children.Add(_expCuriosidades = Secao("Curiosidades", ConteudoCuriosidades()));
+        _secoes.Children.Add(_expProjetos = Secao("Projetos", ConteudoProjetos()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
         _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
     }
@@ -356,6 +358,73 @@ public sealed class PainelConfiguracoes
             Opacity = 0.6,
             FontSize = 12,
         });
+
+    UIElement ConteudoProjetos()
+    {
+        var pj = C.Projetos;
+        var pilha = Pilha(
+            Alternador("Mostrar os projetos recentes na Home", _ed.Exibido(Config.PainelProjetos),
+                v => _ed.Exibir(Config.PainelProjetos, v)),
+            Escolha("Clique no projeto abre no",
+                [("Editor onde foi aberto por último", "origem"), ("VS Code", "vscode"), ("IntelliJ IDEA", "intellij"), ("Android Studio", "androidStudio")],
+                pj.EditorPadrao, v => _ed.Alterar(c => c.Projetos.EditorPadrao = v)),
+            Deslizante("Quantidade máxima na lista", 3, 20, 1, pj.Maximo, v => _ed.Alterar(c => c.Projetos.Maximo = (int)v)),
+
+            Subtitulo("Fontes"),
+            Alternador("Recentes do IntelliJ IDEA", pj.UsarIntellij, v => _ed.Alterar(c => c.Projetos.UsarIntellij = v)),
+            Alternador("Recentes do Android Studio", pj.UsarAndroidStudio, v => _ed.Alterar(c => c.Projetos.UsarAndroidStudio = v)),
+            Alternador("Recentes do VS Code", pj.UsarVsCode, v => _ed.Alterar(c => c.Projetos.UsarVsCode = v)),
+            new TextBlock { Text = "Pastas com projetos (cada subpasta com git vira um projeto)", TextWrapping = TextWrapping.Wrap });
+
+        foreach (var pasta in pj.Pastas)
+        {
+            var nome = new TextBlock { Text = pasta, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+            pilha.Children.Add(Linha(new FontIcon { Glyph = "", FontSize = 14, VerticalAlignment = VerticalAlignment.Center }, nome, null,
+                Icone("", "Remover pasta", true, () => _ed.RemoverPastaProjetos(pasta))));
+        }
+        var adicionar = new Button { Content = "+ Adicionar pasta…" };
+        adicionar.Click += async (_, _) =>
+        {
+            var seletor = new FolderPicker();
+            WinRT.Interop.InitializeWithWindow.Initialize(seletor, _hwnd);
+            seletor.FileTypeFilter.Add("*");
+            if (await seletor.PickSingleFolderAsync() is { } pasta) _ed.AdicionarPastaProjetos(pasta.Path);
+        };
+        pilha.Children.Add(adicionar);
+
+        if (pj.Ocultos.Count > 0)
+        {
+            pilha.Children.Add(Subtitulo("Ocultos"));
+            foreach (var oculto in pj.Ocultos)
+            {
+                var nome = new TextBlock { Text = oculto, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+                pilha.Children.Add(Linha(new FontIcon { Glyph = "", FontSize = 14, VerticalAlignment = VerticalAlignment.Center }, nome, null,
+                    Icone("", "Mostrar de novo", true, () => _ed.OcultarProjeto(oculto, false))));
+            }
+        }
+
+        pilha.Children.Add(Subtitulo("Programas"));
+        foreach (var (id, rotulo) in new[] { ("vscode", "VS Code"), ("intellij", "IntelliJ IDEA"), ("androidStudio", "Android Studio") })
+        {
+            var atual = id switch { "vscode" => pj.Editores.VsCode, "intellij" => pj.Editores.Intellij, _ => pj.Editores.AndroidStudio };
+            var detectado = Servicos.ServicoProjetos.Executavel(id, new Editores()) ?? "não encontrado";
+            pilha.Children.Add(Texto($"{rotulo} (vazio = detectar; Enter para aplicar)", atual, v => _ed.Alterar(c =>
+            {
+                if (id == "vscode") c.Projetos.Editores.VsCode = v;
+                else if (id == "intellij") c.Projetos.Editores.Intellij = v;
+                else c.Projetos.Editores.AndroidStudio = v;
+            }), aoConfirmar: true, exemplo: detectado));
+        }
+
+        pilha.Children.Add(new TextBlock
+        {
+            Text = "Só lê o histórico das IDEs e as pastas; nada é alterado. Botão direito num projeto: abrir em outro programa, fixar ou ocultar.",
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.6,
+            FontSize = 12,
+        });
+        return pilha;
+    }
 
     UIElement ConteudoPaineis()
     {
