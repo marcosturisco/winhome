@@ -51,10 +51,9 @@ public static class PainelAncorado
             conteudo.Visibility = ancorado ? Visibility.Collapsed : Visibility.Visible;
             soltar.Visibility = ancorado ? Visibility.Visible : Visibility.Collapsed;
             titulo.Text = ancorado ? Ancoragem.Titulo(Ancoragem.Janela(id)) : "";
+            pegar.Visibility = processo is null ? Visibility.Collapsed : Visibility.Visible; // sem processo, só abrindo
             if (!ancorado && status.Text.Length == 0)
-                status.Text = processo is null
-                    ? $"Informe o processo de \"{app.Nome}\" na config (appsAncorados → processo)."
-                    : $"{app.Nome} vai aparecer nesta área e acompanhar a Home.";
+                status.Text = $"{app.Nome} vai aparecer nesta área e acompanhar a Home.";
         }
 
         bool Ancorar()
@@ -72,6 +71,7 @@ public static class PainelAncorado
         abrir.Click += async (_, _) =>
         {
             if (Ancorar()) { Atualizar(); return; } // já estava aberto
+            var antes = Ancoragem.Janelas().Select(j => j.Janela).ToHashSet(); // processo desconhecido: vale a janela nova
             if (Abrir(app, config) is { } erro) { status.Text = erro; return; }
             abrir.IsEnabled = pegar.IsEnabled = false;
             status.Text = $"Abrindo {app.Nome}…";
@@ -80,6 +80,11 @@ public static class PainelAncorado
             {
                 await Task.Delay(500);
                 if (Ancorar()) break;
+                if (processo is null && Ancoragem.Nova(antes) is { } nova && Ancoragem.Ancorar(id, nova.Janela))
+                {
+                    acoes.Editor.DefinirProcessoAncorado(id, nova.Processo); // da próxima vez já sabe qual procurar
+                    break;
+                }
             }
             abrir.IsEnabled = pegar.IsEnabled = true;
             if (!Ancoragem.Ancorado(id)) status.Text = $"A janela de {app.Nome} não apareceu em 1 minuto. Tente \"Ancorar a janela que já está aberta\".";

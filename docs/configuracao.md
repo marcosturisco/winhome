@@ -146,6 +146,25 @@ Painel `id: "videos"`. Cole um link e tecle Enter, use o botão de arquivo ou ar
 | `pausarAoEsconder` | pausa ao esconder ou minimizar a Home | `true` |
 | `pastaVlc` | pasta do VLC 64 bits (com `libvlc.dll`); vazio = `C:\Program Files\VideoLAN\VLC` | `""` |
 
+## Apps ancorados (`appsAncorados`)
+Painel com a **janela real de um programa** posicionada sobre a área dele: acompanha rolagem, ✥ (lugar), ↔ (largura),
+a alça da base (altura) e a troca de monitor; minimiza junto com a Home; a parte fora da área visível é recortada.
+Vários podem ficar lado a lado. Criar: Configurações → Painéis → **+ Adicionar painel → App ancorado**:
+IntelliJ IDEA, VS Code, Android Studio, Terminal, **Escolher uma janela aberta…** (qualquer programa aberto; o processo
+é descoberto pela janela) ou **Outro app instalado…** (o painel abre o app e ancora a primeira janela nova).
+**Soltar** (rodapé do painel) ou sair do WinHome devolvem a janela ao tamanho e lugar de antes. Não usa `SetParent`
+nem janela "dona": se o WinHome cair, o programa continua normal (fica onde estava, acessível pela barra de tarefas).
+
+Chave = id do painel (`ancorado1`, `ancorado2`…):
+| Campo | Uso |
+|---|---|
+| `nome` | nome no painel |
+| `editor` / `app` / `caminho` + `args` | como abrir (igual às Ações rápidas) |
+| `processo` | processo dono da janela (ex.: `idea64`, `Code`, `WindowsTerminal`); vazio = descoberto ao abrir |
+| `altura` | altura da área, em pixels da Home (200 a 2000) | 
+
+`WinHome.exe --sair` pede para a Home aberta sair normalmente (usado pelos scripts antes de recompilar).
+
 ## Painéis (`paineis`)
 Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas) e `titulo` (opcional).
 - `id: "boasVindas"`: saudação, hora e data.

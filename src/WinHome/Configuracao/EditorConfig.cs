@@ -251,6 +251,12 @@ public sealed class EditorConfig(ConfigService config)
         return id;
     }
 
+    // Processo descoberto ao abrir o app: das próximas vezes, "ancorar a janela aberta" já sabe qual procurar.
+    public void DefinirProcessoAncorado(string id, string processo) => Estrutura(c =>
+    {
+        if (c.AppsAncorados.TryGetValue(id, out var app)) app.Processo = processo;
+    });
+
     public void DefinirAlturaAncorado(string id, int altura) => Estrutura(c =>
     {
         if (c.AppsAncorados.TryGetValue(id, out var app)) app.Altura = Math.Clamp(altura, 200, 2000);

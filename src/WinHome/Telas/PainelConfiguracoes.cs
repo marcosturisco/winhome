@@ -697,9 +697,120 @@ public sealed class PainelConfiguracoes
             item.Click += (_, _) => _ed.NovoAppAncorado(app);
             ancorados.Items.Add(item);
         }
+        ancorados.Items.Add(new MenuFlyoutSeparator());
+        var janelaAberta = new MenuFlyoutItem { Text = "Escolher uma janela aberta…", Icon = new FontIcon { Glyph = "" } };
+        janelaAberta.Click += (_, _) => EscolherJanelaAberta();
+        ancorados.Items.Add(janelaAberta);
+        var instalado = new MenuFlyoutItem { Text = "Outro app instalado…", Icon = new FontIcon { Glyph = "" } };
+        instalado.Click += (_, _) => EscolherAppInstalado();
+        ancorados.Items.Add(instalado);
         menu.Items.Add(ancorados);
         pilha.Children.Add(new DropDownButton { Content = "+ Adicionar painel", Flyout = menu });
         return pilha;
+    }
+
+    // Lista as janelas abertas; a escolhida vira um painel ancorado (o processo é descoberto pela própria janela).
+    async void EscolherJanelaAberta()
+    {
+        var janelas = Ancoragem.Janelas();
+        var lista = new ListView { SelectionMode = ListViewSelectionMode.Single, MaxHeight = 420 };
+        foreach (var j in janelas)
+        {
+            UIElement icone = j.Executavel is { } exe && Icones.De(new AppItem { Caminho = exe }, 24) is { } img
+                ? new Image { Source = img, Width = 24, Height = 24, VerticalAlignment = VerticalAlignment.Center }
+                : new FontIcon { Glyph = "", FontSize = 18, VerticalAlignment = VerticalAlignment.Center };
+            var textos = new StackPanel
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                Children =
+                {
+                    new TextBlock { Text = NomeDoPrograma(j), FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis },
+                    new TextBlock { Text = j.Titulo, FontSize = 12, Opacity = 0.7, TextTrimming = TextTrimming.CharacterEllipsis },
+                },
+            };
+            lista.Items.Add(new ListViewItem { Content = Linha(icone, textos, null), Tag = j, Padding = new Thickness(8, 6, 8, 6) });
+        }
+
+        var dialogo = new ContentDialog
+        {
+            XamlRoot = _borda.XamlRoot,
+            Title = "Ancorar uma janela aberta",
+            Content = janelas.Count == 0
+                ? new TextBlock { Text = "Nenhuma janela de programa aberta agora.", TextWrapping = TextWrapping.Wrap }
+                : lista,
+            PrimaryButtonText = "Ancorar",
+            CloseButtonText = "Cancelar",
+            DefaultButton = ContentDialogButton.Primary,
+            IsPrimaryButtonEnabled = false,
+            RequestedTheme = _borda.ActualTheme,
+        };
+        lista.SelectionChanged += (_, _) => dialogo.IsPrimaryButtonEnabled = lista.SelectedItem is not null;
+        lista.DoubleTapped += (_, _) => { if (lista.SelectedItem is not null) { _escolhida = true; dialogo.Hide(); } };
+        _escolhida = false;
+        var resultado = await dialogo.ShowAsync();
+        if ((resultado != ContentDialogResult.Primary && !_escolhida) || lista.SelectedItem is not ListViewItem { Tag: Ancoragem.JanelaAberta janela })
+            return;
+
+        var app = new AppAncorado
+        {
+            Nome = NomeDoPrograma(janela),
+            Processo = janela.Processo,
+            Caminho = janela.Processo.Equals("ApplicationFrameHost", StringComparison.OrdinalIgnoreCase) ? null : janela.Executavel,
+        };
+        var id = _ed.NovoAppAncorado(app);
+        Ancoragem.Ancorar(id, janela.Janela); // a janela vai para o painel novo
+    }
+    bool _escolhida;
+
+    // Nome amigável: a descrição do executável ("IntelliJ IDEA", "DBeaver"), senão o nome do processo.
+    static string NomeDoPrograma(Ancoragem.JanelaAberta j)
+    {
+        try
+        {
+            if (j.Executavel is { } exe && System.Diagnostics.FileVersionInfo.GetVersionInfo(exe).FileDescription is { Length: > 0 } d)
+                return d.Trim();
+        }
+        catch (Exception) { }
+        return j.Processo;
+    }
+
+    // Busca entre os apps instalados; o processo é descoberto na primeira vez que o painel abrir o app.
+    async void EscolherAppInstalado()
+    {
+        ContentDialog? dialogo = null;
+        AppItem? escolhido = null;
+        var busca = BuscaDeInstalados("App instalado", app =>
+        {
+            escolhido = app;
+            dialogo?.Hide();
+        });
+        dialogo = new ContentDialog
+        {
+            XamlRoot = _borda.XamlRoot,
+            Title = "Ancorar um app instalado",
+            Content = new StackPanel
+            {
+                Spacing = 8,
+                Width = 400,
+                Children =
+                {
+                    busca,
+                    new TextBlock
+                    {
+                        Text = "O painel abre o app e ancora a primeira janela nova que aparecer. Se o app já estiver aberto, " +
+                               "use \"Escolher uma janela aberta…\".",
+                        TextWrapping = TextWrapping.Wrap,
+                        FontSize = 12,
+                        Opacity = 0.7,
+                    },
+                },
+            },
+            CloseButtonText = "Cancelar",
+            RequestedTheme = _borda.ActualTheme,
+        };
+        await dialogo.ShowAsync();
+        if (escolhido is not { } item) return;
+        _ed.NovoAppAncorado(new AppAncorado { Nome = item.Nome, App = item.App, Caminho = item.App is null ? item.Caminho : null });
     }
 
     async Task RemoverPainel(Painel painel)

@@ -602,7 +602,7 @@ public sealed class MainWindow : Window
         else Mostrar();
     }
 
-    void Sair()
+    public void Sair()
     {
         _saindo = true;
         Close();

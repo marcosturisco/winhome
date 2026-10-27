@@ -33,6 +33,7 @@ public partial class App : Application
     {
         _janela = new MainWindow();
         _instancia.Chamada += () => _janela.DispatcherQueue.TryEnqueue(_janela.Mostrar);
+        _instancia.PedidoDeSaida += () => _janela.DispatcherQueue.TryEnqueue(_janela.Sair);
         _janela.Mostrar();
     }
 }

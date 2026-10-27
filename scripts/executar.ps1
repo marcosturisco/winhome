@@ -2,9 +2,15 @@
 param([switch]$Release)
 
 $ErrorActionPreference = 'Stop'
-Get-Process WinHome -ErrorAction SilentlyContinue | Stop-Process -Force
-& (Join-Path $PSScriptRoot 'compilar.ps1') -Release:$Release
-
 $config = if ($Release) { 'Release' } else { 'Debug' }
 $exe = Join-Path $PSScriptRoot "..\src\WinHome\bin\$config\net10.0-windows10.0.22621.0\win-x64\WinHome.exe"
+
+# Pede para a Home sair normalmente (devolve os apps ancorados ao lugar); so encerra a forca se nao sair em 5 s.
+if (Get-Process WinHome -ErrorAction SilentlyContinue) {
+    if (Test-Path $exe) { Start-Process $exe -ArgumentList '--sair' }
+    for ($i = 0; $i -lt 50 -and (Get-Process WinHome -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 100 }
+    Get-Process WinHome -ErrorAction SilentlyContinue | Stop-Process -Force
+}
+
+& (Join-Path $PSScriptRoot 'compilar.ps1') -Release:$Release
 Start-Process (Resolve-Path $exe).Path

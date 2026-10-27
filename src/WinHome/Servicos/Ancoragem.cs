@@ -19,6 +19,7 @@ public static class Ancoragem
         public Placement Original;      // como a janela estava antes de ancorar
         public bool Minimizada;
         public Ret? Recorte; // região aplicada (coordenadas da janela); null = janela inteira
+        public DateTime? SemArea; // desde quando a área do painel não está na tela
     }
 
     static readonly Dictionary<string, Item> Itens = [];
@@ -109,6 +110,15 @@ public static class Ancoragem
                 continue;
             }
 
+            // Painel recém-criado ou Home sendo remontada: a área some por um instante; só minimiza se sumir de vez
+            // (painel ocultado pelo ✕, busca na tela).
+            if (item.Area is { IsLoaded: true }) item.SemArea = null;
+            else
+            {
+                item.SemArea ??= DateTime.Now;
+                if (homeVisivel && DateTime.Now - item.SemArea < TimeSpan.FromMilliseconds(600)) continue;
+            }
+
             var alvo = homeVisivel ? Retangulo(item.Area) : null;
             var visivel = alvo is { } a && _visivel is not null ? Intersecao(a, AreaLivre()) : null;
             if (alvo is null || visivel is null)
@@ -195,33 +205,58 @@ public static class Ancoragem
 
     // ---------- Encontrar a janela principal de um app ----------
 
-    // Janela principal visível do processo: sem dono, com moldura, a maior; ignora as já ancoradas.
-    public static IntPtr Procurar(string processo)
+    // Janela que pode ser ancorada: a principal de um programa (visível, sem dono, com moldura, de bom tamanho).
+    public sealed record JanelaAberta(IntPtr Janela, string Processo, string? Executavel, string Titulo, long Area);
+
+    // Janelas principais abertas agora (sem a Home e sem as já ancoradas), da maior para a menor.
+    public static List<JanelaAberta> Janelas()
     {
-        var nome = Path.GetFileNameWithoutExtension(processo);
-        var melhor = IntPtr.Zero;
-        long maiorArea = 0;
-        var nomes = new Dictionary<uint, string>();
+        var lista = new List<JanelaAberta>();
+        var processos = new Dictionary<uint, (string Nome, string? Exe)>();
         EnumWindows((h, _) =>
         {
-            if (!IsWindowVisible(h) || GetWindow(h, GW_OWNER) != IntPtr.Zero || EhAncorada(h) || Oculta(h)) return true;
-            GetWindowThreadProcessId(h, out var pid);
-            if (!nomes.TryGetValue(pid, out var n))
-            {
-                try { n = Process.GetProcessById((int)pid).ProcessName; } catch (ArgumentException) { n = ""; }
-                nomes[pid] = n;
-            }
-            if (!string.Equals(n, nome, StringComparison.OrdinalIgnoreCase)) return true;
+            if (h == _home || !IsWindowVisible(h) || GetWindow(h, GW_OWNER) != IntPtr.Zero || EhAncorada(h) || Oculta(h)) return true;
             var estilo = GetWindowLongPtr(h, GWL_STYLE);
             if ((estilo & (WS_CAPTION | WS_THICKFRAME)) == 0 && !Classe(h).StartsWith("SunAwtFrame")) return true;
             GetWindowRect(h, out var r);
-            long area = (long)(r.Direita - r.Esquerda) * (r.Base - r.Topo);
-            if (r.Direita - r.Esquerda < 300 || r.Base - r.Topo < 200 || area <= maiorArea) return true;
-            maiorArea = area;
-            melhor = h;
+            if (r.Direita - r.Esquerda < 300 || r.Base - r.Topo < 200) return true;
+            var titulo = Titulo(h);
+            if (titulo.Length == 0) return true;
+
+            GetWindowThreadProcessId(h, out var pid);
+            if (pid == Environment.ProcessId) return true;
+            if (!processos.TryGetValue(pid, out var p))
+            {
+                try
+                {
+                    using var proc = Process.GetProcessById((int)pid);
+                    string? exe = null;
+                    try { exe = proc.MainModule?.FileName; } catch (Exception) { } // processos protegidos não deixam ler
+                    p = (proc.ProcessName, exe);
+                }
+                catch (ArgumentException) { p = ("", null); }
+                processos[pid] = p;
+            }
+            if (p.Nome.Length == 0) return true;
+            lista.Add(new JanelaAberta(h, p.Nome, p.Exe, titulo, (long)(r.Direita - r.Esquerda) * (r.Base - r.Topo)));
             return true;
         }, IntPtr.Zero);
-        return melhor;
+        return lista.OrderByDescending(j => j.Area).ToList();
+    }
+
+    // A maior janela principal livre do processo.
+    public static IntPtr Procurar(string processo)
+    {
+        var nome = Path.GetFileNameWithoutExtension(processo);
+        return Janelas().FirstOrDefault(j => string.Equals(j.Processo, nome, StringComparison.OrdinalIgnoreCase))?.Janela ?? IntPtr.Zero;
+    }
+
+    // Primeira janela principal que não estava aberta antes (para apps cujo processo ainda não se conhece).
+    public static JanelaAberta? Nova(IReadOnlySet<IntPtr> antes)
+    {
+        var novas = Janelas().Where(j => !antes.Contains(j.Janela)).ToList();
+        var frente = GetForegroundWindow();
+        return novas.FirstOrDefault(j => j.Janela == frente) ?? novas.FirstOrDefault();
     }
 
     public static string Titulo(IntPtr janela)
@@ -269,6 +304,7 @@ public static class Ancoragem
     [DllImport("user32.dll")] static extern bool IsZoomed(IntPtr h);
     [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int cmd);
     [DllImport("user32.dll")] static extern IntPtr GetWindow(IntPtr h, uint cmd);
+    [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] static extern long GetWindowLongPtr(IntPtr h, int i);
     [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out Ret r);
     [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h, IntPtr depois, int x, int y, int cx, int cy, uint flags);
