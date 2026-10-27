@@ -81,6 +81,7 @@ public sealed class EditorConfig(ConfigService config)
         (Config.PainelTarefas, "Tarefas"),
         (Config.PainelAcoes, "Ações rápidas"),
         (Config.PainelVideos, "Vídeos (VLC e YouTube)"),
+        (Config.PainelDispositivos, "Dispositivos (TV, box…)"),
     ];
 
     public bool Tem(string id) => C.Paineis.Any(p => p.Id == id);
@@ -118,6 +119,8 @@ public sealed class EditorConfig(ConfigService config)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Ações rápidas", Largura = Math.Max(1, c.Tema.Colunas / 2) });
         else if (id == Config.PainelVideos)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Vídeos", Largura = Math.Max(1, c.Tema.Colunas / 2) });
+        else if (id == Config.PainelDispositivos)
+            c.Paineis.Add(new Painel { Id = id, Titulo = "Dispositivos", Largura = Math.Max(1, c.Tema.Colunas / 3) });
     });
 
     public void AdicionarCidade(Cidade cidade) => Estrutura(c =>
@@ -203,6 +206,12 @@ public sealed class EditorConfig(ConfigService config)
         foreach (var padrao in AcaoRapida.Padrao().Where(p => c.AcoesRapidas.All(a => a.Nome != p.Nome)))
             c.AcoesRapidas.Add(padrao);
     });
+
+    public void NovoDispositivo() => Estrutura(c => c.Dispositivos.Lista.Add(new Dispositivo { Nome = "Novo aparelho" }));
+
+    public void RemoverDispositivo(Dispositivo d) => Estrutura(c => c.Dispositivos.Lista.Remove(d));
+
+    public void MoverDispositivo(Dispositivo d, int delta) => Estrutura(c => Trocar(c.Dispositivos.Lista, d, delta));
 
     public void AdicionarFrase() => Estrutura(c => c.Mensagens.Minhas.Add(new Frase()));
 

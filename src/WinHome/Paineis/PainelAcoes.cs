@@ -79,39 +79,44 @@ public static class PainelAcoes
 
         botao.Click += async (_, _) =>
         {
-            if (_confirmando) return;
-            string? arquivo = null;
-            if (ServicoAcoes.PedeArquivo(acao))
-            {
-                var tipos = acao.TipoArquivo.Split([',', ';', ' '], StringSplitOptions.RemoveEmptyEntries);
-                arquivo = await acoes.EscolherArquivo(tipos);
-                if (arquivo is null) return; // desistiu na escolha
-            }
-            var (passos, problemas) = ServicoAcoes.Preparar(acao, projetos, arquivo);
-            if (passos.Count == 0)
-            {
-                acoes.Resultado(problemas.Count > 0 ? string.Join("\n", problemas) : $"A ação \"{acao.Nome}\" não tem passos.");
-                return;
-            }
-
-            _confirmando = true;
-            bool confirmou;
-            try { confirmou = await Confirmar(botao.XamlRoot, acao, passos, problemas); }
-            finally { _confirmando = false; }
-            if (!confirmou) return;
-
             botao.IsEnabled = false;
-            var resultados = await ServicoAcoes.Executar(passos);
-            botao.IsEnabled = true;
-
-            var erros = problemas.Concat(resultados.Where(r => !r.Ok).Select(r => $"{r.Nome}: {r.Texto}")).ToList();
-            var saidas = resultados.Where(r => r.Ok && r.Esperou)
-                .Select(r => $"{r.Nome}: {r.Texto}").ToList();
-            if (erros.Count > 0) acoes.Resultado(string.Join("\n", erros.Concat(saidas)));
-            else if (saidas.Count > 0) acoes.Informar(string.Join("\n", saidas)); // a Home fica aberta para mostrar
-            else acoes.Resultado(null); // tudo aberto: esconde a Home, como ao abrir um app
+            try { await Executar(acao, projetos, acoes, botao.XamlRoot); }
+            finally { botao.IsEnabled = true; }
         };
         return botao;
+    }
+
+    // Pede o arquivo (se a ação usar {arquivo}), mostra a confirmação com os comandos exatos e só então executa.
+    // Usado pelos botões deste painel e pelo menu de cada aparelho no painel Dispositivos.
+    public static async Task Executar(AcaoRapida acao, Projetos projetos, Acoes acoes, XamlRoot raiz)
+    {
+        if (_confirmando) return;
+        string? arquivo = null;
+        if (ServicoAcoes.PedeArquivo(acao))
+        {
+            var tipos = acao.TipoArquivo.Split([',', ';', ' '], StringSplitOptions.RemoveEmptyEntries);
+            arquivo = await acoes.EscolherArquivo(tipos);
+            if (arquivo is null) return; // desistiu na escolha
+        }
+        var (passos, problemas) = ServicoAcoes.Preparar(acao, projetos, arquivo);
+        if (passos.Count == 0)
+        {
+            acoes.Resultado(problemas.Count > 0 ? string.Join("\n", problemas) : $"A ação \"{acao.Nome}\" não tem passos.");
+            return;
+        }
+
+        _confirmando = true;
+        bool confirmou;
+        try { confirmou = await Confirmar(raiz, acao, passos, problemas); }
+        finally { _confirmando = false; }
+        if (!confirmou) return;
+
+        var resultados = await ServicoAcoes.Executar(passos);
+        var erros = problemas.Concat(resultados.Where(r => !r.Ok).Select(r => $"{r.Nome}: {r.Texto}")).ToList();
+        var saidas = resultados.Where(r => r.Ok && r.Esperou).Select(r => $"{r.Nome}: {r.Texto}").ToList();
+        if (erros.Count > 0) acoes.Resultado(string.Join("\n", erros.Concat(saidas)));
+        else if (saidas.Count > 0) acoes.Informar(string.Join("\n", saidas)); // a Home fica aberta para mostrar
+        else acoes.Resultado(null); // tudo aberto: esconde a Home, como ao abrir um app
     }
 
     // Mostra cada comando exatamente como será executado; Enter executa, Esc cancela.

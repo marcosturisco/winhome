@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos;
+    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expDispositivos;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -60,6 +60,7 @@ public sealed class PainelConfiguracoes
             if (_expTarefas is not null) _expTarefas.Content = ConteudoTarefas();
             if (_expAcoes is not null) _expAcoes.Content = ConteudoAcoes();
             if (_expVideos is not null) _expVideos.Content = ConteudoVideos();
+            if (_expDispositivos is not null) _expDispositivos.Content = ConteudoDispositivos();
         };
 
         var cabecalho = new StackPanel
@@ -133,6 +134,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expTarefas = Secao("Tarefas", ConteudoTarefas()));
         _secoes.Children.Add(_expAcoes = Secao("Ações rápidas", ConteudoAcoes()));
         _secoes.Children.Add(_expVideos = Secao("Vídeos", ConteudoVideos()));
+        _secoes.Children.Add(_expDispositivos = Secao("Dispositivos", ConteudoDispositivos()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
         _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
     }
@@ -554,6 +556,55 @@ public sealed class PainelConfiguracoes
             adicionar.Click += (_, _) => _ed.AdicionarAcoesQueFaltam();
             pilha.Children.Add(adicionar);
         }
+        return pilha;
+    }
+
+    UIElement ConteudoDispositivos()
+    {
+        var cfg = C.Dispositivos;
+        var pilha = Pilha(
+            Alternador("Mostrar os dispositivos na Home", _ed.Exibido(Config.PainelDispositivos), on => _ed.Exibir(Config.PainelDispositivos, on)),
+            Deslizante("Testar a cada (segundos)", 15, 300, 15, cfg.Intervalo, v => _ed.Alterar(c => c.Dispositivos.Intervalo = (int)v)),
+            new TextBlock
+            {
+                Text = "O teste só abre e fecha uma conexão na porta (até 2 s) e mede a latência; nenhum comando é enviado. " +
+                       "Clicar no aparelho na Home mostra as ações do adb para ele, sempre com confirmação.",
+                TextWrapping = TextWrapping.Wrap,
+                Opacity = 0.6,
+                FontSize = 12,
+            });
+
+        for (int i = 0; i < cfg.Lista.Count; i++)
+        {
+            var d = cfg.Lista[i];
+            var icone = new TextBox { Text = d.Icone, Width = 56, TextAlignment = TextAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            ToolTipService.SetToolTip(icone, "Ícone (um emoji; Win+. abre o seletor)");
+            icone.TextChanged += (_, _) => _ed.Alterar(c => d.Icone = icone.Text);
+            var nome = new TextBox { Text = d.Nome, PlaceholderText = "Nome", VerticalAlignment = VerticalAlignment.Center };
+            nome.TextChanged += (_, _) => _ed.Alterar(c => d.Nome = nome.Text);
+            var endereco = new TextBox { Text = d.Endereco, PlaceholderText = "IP ou nome na rede (ex.: 192.168.15.11)", VerticalAlignment = VerticalAlignment.Center };
+            endereco.TextChanged += (_, _) => _ed.Alterar(c => d.Endereco = endereco.Text.Trim());
+            var porta = new NumberBox { Value = d.Porta, Minimum = 1, Maximum = 65535, Width = 110, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Hidden, VerticalAlignment = VerticalAlignment.Center };
+            ToolTipService.SetToolTip(porta, "Porta (5555 = adb sem fio)");
+            porta.ValueChanged += (_, e) =>
+            {
+                if (!double.IsNaN(e.NewValue)) _ed.Alterar(c => d.Porta = (int)e.NewValue);
+            };
+
+            var bloco = Pilha(
+                Linha(icone, nome, null,
+                    Icone("", "Subir", i > 0, () => _ed.MoverDispositivo(d, -1)),
+                    Icone("", "Descer", i < cfg.Lista.Count - 1, () => _ed.MoverDispositivo(d, +1)),
+                    Icone("", "Remover aparelho", true, () => _ed.RemoverDispositivo(d))),
+                Linha(new Border { Width = 56 }, endereco, porta));
+            bloco.Spacing = 6;
+            bloco.Margin = new Thickness(0, 6, 0, 0);
+            pilha.Children.Add(bloco);
+        }
+
+        var novo = new Button { Content = "+ Novo aparelho" };
+        novo.Click += (_, _) => _ed.NovoDispositivo();
+        pilha.Children.Add(novo);
         return pilha;
     }
 

@@ -170,6 +170,16 @@
 
   // Painel "videos": arquivos e links pelo VLC instalado, dentro do painel; links do YouTube pelo player do YouTube.
   // Volume e recentes ficam em %APPDATA%\WinHome\videos.json (fora desta config).
+  // Painel "dispositivos": testa a porta de cada aparelho (só abre e fecha a conexão, sem comandos) a cada
+  // "intervalo" segundos; clicar no aparelho mostra as ações do adb para ele (sempre com confirmação).
+  "dispositivos": {
+    "intervalo": 60,
+    "lista": [
+      { "nome": "TV",  "icone": "📺", "endereco": "192.168.15.11", "porta": 5555 },
+      { "nome": "Box", "icone": "📡", "endereco": "192.168.15.13", "porta": 5555 }
+    ]
+  },
+
   "videos": {
     "repetir": false,              // recomeça o vídeo ao terminar (VLC)
     "pausarAoEsconder": true,      // pausa ao esconder ou minimizar a Home

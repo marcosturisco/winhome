@@ -146,6 +146,17 @@ Painel `id: "videos"`. Cole um link e tecle Enter, use o botão de arquivo ou ar
 | `pausarAoEsconder` | pausa ao esconder ou minimizar a Home | `true` |
 | `pastaVlc` | pasta do VLC 64 bits (com `libvlc.dll`); vazio = `C:\Program Files\VideoLAN\VLC` | `""` |
 
+## Dispositivos (`dispositivos`)
+Painel `id: "dispositivos"`: uma linha por aparelho com 🟢 latência em ms / 🔴 sem resposta e quando foi o último teste.
+O teste só **abre e fecha uma conexão TCP** na porta (limite de 2 s), em paralelo, a cada `intervalo` segundos e ao
+abrir a Home; nenhum comando é enviado. **Clicar no aparelho** abre o menu: Conectar, Espelhar (scrcpy), Print,
+Logs ao vivo, Instalar APK e Desconectar — geradas com o endereço do aparelho e **sempre** com a confirmação das
+Ações rápidas — mais "Testar agora" e "Copiar endereço".
+| Opção | Valores | Padrão |
+|---|---|---|
+| `intervalo` | segundos entre os testes (15 a 3600; Configurações: 15 a 300) | `60` |
+| `lista` | `{ nome, icone, endereco, porta }` | 📺 TV `192.168.15.11:5555`, 📡 Box `192.168.15.13:5555` |
+
 ## Apps ancorados (`appsAncorados`)
 Painel com a **janela real de um programa** posicionada sobre a área dele: acompanha rolagem, ✥ (lugar), ↔ (largura),
 a alça da base (altura) e a troca de monitor; minimiza junto com a Home; a parte fora da área visível é recortada.
@@ -174,6 +185,8 @@ Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura`
 - `id: "tarefas"`: tarefas.
 - `id: "acoes"`: ações rápidas.
 - `id: "videos"`: vídeos (VLC e YouTube).
+- `id: "dispositivos"`: dispositivos (TV, box…).
+- `id: "ancoradoN"`: app ancorado definido em `appsAncorados`.
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
 - Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.
 - **Direto na Home**, sem abrir as Configurações:

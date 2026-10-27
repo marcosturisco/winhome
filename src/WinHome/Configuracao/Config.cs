@@ -19,6 +19,7 @@ public sealed class Config
     public List<AcaoRapida> AcoesRapidas { get; set; } = AcaoRapida.Padrao();
     public Videos Videos { get; set; } = new();
     public Dictionary<string, AppAncorado> AppsAncorados { get; set; } = []; // id do painel → app
+    public Dispositivos Dispositivos { get; set; } = new();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
 
@@ -30,6 +31,7 @@ public sealed class Config
     public const string PainelTarefas = "tarefas";
     public const string PainelAcoes = "acoes";
     public const string PainelVideos = "videos";
+    public const string PainelDispositivos = "dispositivos";
 
     // Ajustes de configs antigas, feitos ao carregar (a gravação seguinte já sai no formato novo).
     public void Migrar()
@@ -111,6 +113,81 @@ public sealed class Projetos
 public sealed class Tarefas
 {
     public bool MostrarConcluidas { get; set; } = true;
+}
+
+// Painel "Dispositivos": testa a cada "intervalo" segundos se a porta de cada aparelho responde (só abre e fecha
+// uma conexão TCP; nenhum comando é enviado). Clicar no aparelho mostra as ações do adb para ele.
+public sealed class Dispositivos
+{
+    public int Intervalo { get; set; } = 60;
+    public List<Dispositivo> Lista { get; set; } =
+    [
+        new() { Nome = "TV", Icone = "📺", Endereco = "192.168.15.11", Porta = 5555 },
+        new() { Nome = "Box", Icone = "📡", Endereco = "192.168.15.13", Porta = 5555 },
+    ];
+}
+
+public sealed class Dispositivo
+{
+    public string Nome { get; set; } = "";
+    public string Icone { get; set; } = "📱";
+    public string Endereco { get; set; } = "";
+    public int Porta { get; set; } = 5555;
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string Alvo => $"{Endereco}:{Porta}"; // como o adb identifica o aparelho
+
+    // Ações do adb para este aparelho (menu do painel Dispositivos); executam com a mesma confirmação das Ações rápidas.
+    public List<AcaoRapida> Acoes()
+    {
+        var conectar = new PassoAcao { Nome = $"Conectar a {Nome}", Caminho = "adb", Args = $"connect {Alvo}", Esperar = true };
+        return
+        [
+            new()
+            {
+                Nome = $"Conectar {Nome}", Icone = "🔗",
+                Descricao = $"Liga a depuração sem fio com {Nome}: o aparelho aparece no Android Studio e aceita os comandos do adb. Não muda nada nele.",
+                Passos = [conectar],
+            },
+            new()
+            {
+                Nome = $"Espelhar {Nome}", Icone = "🪞",
+                Descricao = $"Mostra a tela de {Nome} numa janela do PC e deixa controlar com mouse e teclado (scrcpy): " +
+                            "clique = toque/OK, botão direito = voltar, Ctrl+H = Home.",
+                Passos = [conectar, new() { Nome = "Espelhar com o scrcpy", Caminho = "scrcpy", Args = $"-s {Alvo} --window-title \"{Nome}\"" }],
+            },
+            new()
+            {
+                Nome = $"Print de {Nome}", Icone = "📸",
+                Descricao = $"Tira um print da tela de {Nome}, salva em Imagens\\WinHome e abre a imagem.",
+                Passos =
+                [
+                    conectar,
+                    new() { Nome = "Capturar a tela", Caminho = "adb", Args = $"-s {Alvo} shell screencap -p /sdcard/winhome-print.png", Esperar = true },
+                    new() { Nome = "Copiar o print para o PC", Caminho = "adb", Args = $"-s {Alvo} pull /sdcard/winhome-print.png \"{{imagens}}\\{Nome}-{{dataHora}}.png\"", Esperar = true },
+                    new() { Nome = "Abrir o print", Caminho = $"{{imagens}}\\{Nome}-{{dataHora}}.png" },
+                ],
+            },
+            new()
+            {
+                Nome = $"Logs de {Nome}", Icone = "📜",
+                Descricao = $"Abre um Terminal com o log de {Nome} ao vivo (adb logcat). Ctrl+C ou fechar a aba encerra.",
+                Passos = [conectar, new() { Nome = "Log ao vivo no Terminal", Caminho = "wt.exe", Args = $"--title \"Logs de {Nome}\" adb -s {Alvo} logcat -v color" }],
+            },
+            new()
+            {
+                Nome = $"Instalar APK em {Nome}", Icone = "📦", TipoArquivo = ".apk",
+                Descricao = $"Escolha um arquivo .apk e ele é instalado em {Nome} (atualiza se o app já existir, mantendo os dados).",
+                Passos = [conectar, new() { Nome = "Instalar o APK", Caminho = "adb", Args = $"-s {Alvo} install -r \"{{arquivo}}\"", Esperar = true }],
+            },
+            new()
+            {
+                Nome = $"Desconectar {Nome}", Icone = "🔌",
+                Descricao = $"Encerra a depuração sem fio com {Nome}.",
+                Passos = [new() { Nome = $"Desconectar {Nome}", Caminho = "adb", Args = $"disconnect {Alvo}", Esperar = true }],
+            },
+        ];
+    }
 }
 
 // Painel "App ancorado": a janela real do app fica posicionada sobre a área do painel e acompanha a Home.

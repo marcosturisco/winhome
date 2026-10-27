@@ -94,6 +94,7 @@ public static class HomeBuilder
         if (painel.Id == Config.PainelTarefas) return (PainelTarefas.Criar(config.Tarefas, estilo), null);
         if (painel.Id == Config.PainelAcoes) return (PainelAcoes.Criar(config, estilo, acoes), null);
         if (painel.Id == Config.PainelVideos) return (PainelVideos.Criar(config.Videos, estilo, acoes), null);
+        if (painel.Id == Config.PainelDispositivos) return (PainelDispositivos.Criar(config, estilo, acoes), null);
         if (config.AppsAncorados.TryGetValue(painel.Id, out var ancorado))
             return (PainelAncorado.Criar(painel.Id, ancorado, config, estilo, acoes), null);
         if (config.Grupos.TryGetValue(painel.Id, out var apps)) return (PainelApps.Criar(apps, painel.Id, estilo, acoes), null);
