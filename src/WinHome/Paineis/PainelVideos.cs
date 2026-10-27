@@ -112,17 +112,20 @@ public static class PainelVideos
             Margin = new Thickness(16),
             FontFamily = estilo.Fonte,
         };
+        // A superfície do VLC precisa de tamanho real: sem altura, o VLC desistiria dela e abriria uma janela própria.
         var tela = new Grid
         {
             Background = new SolidColorBrush(Microsoft.UI.Colors.Black),
             CornerRadius = new CornerRadius(Math.Max(0, estilo.Tema.Cantos * 0.5)),
             AllowDrop = true,
+            MinHeight = 180,
+            Height = 270,
             Children = { aviso },
         };
         tela.SizeChanged += (_, e) =>
         {
-            var altura = Math.Min(e.NewSize.Width * 9 / 16, 720);
-            if (Math.Abs(tela.Height - altura) > 1) tela.Height = altura;
+            var altura = Math.Clamp(e.NewSize.Width * 9 / 16, 180, 720); // 16:9 pela largura do painel
+            if (double.IsNaN(tela.Height) || Math.Abs(tela.Height - altura) > 1) tela.Height = altura;
         };
 
         // ---------- Controles (VLC) ----------
@@ -184,6 +187,13 @@ public static class PainelVideos
             view = new VideoView { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch };
             view.Initialized += (_, e) =>
             {
+                // Sem a superfície do painel, o VLC abriria uma janela própria: melhor não tocar e avisar.
+                if (e.SwapChainOptions is not { Length: > 0 } || tela.ActualHeight < 10)
+                {
+                    pendente = null;
+                    Mostrar("Não foi possível preparar a área de vídeo do painel. Use ⤢ para abrir no VLC.");
+                    return;
+                }
                 libvlc = new LibVLC(["--no-video-title-show", .. e.SwapChainOptions]);
                 player = new MediaPlayerVlc(libvlc) { Volume = estado.Volume };
                 view.MediaPlayer = player;
