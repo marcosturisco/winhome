@@ -20,12 +20,12 @@ Write-Host '=== Instalador do WinHome ===' -ForegroundColor Cyan
 Write-Host "Destino: $destino"
 Write-Host ''
 
-# 1. Se ja estiver aberto, pede para sair normalmente (devolve apps ancorados); forca depois de 5 s.
+# 1. Se ja estiver aberto, pede para sair normalmente (devolve apps ancorados); forca depois de 10 s.
 if (Get-Process WinHome -ErrorAction SilentlyContinue) {
     Write-Host 'Fechando o WinHome aberto...'
     if (Test-Path $exe) { Start-Process $exe -ArgumentList '--sair' }
-    for ($i = 0; $i -lt 50 -and (Get-Process WinHome -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 100 }
-    Get-Process WinHome -ErrorAction SilentlyContinue | Stop-Process -Force
+    for ($i = 0; $i -lt 100 -and (Get-Process WinHome -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 100 }
+    Get-Process WinHome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 }
 
 # 2. Copia o programa (espelha a pasta: remove arquivos de versoes antigas).

@@ -11,8 +11,8 @@ Write-Host '=== Desinstalar o WinHome ===' -ForegroundColor Cyan
 
 if (Get-Process WinHome -ErrorAction SilentlyContinue) {
     if (Test-Path $exe) { Start-Process $exe -ArgumentList '--sair' }
-    for ($i = 0; $i -lt 50 -and (Get-Process WinHome -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 100 }
-    Get-Process WinHome -ErrorAction SilentlyContinue | Stop-Process -Force
+    for ($i = 0; $i -lt 100 -and (Get-Process WinHome -ErrorAction SilentlyContinue); $i++) { Start-Sleep -Milliseconds 100 }
+    Get-Process WinHome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     Write-Host 'WinHome fechado.'
 }
 
