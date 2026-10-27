@@ -95,20 +95,56 @@ Se esse arquivo estiver inválido, a Home começa uma lista nova e guarda o anti
 Painel `id: "acoes"`: um botão por ação. O clique **sempre** abre uma confirmação com cada comando exato, na ordem;
 Enter executa, Esc cancela. Abrindo só apps, a Home se esconde depois (como ao abrir um app); comandos com
 `esperar` mostram a resposta no topo da Home; erros aparecem como aviso.
-Edite em Configurações → Ações rápidas (nome, ícone, ordem, passos de app ou de comando, restaurar as padrão).
+Edite em Configurações → Ações rápidas (nome, ícone, descrição, ordem, passos de app ou de comando, restaurar as
+padrão ou só adicionar as padrão que faltam).
 
-Cada ação: `nome`, `icone` (um emoji; `Win+.` abre o seletor) e `passos`. Cada passo:
+Cada ação: `nome`, `icone` (um emoji; `Win+.` abre o seletor), `descricao` (para que serve: aparece na dica do botão
+e no topo da confirmação), `tipoArquivo` (filtro quando um passo usa `{arquivo}`, ex.: `.apk`) e `passos`. Cada passo:
 | Campo | Uso |
 |---|---|
 | `nome` | texto na confirmação e na dica do botão |
 | `app` | AppID do menu Iniciar (como nos grupos de apps) |
 | `editor` | `vscode` · `intellij` · `androidStudio`: encontrado como no painel Projetos (sobrevive a atualizações da IDE) |
-| `caminho`, `args` | programa, pasta ou documento e argumentos; aceitam `%VARIAVEIS%` |
-| `esperar` | `true`: roda escondido, espera até 15 s e mostra a saída (ex.: `adb connect`) |
+| `caminho`, `args` | programa, pasta ou documento e argumentos; aceitam `%VARIAVEIS%`. Programa sem pasta (`adb`, `scrcpy`) é procurado no PATH atual do usuário |
+| `esperar` | `true`: roda escondido, espera o fim (até 2 min) e mostra a saída (ex.: `adb connect`); se falhar, os passos seguintes são pulados |
 
-`{pastaProjetos}` em `caminho` ou `args` é trocado por cada pasta de `projetos.pastas` (o passo se repete por pasta).
-Padrão: **Dia de trabalho** (VS Code, IntelliJ, Teams, Outlook, Edge), **Conectar TV** (`adb connect 192.168.15.11:5555`)
-e **Abrir projetos** (pasta no Explorador e no Terminal).
+Marcadores em `caminho` ou `args`:
+| Marcador | Vira |
+|---|---|
+| `{pastaProjetos}` | cada pasta de `projetos.pastas` (o passo se repete por pasta) |
+| `{imagens}` | `Imagens\WinHome` (criada se não existir) |
+| `{dataHora}` | data e hora da execução (`2026-10-27_14-30-05`), igual em todos os passos da ação |
+| `{arquivo}` | arquivo escolhido ao clicar na ação (filtro `tipoArquivo`); cancelar a escolha cancela a ação |
+
+Programas `.exe` abrem com a variável `ADB` apontando para o `adb` do PATH: o scrcpy traz um adb próprio que, se usado,
+reiniciaria o servidor do adb e derrubaria a conexão sem fio.
+
+Ações padrão:
+| Ação | O que faz |
+|---|---|
+| 💼 Dia de trabalho | abre VS Code, IntelliJ, Teams, Outlook e Edge |
+| 📁 Abrir projetos | abre a pasta de projetos no Explorador e no Terminal |
+| 📺 Conectar TV | `adb connect 192.168.15.11:5555`: a TV aparece no Android Studio e aceita comandos do adb |
+| 🪞 Espelhar TV | conecta e abre o **scrcpy**: tela da TV numa janela, controlada por mouse e teclado |
+| 📸 Print da TV | conecta, captura a tela, copia para `Imagens\WinHome\tv-<dataHora>.png` e abre |
+| 📜 Logs da TV | conecta e abre o Terminal com `adb logcat` ao vivo |
+| 📦 Instalar APK na TV | pede um `.apk` e roda `adb install -r` (atualiza mantendo os dados) |
+| 🔌 Desconectar TV | `adb disconnect 192.168.15.11:5555` |
+
+## Vídeos (`videos`)
+Painel `id: "videos"`. Cole um link e tecle Enter, use o botão de arquivo ou arraste um arquivo/link para a tela.
+- **Arquivos e links** (mp4, mkv, avi, mp3, flac, rádios, listas m3u/m3u8…) tocam no **VLC instalado**, dentro do painel:
+  tocar/pausar, parar, barra de posição, sem som, volume e ⤢ (abre no VLC em tela cheia, do mesmo ponto).
+- **Links do YouTube** (`watch?v=`, `youtu.be/`, `shorts/`, `live/`, playlists com `list=`, início com `t=`) tocam no
+  **player do YouTube** (`youtube-nocookie.com`, num WebView2). "Abrir no YouTube" leva ao navegador no mesmo ponto.
+- Recentes (botão de relógio) e volume ficam em `%APPDATA%\WinHome\videos.json`, fora da config.
+- Mudar a config remonta a Home; o vídeo continua do mesmo ponto (pisca por um instante).
+
+| Opção | Valores | Padrão |
+|---|---|---|
+| `repetir` | recomeça ao terminar (VLC) | `false` |
+| `pausarAoEsconder` | pausa ao esconder ou minimizar a Home | `true` |
+| `pastaVlc` | pasta do VLC 64 bits (com `libvlc.dll`); vazio = `C:\Program Files\VideoLAN\VLC` | `""` |
 
 ## Painéis (`paineis`)
 Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas) e `titulo` (opcional).
@@ -118,6 +154,7 @@ Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura`
 - `id: "projetos"`: projetos recentes.
 - `id: "tarefas"`: tarefas.
 - `id: "acoes"`: ações rápidas.
+- `id: "videos"`: vídeos (VLC e YouTube).
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
 - Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.
 

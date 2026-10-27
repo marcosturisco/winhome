@@ -17,6 +17,7 @@ public sealed class Config
     public Projetos Projetos { get; set; } = new();
     public Tarefas Tarefas { get; set; } = new();
     public List<AcaoRapida> AcoesRapidas { get; set; } = AcaoRapida.Padrao();
+    public Videos Videos { get; set; } = new();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
 
@@ -27,6 +28,7 @@ public sealed class Config
     public const string PainelProjetos = "projetos";
     public const string PainelTarefas = "tarefas";
     public const string PainelAcoes = "acoes";
+    public const string PainelVideos = "videos";
 
     // Ajustes de configs antigas, feitos ao carregar (a gravação seguinte já sai no formato novo).
     public void Migrar()
@@ -108,6 +110,15 @@ public sealed class Projetos
 public sealed class Tarefas
 {
     public bool MostrarConcluidas { get; set; } = true;
+}
+
+// Painel "Vídeos": arquivos e links pelo VLC instalado; links do YouTube pelo player do YouTube (WebView2).
+// Volume e recentes ficam em videos.json (EstadoVideos), fora da config.
+public sealed class Videos
+{
+    public bool Repetir { get; set; }
+    public bool PausarAoEsconder { get; set; } = true;
+    public string PastaVlc { get; set; } = ""; // vazio = C:\Program Files\VideoLAN\VLC
 }
 
 // Painel "Ações rápidas": cada ação executa os passos em ordem, sempre depois da confirmação do usuário.

@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- Player do YouTube do painel Vídeos. Servida pelo WebView2 em https://winhome.local/youtube.html?v=ID&t=SEG&auto=1&vol=80
+     (endereço próprio para o YouTube aceitar a incorporação). Envia a posição ao WinHome a cada segundo. -->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    #player { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="player"></div>
+  <script>
+    const q = new URLSearchParams(location.search);
+    let player = null;
+
+    function onYouTubeIframeAPIReady() {
+      const vars = { autoplay: q.get('auto') === '1' ? 1 : 0, start: parseInt(q.get('t') || '0', 10), rel: 0, playsinline: 1 };
+      if (q.get('list')) { vars.listType = 'playlist'; vars.list = q.get('list'); }
+      player = new YT.Player('player', {
+        host: 'https://www.youtube-nocookie.com',
+        videoId: q.get('v') || undefined,
+        playerVars: vars,
+        events: {
+          onReady: e => e.target.setVolume(parseInt(q.get('vol') || '100', 10)),
+          onStateChange: enviar,
+        },
+      });
+      setInterval(enviar, 1000);
+    }
+
+    function enviar() {
+      if (!player || !player.getCurrentTime || !window.chrome || !window.chrome.webview) return;
+      window.chrome.webview.postMessage(JSON.stringify({ t: player.getCurrentTime(), tocando: player.getPlayerState() === 1 }));
+    }
+
+    function pausar() { if (player && player.pauseVideo) player.pauseVideo(); }
+  </script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>

@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes;
+    Expander? _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -59,6 +59,7 @@ public sealed class PainelConfiguracoes
             if (_expProjetos is not null) _expProjetos.Content = ConteudoProjetos();
             if (_expTarefas is not null) _expTarefas.Content = ConteudoTarefas();
             if (_expAcoes is not null) _expAcoes.Content = ConteudoAcoes();
+            if (_expVideos is not null) _expVideos.Content = ConteudoVideos();
         };
 
         var cabecalho = new StackPanel
@@ -131,6 +132,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expProjetos = Secao("Projetos", ConteudoProjetos()));
         _secoes.Children.Add(_expTarefas = Secao("Tarefas", ConteudoTarefas()));
         _secoes.Children.Add(_expAcoes = Secao("Ações rápidas", ConteudoAcoes()));
+        _secoes.Children.Add(_expVideos = Secao("Vídeos", ConteudoVideos()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
         _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
     }
@@ -553,6 +555,41 @@ public sealed class PainelConfiguracoes
             pilha.Children.Add(adicionar);
         }
         return pilha;
+    }
+
+    UIElement ConteudoVideos()
+    {
+        var v = C.Videos;
+        var pastaPadrao = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "VideoLAN", "VLC");
+        var pastaAtual = string.IsNullOrWhiteSpace(v.PastaVlc) ? pastaPadrao : Environment.ExpandEnvironmentVariables(v.PastaVlc);
+        var achou = File.Exists(Path.Combine(pastaAtual, "libvlc.dll"));
+
+        var limpar = new Button { Content = "Limpar a lista de recentes" };
+        limpar.Click += (_, _) => Servicos.EstadoVideos.Atual.LimparRecentes();
+
+        return Pilha(
+            Alternador("Mostrar o painel de vídeos na Home", _ed.Exibido(Config.PainelVideos), on => _ed.Exibir(Config.PainelVideos, on)),
+            Alternador("Repetir o vídeo ao terminar (VLC)", v.Repetir, on => _ed.Alterar(c => c.Videos.Repetir = on)),
+            Alternador("Pausar ao esconder ou minimizar a Home", v.PausarAoEsconder, on => _ed.Alterar(c => c.Videos.PausarAoEsconder = on)),
+            Texto("Pasta do VLC (vazio = padrão; Enter para aplicar)", v.PastaVlc, t => _ed.Alterar(c => c.Videos.PastaVlc = t.Trim()),
+                aoConfirmar: true, exemplo: pastaPadrao),
+            new TextBlock
+            {
+                Text = achou ? $"VLC encontrado em {pastaAtual}." : $"VLC não encontrado em {pastaAtual}: instale o VLC 64 bits (videolan.org).",
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 12,
+                Foreground = achou ? null : new SolidColorBrush(Colors.OrangeRed),
+                Opacity = achou ? 0.6 : 1,
+            },
+            limpar,
+            new TextBlock
+            {
+                Text = "Arquivos e links (mp4, mkv, mp3, rádios, listas m3u…) tocam no VLC dentro do painel; links do YouTube tocam " +
+                       "no player do próprio YouTube. Cole um link, abra um arquivo ou arraste para o painel. O botão ⤢ abre no VLC em tela cheia.",
+                TextWrapping = TextWrapping.Wrap,
+                Opacity = 0.6,
+                FontSize = 12,
+            });
     }
 
     // Passo de comando: programa + argumentos; "esperar" roda escondido e mostra a saída na Home.

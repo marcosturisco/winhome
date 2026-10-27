@@ -80,6 +80,7 @@ public sealed class EditorConfig(ConfigService config)
         (Config.PainelProjetos, "Projetos recentes"),
         (Config.PainelTarefas, "Tarefas"),
         (Config.PainelAcoes, "Ações rápidas"),
+        (Config.PainelVideos, "Vídeos (VLC e YouTube)"),
     ];
 
     public bool Tem(string id) => C.Paineis.Any(p => p.Id == id);
@@ -115,6 +116,8 @@ public sealed class EditorConfig(ConfigService config)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Tarefas", Largura = Math.Max(1, c.Tema.Colunas / 2) });
         else if (id == Config.PainelAcoes)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Ações rápidas", Largura = Math.Max(1, c.Tema.Colunas / 2) });
+        else if (id == Config.PainelVideos)
+            c.Paineis.Add(new Painel { Id = id, Titulo = "Vídeos", Largura = Math.Max(1, c.Tema.Colunas / 2) });
     });
 
     public void AdicionarCidade(Cidade cidade) => Estrutura(c =>

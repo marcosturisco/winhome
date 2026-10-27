@@ -95,11 +95,13 @@
 
   // Painel "acoes": cada ação executa os passos em ordem, SEMPRE depois de confirmar (mostrando o comando exato).
   // Passo: "app" (AppID), "editor" (vscode, intellij, androidStudio — detectado como em Projetos)
-  // ou "caminho" + "args". "{pastaProjetos}" repete o passo para cada pasta de "projetos.pastas".
-  // "esperar": true roda escondido, espera até 15 s e mostra a saída (ex.: adb).
+  // ou "caminho" + "args". Marcadores: "{pastaProjetos}" (repete o passo para cada pasta de "projetos.pastas"),
+  // "{imagens}" (Imagens\WinHome), "{dataHora}" e "{arquivo}" (pede um arquivo do tipo "tipoArquivo").
+  // "esperar": true roda escondido, espera o fim (até 2 min) e mostra a saída; se falhar, os passos seguintes são pulados.
   "acoesRapidas": [
     {
       "nome": "Dia de trabalho", "icone": "💼",
+      "descricao": "Abre de uma vez os programas do trabalho: VS Code, IntelliJ, Teams, Outlook e Edge.",
       "passos": [
         { "nome": "VS Code", "editor": "vscode" },
         { "nome": "IntelliJ IDEA", "editor": "intellij" },
@@ -109,23 +111,74 @@
       ]
     },
     {
-      "nome": "Conectar TV", "icone": "📺",
-      "passos": [
-        { "nome": "Conectar à TV pelo ADB", "caminho": "adb", "args": "connect 192.168.15.11:5555", "esperar": true }
-      ]
-    },
-    {
       "nome": "Abrir projetos", "icone": "📁",
+      "descricao": "Abre a pasta de projetos (botão Pastas… do painel Projetos) no Explorador e no Terminal.",
       "passos": [
         { "nome": "Pasta no Explorador", "caminho": "explorer.exe", "args": "\"{pastaProjetos}\"" },
         { "nome": "Pasta no Terminal", "caminho": "wt.exe", "args": "-d \"{pastaProjetos}\"" }
       ]
+    },
+    {
+      "nome": "Conectar TV", "icone": "📺",
+      "descricao": "Liga a depuração sem fio com a TV. Depois disso, a TV aparece no Android Studio (Run/Debug sem cabo) e aceita os comandos do adb. Não muda nada na TV.",
+      "passos": [
+        { "nome": "Conectar à TV", "caminho": "adb", "args": "connect 192.168.15.11:5555", "esperar": true }
+      ]
+    },
+    {
+      "nome": "Espelhar TV", "icone": "🪞",
+      "descricao": "Mostra a tela da TV numa janela do PC e deixa controlar com mouse e teclado (scrcpy): clique = toque/OK, botão direito = voltar, Ctrl+H = Home. Fechar a janela encerra o espelhamento.",
+      "passos": [
+        { "nome": "Conectar à TV", "caminho": "adb", "args": "connect 192.168.15.11:5555", "esperar": true },
+        { "nome": "Espelhar com o scrcpy", "caminho": "scrcpy", "args": "-s 192.168.15.11:5555 --window-title \"TV\"" }
+      ]
+    },
+    {
+      "nome": "Print da TV", "icone": "📸",
+      "descricao": "Tira um print do que está na tela da TV, salva em Imagens\\WinHome e abre a imagem.",
+      "passos": [
+        { "nome": "Conectar à TV", "caminho": "adb", "args": "connect 192.168.15.11:5555", "esperar": true },
+        { "nome": "Capturar a tela na TV", "caminho": "adb", "args": "-s 192.168.15.11:5555 shell screencap -p /sdcard/winhome-print.png", "esperar": true },
+        { "nome": "Copiar o print para o PC", "caminho": "adb", "args": "-s 192.168.15.11:5555 pull /sdcard/winhome-print.png \"{imagens}\\tv-{dataHora}.png\"", "esperar": true },
+        { "nome": "Abrir o print", "caminho": "{imagens}\\tv-{dataHora}.png" }
+      ]
+    },
+    {
+      "nome": "Logs da TV", "icone": "📜",
+      "descricao": "Abre um Terminal com o log da TV ao vivo (adb logcat), para acompanhar erros do launcher. Ctrl+C ou fechar a aba encerra.",
+      "passos": [
+        { "nome": "Conectar à TV", "caminho": "adb", "args": "connect 192.168.15.11:5555", "esperar": true },
+        { "nome": "Log ao vivo no Terminal", "caminho": "wt.exe", "args": "--title \"Logs da TV\" adb -s 192.168.15.11:5555 logcat -v color" }
+      ]
+    },
+    {
+      "nome": "Instalar APK na TV", "icone": "📦", "tipoArquivo": ".apk",
+      "descricao": "Escolha um arquivo .apk e ele é instalado na TV (atualiza se o app já existir, mantendo os dados).",
+      "passos": [
+        { "nome": "Conectar à TV", "caminho": "adb", "args": "connect 192.168.15.11:5555", "esperar": true },
+        { "nome": "Instalar o APK", "caminho": "adb", "args": "-s 192.168.15.11:5555 install -r \"{arquivo}\"", "esperar": true }
+      ]
+    },
+    {
+      "nome": "Desconectar TV", "icone": "🔌",
+      "descricao": "Encerra a depuração sem fio com a TV (o Android Studio deixa de vê-la).",
+      "passos": [
+        { "nome": "Desconectar a TV", "caminho": "adb", "args": "disconnect 192.168.15.11:5555", "esperar": true }
+      ]
     }
   ],
 
+  // Painel "videos": arquivos e links pelo VLC instalado, dentro do painel; links do YouTube pelo player do YouTube.
+  // Volume e recentes ficam em %APPDATA%\WinHome\videos.json (fora desta config).
+  "videos": {
+    "repetir": false,              // recomeça o vídeo ao terminar (VLC)
+    "pausarAoEsconder": true,      // pausa ao esconder ou minimizar a Home
+    "pastaVlc": ""                 // vazio = C:\Program Files\VideoLAN\VLC
+  },
+
   // Painéis em ordem de exibição. "visivel" liga/desliga o painel.
   // Ids especiais: "boasVindas" (saudação, hora, clima, cotações), "mensagem" (mensagem do dia),
-  // "curiosidade" (curiosidades do dia), "projetos" (projetos recentes), "tarefas" e "acoes" (ações rápidas);
+  // "curiosidade" (curiosidades do dia), "projetos" (projetos recentes), "tarefas", "acoes" (ações rápidas) e "videos";
   // os demais ids são grupos de apps definidos em "grupos".
   "paineis": [
     { "id": "boasVindas", "visivel": true, "largura": 6 },

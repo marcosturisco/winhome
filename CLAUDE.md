@@ -22,7 +22,9 @@ com painéis configuráveis (relógio, apps de trabalho, pessoal…). Projeto ir
 
 ## Internet (serviços autorizados)
 - Só serviços gratuitos, sem chave e sem login, autorizados pelo usuário:
-  Open-Meteo (clima e busca de cidades), AwesomeAPI (cotações), Wikipédia "Neste dia" (curiosidades, `pt.wikipedia.org/api/rest_v1/feed/onthisday/all/MM/DD`).
+  Open-Meteo (clima e busca de cidades), AwesomeAPI (cotações), Wikipédia "Neste dia" (curiosidades, `pt.wikipedia.org/api/rest_v1/feed/onthisday/all/MM/DD`),
+  YouTube (autorizado em 27/10/2026; painel Vídeos: player oficial `youtube-nocookie.com` num WebView2, só quando o usuário
+  abre um link; dados do WebView2 em `%LOCALAPPDATA%\WinHome\WebView2`; não passa pelo `Rede.cs`).
 - Nada pessoal sai do PC (só nome/coordenadas da cidade, códigos de moedas, dia/mês).
 - Toda chamada passa por `Servicos/Rede.cs`: tempo limite de 8 s, cache em memória + `%APPDATA%\WinHome\cache\`,
   falha de rede nunca trava nem derruba a Home (mostra o último valor salvo).

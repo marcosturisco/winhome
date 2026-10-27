@@ -20,6 +20,13 @@
   3. Dia de trabalho: abre os 5 apps e a Home se esconde. Abrir projetos: Explorador + Terminal na pasta.
   4. Conectar TV: mostra a resposta do adb no topo da Home (TV ligada ou desligada).
   5. Configurações: renomear, trocar ícone, mover, adicionar app/comando, remover, restaurar as padrão.
+  6. Configurações → Ações rápidas → "+ Adicionar as ações padrão que faltam" (Espelhar, Print, Logs, Instalar APK,
+     Desconectar). Dica e confirmação mostram a descrição. Espelhar TV (scrcpy) não derruba a conexão do adb.
+     Print salva em Imagens\WinHome e abre. Logs abre o Terminal. Instalar APK pede o arquivo. TV desligada: passos pulados.
+  7. Painel Vídeos (Configurações → Vídeos → ligar): arquivo local, arrastar arquivo, link direto, link do YouTube,
+     recentes, volume, ⤢ abre no VLC. Mudar uma config com vídeo tocando: continua do mesmo ponto. Esconder pausa.
+- Pedidos do usuário nesta etapa: ações prontas da TV com descrições (scrcpy instalado via winget, ver reversao.md)
+  e painel Vídeos (VLC instalado via LibVLCSharp.WinUI; YouTube autorizado).
   - Aprovado: merge na `main`, commit de docs e push.
 
 ## Próximas etapas (decisões já tomadas com o usuário)

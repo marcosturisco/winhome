@@ -559,10 +559,18 @@ public sealed class MainWindow : Window
         }
     }
 
-    void Esconder() => AppWindow.Hide();
+    void Esconder()
+    {
+        AppWindow.Hide();
+        PainelVideos.HomeEscondida(_config.Atual.Videos);
+    }
 
     // Vai para a barra de tarefas (Esconder tira a Home dela; volta pelo atalho ou pela bandeja).
-    void Minimizar() => ShowWindow(_hwnd, SW_MINIMIZE);
+    void Minimizar()
+    {
+        ShowWindow(_hwnd, SW_MINIMIZE);
+        PainelVideos.HomeEscondida(_config.Atual.Videos);
+    }
 
     void Alternar()
     {
