@@ -59,7 +59,7 @@ O push usa a chave passada **só no comando** (não mexer no gitconfig global ne
   - `Telas/` — `PainelConfiguracoes` (painel lateral de Configurações)
   - `Servicos/` — abrir apps, ícones do shell, apps instalados, atalho global, inicialização com o Windows
 - `scripts/` — compilar, executar, desinstalar
-- `docs/` — plano, opções da config (`configuracao.md`), reversão
+- `docs/` — plano, **backlog (pendências e próximo passo)**, opções da config (`configuracao.md`), reversão
 
 ## Testar
 - Abrir pelo PowerShell da ferramenta com `run_in_background` (senão o processo cai junto com o comando).
