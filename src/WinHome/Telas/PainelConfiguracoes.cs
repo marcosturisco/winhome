@@ -137,6 +137,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expVideos = Secao("Vídeos", ConteudoVideos()));
         _secoes.Children.Add(_expDispositivos = Secao("Dispositivos", ConteudoDispositivos()));
         _secoes.Children.Add(_expAgenda = Secao("Agenda", ConteudoAgenda()));
+        _secoes.Children.Add(Secao("Backup", ConteudoBackup()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
         _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
     }
@@ -569,6 +570,66 @@ public sealed class PainelConfiguracoes
             pilha.Children.Add(adicionar);
         }
         return pilha;
+    }
+
+    UIElement ConteudoBackup()
+    {
+        var resultado = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
+        var segredos = new CheckBox { Content = "Incluir os endereços secretos da agenda" };
+        ToolTipService.SetToolTip(segredos, "Desmarcado: a agenda vai sem o endereço (cole de novo no outro PC). Marcado: guarde o arquivo em lugar seguro.");
+
+        var fazer = new Button { Content = "Fazer backup…" };
+        fazer.Click += async (_, _) =>
+        {
+            var seletor = new FileSavePicker { SuggestedFileName = Servicos.ServicoBackup.NomeSugerido };
+            WinRT.Interop.InitializeWithWindow.Initialize(seletor, _hwnd);
+            seletor.FileTypeChoices.Add("Backup do WinHome", [".zip"]);
+            if (await seletor.PickSaveFileAsync() is not { } arquivo) return;
+            var erro = Servicos.ServicoBackup.Fazer(arquivo.Path, segredos.IsChecked == true);
+            resultado.Text = erro ?? $"Backup salvo em {arquivo.Path}.";
+        };
+
+        var restaurar = new Button { Content = "Restaurar backup…" };
+        restaurar.Click += async (_, _) =>
+        {
+            if (await EscolherArquivo([".zip"]) is not { } origem) return;
+            var (conteudo, erro) = Servicos.ServicoBackup.Examinar(origem);
+            if (erro is not null) { resultado.Text = erro; return; }
+            var dialogo = new ContentDialog
+            {
+                XamlRoot = _borda.XamlRoot,
+                Title = "Restaurar este backup?",
+                Content = new TextBlock
+                {
+                    Text = $"Vai substituir: {string.Join(", ", conteudo!)}.\n\nOs arquivos atuais ficam guardados numa pasta " +
+                           "\"antes-da-restauracao-…\" em %APPDATA%\\WinHome. Endereços da agenda que não vierem no backup são " +
+                           "mantidos (pelo nome da agenda).",
+                    TextWrapping = TextWrapping.Wrap,
+                },
+                PrimaryButtonText = "Restaurar",
+                CloseButtonText = "Cancelar",
+                DefaultButton = ContentDialogButton.Close,
+                RequestedTheme = _borda.ActualTheme,
+            };
+            if (await dialogo.ShowAsync() != ContentDialogResult.Primary) return;
+            var (reserva, erroRestaurar) = Servicos.ServicoBackup.Restaurar(origem);
+            if (erroRestaurar is not null) { resultado.Text = erroRestaurar; return; }
+            _ed.Servico.RecarregarAgora(); // a Home e esta tela se atualizam
+            resultado.Text = $"Backup restaurado. Os arquivos anteriores ficaram em {reserva}.";
+        };
+
+        return Pilha(
+            new TextBlock
+            {
+                Text = "Um arquivo .zip com a configuração, as tarefas e os vídeos recentes — para guardar ou levar a Home " +
+                       "para outro PC. A posição da janela não vai (é deste PC).",
+                TextWrapping = TextWrapping.Wrap,
+                Opacity = 0.7,
+                FontSize = 12,
+            },
+            segredos,
+            new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { fazer, restaurar } },
+            resultado);
     }
 
     UIElement ConteudoAgenda()

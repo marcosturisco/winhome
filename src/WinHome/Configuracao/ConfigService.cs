@@ -101,6 +101,14 @@ public sealed class ConfigService : IDisposable
 
     void Agendar() => _fila.TryEnqueue(() => { _espera.Stop(); _espera.Start(); });
 
+    // Relê o config.json agora (depois de restaurar um backup), mesmo sem esperar o observador do arquivo.
+    public void RecarregarAgora()
+    {
+        _espera.Stop();
+        _ultimoGravado = null;
+        Recarregar();
+    }
+
     void Recarregar()
     {
         string texto;

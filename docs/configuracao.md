@@ -225,6 +225,14 @@ Cada grupo é uma lista de apps:
 | `args`, `pasta` | argumentos e pasta de trabalho (só com `caminho`) |
 | `icone` | imagem própria para o ícone (opcional) |
 
+## Backup (Configurações → Backup)
+- **Fazer backup…**: `.zip` com `config.json`, `tarefas.json` e `videos.json` (o `estado.json`, com a posição da janela,
+  fica de fora). Os endereços secretos da agenda **só entram** marcando "Incluir os endereços secretos da agenda";
+  sem isso, saem vazios (e os comentários `//` do `config.json` não vão).
+- **Restaurar backup…**: confere o arquivo, pede confirmação, guarda os atuais em
+  `%APPDATA%\WinHome\antes-da-restauracao-<data>\` e grava os do backup; a Home se atualiza na hora.
+  Agendas do backup sem endereço recebem o deste PC quando há uma agenda com o mesmo nome.
+
 ## Teclas
 | Tecla | Ação |
 |---|---|

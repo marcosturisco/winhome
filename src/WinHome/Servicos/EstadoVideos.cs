@@ -23,6 +23,8 @@ public sealed class EstadoVideos
     static EstadoVideos? _atual;
     public static EstadoVideos Atual => _atual ??= Ler();
 
+    public static void Esquecer() => _atual = null; // arquivo trocado por fora (restauração de backup)
+
     static EstadoVideos Ler()
     {
         try

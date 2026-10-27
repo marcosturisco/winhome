@@ -35,6 +35,13 @@ public static class ServicoTarefas
 
     public static List<Tarefa> Lista => _lista ??= Ler();
 
+    // O arquivo foi trocado por fora (restauração de backup): lê de novo na próxima vez.
+    public static void Esquecer()
+    {
+        _lista = null;
+        Erro = null;
+    }
+
     static List<Tarefa> Ler()
     {
         try
