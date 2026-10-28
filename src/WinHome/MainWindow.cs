@@ -40,6 +40,7 @@ public sealed class MainWindow : Window
     readonly AtalhoGlobal _atalho;
     readonly IconeBandeja _bandeja;
     Button? _botaoEsconder;
+    Button? _botaoMinimizar;
     Button? _botaoModo;
     Estilo? _estilo;
     bool _saindo;
@@ -225,6 +226,9 @@ public sealed class MainWindow : Window
         AjustarJanela(config.Janela);
         // No modo área de trabalho a Home é o "papel de parede": fora da barra de tarefas e do Alt+Tab.
         AppWindow.IsShownInSwitchers = !config.ModoAreaDeTrabalho;
+        // Fora da barra de tarefas, minimizar não tem para onde ir: o — some (o ✕ esconde).
+        if (_botaoMinimizar is not null)
+            _botaoMinimizar.Visibility = config.ModoAreaDeTrabalho ? Visibility.Collapsed : Visibility.Visible;
 
         var erroAtalho = _atalho.Definir(config.Atalho);
         if (erroAtalho is not null) erros.Add(erroAtalho);
@@ -508,9 +512,9 @@ public sealed class MainWindow : Window
             Children =
             {
                 Botao("", "Configurações", AlternarConfiguracoes),
-                Botao("", "Minimizar", Minimizar),
+                (_botaoMinimizar = Botao("", "Minimizar", Minimizar)),
                 (_botaoModo = Botao("", "", AlternarModo)),
-                Botao("", "Esconder (Esc)", Esconder),
+                Botao("", "Esconder (Esc)", Fechar),
             },
         };
         // Igual a uma janela comum: — minimiza, ❐ alterna tela inteira/janela, ✕ esconde (como Esc e Alt+F4).
@@ -528,7 +532,7 @@ public sealed class MainWindow : Window
         var volta = formas.Count > 0 ? $" — volte com {string.Join(" ou ", formas)}" : "";
         if (_botaoEsconder is not null)
             ToolTipService.SetToolTip(_botaoEsconder, config.ModoAreaDeTrabalho
-                ? $"Voltar para trás das janelas (Esc){volta}"
+                ? $"Voltar para trás das janelas; já no fundo, esconder a Home{volta}"
                 : $"Esconder (Esc){volta}");
         _bandeja.Definir(config.IconeNaBandeja, atalhoValido ? $"{VersaoApp.Texto} — {config.Atalho}" : VersaoApp.Texto);
     }
@@ -637,6 +641,18 @@ public sealed class MainWindow : Window
         if (_config.Atual.ModoAreaDeTrabalho) MandarParaOFundo();
         else AppWindow.Hide();
         PainelVideos.HomeEscondida(_config.Atual.Videos);
+    }
+
+    // Botão ✕: como Esc, mas no modo área de trabalho, com a Home já no fundo, esconde de verdade (aparece o papel
+    // de parede do Windows; volta pelo atalho ou pela bandeja). Sem isso o clique não teria efeito visível.
+    void Fechar()
+    {
+        if (_config.Atual.ModoAreaDeTrabalho && !_naFrente)
+        {
+            AppWindow.Hide();
+            PainelVideos.HomeEscondida(_config.Atual.Videos);
+        }
+        else Esconder();
     }
 
     // Vai para a barra de tarefas (Esconder tira a Home dela; volta pelo atalho ou pela bandeja).

@@ -17,7 +17,7 @@ editar o arquivo à mão também funciona: a Home recarrega ao salvar.
 | `esconderAoAbrirApp` | esconde a Home depois de abrir um app | `true` |
 | `mostrarBusca` | caixa de busca no topo (e digitar em qualquer lugar busca) | `true` |
 | `iconeNaBandeja` | ícone na bandeja do sistema: clique mostra a Home; botão direito tem Mostrar, Configurações e Sair | `true` |
-| `modoAreaDeTrabalho` | a Home fica **atrás das janelas**, como um papel de parede: sai da barra de tarefas e do Alt+Tab; o atalho/bandeja a trazem para a frente e clicar em outro programa (ou Esc, —, ✕) a manda de volta; se algo a minimizar (Win+D), volta sozinha. Não altera nada no Windows | `false` |
+| `modoAreaDeTrabalho` | a Home fica **atrás das janelas**, como um papel de parede: sai da barra de tarefas e do Alt+Tab; o atalho/bandeja a trazem para a frente e clicar em outro programa (ou Esc, ✕) a manda de volta; com ela já no fundo, o ✕ a esconde de verdade (volta pelo atalho/bandeja) e o botão — fica oculto; se algo a minimizar (Win+D), volta sozinha. Não altera nada no Windows | `false` |
 
 ## Tema (`tema`)
 | Opção | Valores | Padrão |
@@ -251,7 +251,7 @@ Cada grupo é uma lista de apps:
 | `↓` na busca, setas | navega pelos apps |
 | botão direito / tecla Menu | abrir, mover, trocar de grupo, remover, adicionar ao grupo |
 | `Esc` ou botão `✕` | fecha Configurações → limpa a busca → esconde a Home (ela continua rodando) |
-| botão `—` | minimiza para a barra de tarefas |
+| botão `—` | minimiza para a barra de tarefas (oculto no modo área de trabalho) |
 | botão `❐` / duplo clique na faixa do topo | alterna entre ocupar a tela e **modo janela** (com borda, redimensionável) |
 | arrastar a faixa do topo (alça no centro) | leva a Home a qualquer monitor: ocupando a tela, ela encolhe sob o cursor e, ao soltar, ocupa o monitor onde caiu; no modo janela, só move |
 
