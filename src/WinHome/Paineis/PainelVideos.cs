@@ -79,7 +79,8 @@ public static class PainelVideos
         return _vlcCarregado.Value;
     }
 
-    public static UIElement Criar(Videos cfg, Estilo estilo, Acoes acoes)
+    // alturaFixa: a linha da Home tem altura definida e a tela fica com o espaço que sobra (em vez de 16:9).
+    public static UIElement Criar(Videos cfg, Estilo estilo, Acoes acoes, bool alturaFixa = false)
     {
         var fila = DispatcherQueue.GetForCurrentThread();
         var estado = EstadoVideos.Atual;
@@ -119,15 +120,16 @@ public static class PainelVideos
             Background = new SolidColorBrush(Microsoft.UI.Colors.Black),
             CornerRadius = new CornerRadius(Math.Max(0, estilo.Tema.Cantos * 0.5)),
             AllowDrop = true,
-            MinHeight = 180,
-            Height = 270,
+            MinHeight = alturaFixa ? 60 : 180,
+            Height = alturaFixa ? double.NaN : 270,
             Children = { aviso },
         };
-        tela.SizeChanged += (_, e) =>
-        {
-            var altura = Math.Clamp(e.NewSize.Width * 9 / 16, 180, 720); // 16:9 pela largura do painel
-            if (double.IsNaN(tela.Height) || Math.Abs(tela.Height - altura) > 1) tela.Height = altura;
-        };
+        if (!alturaFixa)
+            tela.SizeChanged += (_, e) =>
+            {
+                var altura = Math.Clamp(e.NewSize.Width * 9 / 16, 180, 720); // 16:9 pela largura do painel
+                if (double.IsNaN(tela.Height) || Math.Abs(tela.Height - altura) > 1) tela.Height = altura;
+            };
 
         // ---------- Controles (VLC) ----------
         var tocarPausar = BotaoControle("", "Tocar / pausar");
@@ -469,7 +471,13 @@ public static class PainelVideos
         if (Sessao.Fonte is { } anterior) Abrir(anterior, Sessao.TempoMs, Sessao.Tocando);
 
         var rodape = new StackPanel { Children = { controles, controlesYouTube } };
-        return new StackPanel { Spacing = 10, Children = { topo, tela, rodape } };
+        var painel = new Grid { RowSpacing = 10, Children = { topo, tela, rodape } };
+        painel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        painel.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // a tela
+        painel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        Grid.SetRow(tela, 1);
+        Grid.SetRow(rodape, 2);
+        return painel;
     }
 
     // Confirmação rápida junto ao botão de recentes (o vídeo que estiver tocando não é afetado).

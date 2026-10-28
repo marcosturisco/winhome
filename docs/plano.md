@@ -21,7 +21,7 @@ Não substitui o `explorer.exe`: barra de tarefas, menu Iniciar e área de traba
   atalho, iniciar com o Windows, esconder a Home ao abrir um app.
 - **Tema:** modo (claro/escuro/sistema), cor de destaque, fundo (`mica`, `micaAlt`, `acrilico`, `cor`, `imagem`),
   fonte, cantos, tamanho dos ícones, opacidade dos painéis, espaçamento e número de colunas da grade.
-- **Painéis:** lista em ordem de exibição; cada um com `visivel` (toggle), `titulo` e `largura` (em colunas).
+- **Painéis:** lista em ordem de exibição; cada um com `visivel` (toggle), `titulo`, `largura` (em colunas) e `altura` (da linha, em pixels; 0 = automática).
 - **Grupos de apps:** cada grupo vira um painel; cada app tem `nome` e `app` (AppID) **ou** `caminho`,
   mais `args`, `pasta` e `icone` opcionais.
 

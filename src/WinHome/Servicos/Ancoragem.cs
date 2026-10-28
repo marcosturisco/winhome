@@ -20,6 +20,7 @@ public static class Ancoragem
         public bool Minimizada;
         public Ret? Recorte; // região aplicada (coordenadas da janela); null = janela inteira
         public DateTime? SemArea; // desde quando a área do painel não está na tela
+        public int AlturaMinima; // menor altura da área que o app aceita (pixels físicos; 0 = ainda não se sabe)
     }
 
     static readonly Dictionary<string, Item> Itens = [];
@@ -45,6 +46,15 @@ public static class Ancoragem
 
     public static bool EhAncorada(IntPtr janela) => janela != IntPtr.Zero && Itens.Values.Any(i => i.Janela == janela);
 
+    // Quanto falta (em pixels da Home) para a área do painel chegar à altura mínima do app; negativo = sobra.
+    // null = app não ancorado ou mínimo ainda desconhecido (só se descobre quando o app recusa encolher).
+    public static double? FaltaNaArea(string id)
+    {
+        if (!Itens.TryGetValue(id, out var i) || i.Janela == IntPtr.Zero || i.AlturaMinima == 0) return null;
+        if (i.Area is not { IsLoaded: true, XamlRoot: { } raiz } area) return null;
+        return i.AlturaMinima / raiz.RasterizationScale - area.ActualHeight;
+    }
+
     // A área do painel mudou (Home remontada): a janela passa a seguir a área nova.
     public static void Registrar(string id, FrameworkElement area)
     {
@@ -61,6 +71,7 @@ public static class Ancoragem
         item.Janela = janela;
         item.Original = original;
         item.Minimizada = false;
+        item.AlturaMinima = 0;
         if (IsZoomed(janela) || IsIconic(janela)) ShowWindow(janela, SW_RESTORE); // maximizada não aceita posição
         Mudou?.Invoke(id);
         Acompanhar();
@@ -158,12 +169,20 @@ public static class Ancoragem
                 w.Base += Math.Max(0, atual.Base - moldura.Base);
             }
             if (!atual.Equals(w))
+            {
                 SetWindowPos(item.Janela, IntPtr.Zero, w.Esquerda, w.Topo, w.Direita - w.Esquerda, w.Base - w.Topo,
                     SWP_NOZORDER | SWP_NOACTIVATE);
+                GetWindowRect(item.Janela, out atual);
+                // O app recusou ficar tão baixo: essa é a altura mínima dele (a alça da linha da Home não passa disso).
+                var sobra = (atual.Base - atual.Topo) - (w.Base - w.Topo);
+                if (sobra > 0) item.AlturaMinima = r.Base - r.Topo + sobra;
+            }
+            var maior = atual.Base - atual.Topo > w.Base - w.Topo || atual.Direita - atual.Esquerda > w.Direita - w.Esquerda;
 
-            // Parte do painel fora da área visível (rolagem, Configurações abertas): recorta a janela.
+            // Parte do painel fora da área visível (rolagem, Configurações abertas) ou janela maior que a área (mínimo
+            // do app): recorta a janela, para não cobrir os outros painéis.
             var v = visivel.Value;
-            Ret? recorte = v.Equals(r) ? null
+            Ret? recorte = v.Equals(r) && !maior ? null
                 : new Ret { Esquerda = v.Esquerda - w.Esquerda, Topo = v.Topo - w.Topo, Direita = v.Direita - w.Esquerda, Base = v.Base - w.Topo };
             if (!Nullable.Equals(recorte, item.Recorte))
             {

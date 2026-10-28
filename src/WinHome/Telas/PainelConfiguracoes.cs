@@ -919,7 +919,8 @@ public sealed class PainelConfiguracoes
     {
         var pilha = Pilha(new TextBlock
         {
-            Text = "Marque para exibir. A largura é em colunas da grade; painéis que não cabem descem para a linha seguinte.",
+            Text = "Marque para exibir. A largura é em colunas da grade (painéis que não cabem descem para a linha seguinte) " +
+                "e a altura, em pixels (0 = automática): a linha usa a maior altura entre os painéis dela.",
             TextWrapping = TextWrapping.Wrap,
             Opacity = 0.7,
         });
@@ -957,7 +958,23 @@ public sealed class PainelConfiguracoes
                 if (!double.IsNaN(e.NewValue)) _ed.Alterar(c => painel.Largura = (int)e.NewValue);
             };
 
-            var linha = Linha(visivel, titulo, largura,
+            var altura = new NumberBox
+            {
+                Value = painel.Altura,
+                Minimum = 0,
+                Maximum = Painel.AlturaMaxima,
+                SmallChange = 10,
+                LargeChange = 50,
+                SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            ToolTipService.SetToolTip(altura, "Altura da linha em pixels (0 = automática)");
+            altura.ValueChanged += (_, e) =>
+            {
+                if (!double.IsNaN(e.NewValue)) _ed.Alterar(c => painel.Altura = (int)e.NewValue);
+            };
+
+            var linha = Linha(visivel, titulo, largura, altura,
                 Icone("\uE70E", "Subir", i > 0, () => _ed.MoverPainel(painel, -1)),
                 Icone("\uE70D", "Descer", i < C.Paineis.Count - 1, () => _ed.MoverPainel(painel, +1)),
                 Icone("\uE74D", "Remover painel", true, () => _ = RemoverPainel(painel)));

@@ -11,7 +11,8 @@ namespace WinHome.Paineis;
 // A base do painel tem uma alça para mudar a altura; ✥ ↔ ✕ do cartão mudam lugar, largura e ocultam.
 public static class PainelAncorado
 {
-    public static UIElement Criar(string id, AppAncorado app, Config config, Estilo estilo, Acoes acoes)
+    // alturaFixa: a linha da Home tem altura definida; a área fica com o espaço que sobra (sem a alça de altura própria).
+    public static UIElement Criar(string id, AppAncorado app, Config config, Estilo estilo, Acoes acoes, bool alturaFixa = false)
     {
         var status = new TextBlock { TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Opacity = 0.75, FontFamily = estilo.Fonte };
         var abrir = new Button { Content = $"Abrir {app.Nome} aqui", Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
@@ -25,7 +26,8 @@ public static class PainelAncorado
         };
         var area = new Border
         {
-            Height = Math.Clamp(app.Altura, 200, 2000),
+            Height = alturaFixa ? double.NaN : Math.Clamp(app.Altura, 200, 2000),
+            MinHeight = alturaFixa ? 60 : 0,
             CornerRadius = new CornerRadius(Math.Max(0, estilo.Tema.Cantos * 0.5)),
             BorderBrush = estilo.Destaque,
             BorderThickness = new Thickness(1),
@@ -107,8 +109,16 @@ public static class PainelAncorado
         area.Unloaded += (_, _) => Ancoragem.Mudou -= Mudou;
         Atualizar();
 
-        var alca = new AlcaAltura(area, novaAltura => acoes.Editor.DefinirAlturaAncorado(id, novaAltura));
-        return new StackPanel { Spacing = 6, Children = { area, alca, rodape } };
+        if (!alturaFixa)
+        {
+            var alca = new AlcaAlturaArea(area, novaAltura => acoes.Editor.DefinirAlturaAncorado(id, novaAltura));
+            return new StackPanel { Spacing = 6, Children = { area, alca, rodape } };
+        }
+        var painel = new Grid { RowSpacing = 6, Children = { area, rodape } };
+        painel.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // a área do app
+        painel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        Grid.SetRow(rodape, 1);
+        return painel;
     }
 
     // Processo dono da janela: o informado na config ou, para os editores, o executável deles.
@@ -131,11 +141,11 @@ public static class PainelAncorado
 }
 
 // Alça na base do painel: arrastar muda a altura da área do app (grava ao soltar).
-public sealed class AlcaAltura : Grid
+public sealed class AlcaAlturaArea : Grid
 {
     double? _inicioY, _alturaInicial;
 
-    public AlcaAltura(FrameworkElement area, Action<int> gravar)
+    public AlcaAlturaArea(FrameworkElement area, Action<int> gravar)
     {
         Height = 10;
         Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);

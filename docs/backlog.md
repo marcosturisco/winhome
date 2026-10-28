@@ -15,6 +15,10 @@
     YouTube pelo player oficial num WebView2 — serviço autorizado); botão ↻ fixo no cabeçalho de Mensagem/Curiosidades.
 - **Atalhos nos painéis** ✅ (27/10/2026): ✥ mover arrastando (ou menu início/trás/frente/fim), borda direita ajusta a
   largura em colunas (duplo clique ocupa o espaço livre), ✕ oculta com Desfazer — tudo sem abrir as Configurações.
+- **Altura das linhas** ✅ (28/10/2026): borda de baixo de um painel muda a altura da linha inteira (pixels, grava
+  `altura` nos painéis dela; duplo clique = automática); conteúdo maior encolhe até caber (mín. 50%, depois rola),
+  Vídeos encolhe a tela; campo em
+  Configurações → Painéis. (Primeira tentativa, painel ocupando várias linhas, descartada: não ajudava a compactar.)
 - **App ancorado** ✅ (27/10/2026): painel com a janela real de um programa posicionada sobre ele (`appsAncorados`),
   vários lado a lado; IntelliJ, VS Code, Android Studio, Terminal, "Escolher uma janela aberta…" e "Outro app instalado…";
   acompanha rolagem/✥/↔/altura/monitor, recorta o que sai da tela, fica logo acima da Home, minimiza junto; Soltar ou

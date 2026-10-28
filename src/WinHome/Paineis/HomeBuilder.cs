@@ -10,31 +10,52 @@ using WinHome.Servicos;
 namespace WinHome.Paineis;
 
 // Monta a Home a partir da config: painéis visíveis, na ordem da lista, em linhas de "colunas" colunas.
+// A linha tem a altura do conteúdo ou, se algum painel dela tiver "altura", a maior delas (o resto rola no painel).
 public static class HomeBuilder
 {
     public static UIElement Montar(Config config, Estilo estilo, Acoes acoes)
     {
         var linhas = new StackPanel { Spacing = estilo.Espaco };
         var arrasto = new ArrastoPaineis(linhas, acoes.Editor);
-        Grid? linha = null;
-        int usado = 0;
 
+        // Primeiro divide em linhas (a altura da linha depende de todos os painéis dela).
+        var grupos = new List<List<Painel>>();
+        int usado = 0;
         foreach (var painel in config.Paineis.Where(p => p.Visivel))
         {
             var largura = Math.Clamp(painel.Largura, 1, estilo.Colunas);
-            if (linha is null || usado + largura > estilo.Colunas)
+            if (grupos.Count == 0 || usado + largura > estilo.Colunas)
             {
-                linha = NovaLinha(estilo);
-                linhas.Children.Add(linha);
+                grupos.Add([]);
                 usado = 0;
             }
-
-            var (conteudo, acao) = Conteudo(painel, config, estilo, acoes);
-            var cartao = CartaoDoPainel(painel, conteudo, acao, estilo, acoes, linha, usado, arrasto);
-            Grid.SetColumn(cartao, usado);
-            Grid.SetColumnSpan(cartao, largura);
-            linha.Children.Add(cartao);
+            grupos[^1].Add(painel);
             usado += largura;
+        }
+
+        foreach (var paineis in grupos)
+        {
+            var linha = NovaLinha(estilo);
+            var altura = paineis.Max(p => p.Altura);
+            var fixa = altura >= Painel.AlturaMinima; // valores menores = automática
+            if (fixa) linha.Height = Math.Min(altura, Painel.AlturaMaxima);
+            linhas.Children.Add(linha);
+
+            var coluna = 0;
+            foreach (var painel in paineis)
+            {
+                var largura = Math.Clamp(painel.Largura, 1, estilo.Colunas);
+                var (conteudo, acao) = Conteudo(painel, config, estilo, acoes, fixa);
+                // Vídeos se ajusta à altura e o app ancorado tem a própria altura; os demais encolhem até caber
+                // (também na linha automática, para a prévia do arrasto da altura já encolher).
+                if (painel.Id != Config.PainelVideos && !config.AppsAncorados.ContainsKey(painel.Id))
+                    conteudo = AjusteAltura.Envolver(conteudo);
+                var cartao = CartaoDoPainel(painel, conteudo, acao, estilo, acoes, linha, coluna, paineis, arrasto);
+                Grid.SetColumn(cartao, coluna);
+                Grid.SetColumnSpan(cartao, largura);
+                linha.Children.Add(cartao);
+                coluna += largura;
+            }
         }
 
         return linhas;
@@ -77,7 +98,7 @@ public static class HomeBuilder
     }
 
     // Conteúdo do painel e, opcionalmente, um botão para o cabeçalho (ex.: ↻ das mensagens e curiosidades).
-    static (UIElement Conteudo, Button? Acao) Conteudo(Painel painel, Config config, Estilo estilo, Acoes acoes)
+    static (UIElement Conteudo, Button? Acao) Conteudo(Painel painel, Config config, Estilo estilo, Acoes acoes, bool alturaFixa)
     {
         if (painel.Id == Config.PainelBoasVindas) return (PainelBoasVindas.Criar(config.Nome, config.BoasVindas, estilo), null);
         if (painel.Id == Config.PainelMensagem)
@@ -93,7 +114,7 @@ public static class HomeBuilder
         if (painel.Id == Config.PainelProjetos) return (PainelProjetos.Criar(config.Projetos, estilo, acoes), null);
         if (painel.Id == Config.PainelTarefas) return (PainelTarefas.Criar(config.Tarefas, estilo), null);
         if (painel.Id == Config.PainelAcoes) return (PainelAcoes.Criar(config, estilo, acoes), null);
-        if (painel.Id == Config.PainelVideos) return (PainelVideos.Criar(config.Videos, estilo, acoes), null);
+        if (painel.Id == Config.PainelVideos) return (PainelVideos.Criar(config.Videos, estilo, acoes, alturaFixa), null);
         if (painel.Id == Config.PainelDispositivos) return (PainelDispositivos.Criar(config, estilo, acoes), null);
         if (painel.Id == Config.PainelAgenda)
         {
@@ -101,7 +122,7 @@ public static class HomeBuilder
             return (PainelAgenda.Criar(config.Agenda, estilo, atualizar), atualizar);
         }
         if (config.AppsAncorados.TryGetValue(painel.Id, out var ancorado))
-            return (PainelAncorado.Criar(painel.Id, ancorado, config, estilo, acoes), null);
+            return (PainelAncorado.Criar(painel.Id, ancorado, config, estilo, acoes, alturaFixa), null);
         if (config.Grupos.TryGetValue(painel.Id, out var apps)) return (PainelApps.Criar(apps, painel.Id, estilo, acoes), null);
         return (new TextBlock
         {
@@ -141,7 +162,10 @@ public static class HomeBuilder
     // ferramentas = botões do canto direito do cabeçalho (ex.: ↻ e ✕); sem título, ficam por cima, no canto.
     static FrameworkElement Cartao(string? titulo, UIElement conteudo, Estilo estilo, FrameworkElement? ferramentas = null)
     {
-        var pilha = new StackPanel { Spacing = 12 };
+        // Cabeçalho e conteúdo; numa linha de altura fixa o conteúdo fica com o que sobra (e rola ou se ajusta).
+        var pilha = new Grid { RowSpacing = 12 };
+        pilha.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        pilha.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         var temTitulo = !string.IsNullOrWhiteSpace(titulo);
         if (temTitulo)
         {
@@ -166,6 +190,8 @@ public static class HomeBuilder
             }
             pilha.Children.Add(cabecalho);
         }
+        else pilha.RowSpacing = 0;
+        Grid.SetRow((FrameworkElement)conteudo, 1);
         pilha.Children.Add(conteudo);
 
         var borda = new Border
@@ -183,9 +209,10 @@ public static class HomeBuilder
         return new Grid { Children = { borda, ferramentas } };
     }
 
-    // Cartão de um painel da Home: ✥ muda de lugar, ✕ oculta (com "Desfazer") e a borda direita ajusta a largura.
+    // Cartão de um painel da Home: ✥ muda de lugar, ✕ oculta (com "Desfazer"), a borda direita ajusta a largura
+    // e a de baixo, a altura.
     static FrameworkElement CartaoDoPainel(Painel painel, UIElement conteudo, Button? acao, Estilo estilo, Acoes acoes,
-        Grid linha, int coluna, ArrastoPaineis arrasto)
+        Grid linha, int coluna, IReadOnlyList<Painel> daLinha, ArrastoPaineis arrasto)
     {
         var titulo = painel.Titulo is { Length: > 0 } t ? t
             : EditorConfig.Especiais.FirstOrDefault(e => e.Id == painel.Id).Nome ?? painel.Id;
@@ -208,6 +235,7 @@ public static class HomeBuilder
 
         var cartao = Cartao(painel.Titulo, conteudo, estilo, ferramentas);
         var alca = new AlcaLargura(painel, estilo, acoes, linha, coluna);
+        var alcaAltura = new AlcaAltura(daLinha, estilo, acoes, linha);
         // Barras que mostram onde o painel arrastado vai cair: no vão entre os cartões, antes ou depois deste.
         Border Indicador(HorizontalAlignment lado) => new()
         {
@@ -223,7 +251,7 @@ public static class HomeBuilder
         };
         var antes = Indicador(HorizontalAlignment.Left);
         var depois = Indicador(HorizontalAlignment.Right);
-        var raiz = new Grid { Children = { cartao, alca, antes, depois } };
+        var raiz = new Grid { Children = { cartao, alcaAltura, alca, antes, depois } };
         arrasto.Registrar(raiz, painel, antes, depois);
 
         void Ferramentas(bool ver)
@@ -231,6 +259,7 @@ public static class HomeBuilder
             fechar.Opacity = ver ? 0.8 : 0;
             mover.Opacity = ver ? 0.8 : 0;
             alca.Destacar(ver);
+            alcaAltura.Destacar(ver);
         }
         raiz.PointerEntered += (_, _) => Ferramentas(true);
         raiz.PointerExited += (_, _) => Ferramentas(false);

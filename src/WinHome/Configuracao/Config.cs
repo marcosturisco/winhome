@@ -387,7 +387,12 @@ public sealed class Painel
     public string Id { get; set; } = "";
     public bool Visivel { get; set; } = true;
     public int Largura { get; set; } = 2;
+    // Altura da linha da Home em pixels (0 = automática, pelo conteúdo). A linha usa a maior entre os painéis dela;
+    // conteúdo maior ganha rolagem dentro do painel.
+    public int Altura { get; set; }
     public string? Titulo { get; set; }
+
+    public const int AlturaMinima = 100, AlturaMaxima = 2000;
 }
 
 public sealed class AppItem

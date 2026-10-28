@@ -204,7 +204,16 @@ Chave = id do painel (`ancorado1`, `ancorado2`…):
 `WinHome.exe --sair` pede para a Home aberta sair normalmente (usado pelos scripts antes de recompilar).
 
 ## Painéis (`paineis`)
-Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas) e `titulo` (opcional).
+Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas), `altura` (pixels; 0 =
+automática) e `titulo` (opcional).
+- A **altura vale para a linha inteira**: a linha usa a maior `altura` entre os painéis dela (100 a 2000; valores
+  abaixo de 100 contam como automática). Automática = altura do conteúdo mais alto da linha.
+- Com altura definida, o conteúdo que não cabe **encolhe por igual** até caber (e se rearranja na largura); abaixo de
+  50% para de encolher e ganha rolagem dentro do painel. A tela do **Vídeos** encolhe para caber
+  (em vez de seguir o 16:9); no **app ancorado** a área (e a janela do app) ocupa o espaço que sobra e a alça de altura
+  própria some (a `altura` dele em `appsAncorados` só vale com a linha automática). A alça da linha não desce além da
+  **altura mínima do app** (a Home a descobre quando o app recusa encolher); se a janela ainda ficar maior que a área,
+  o excesso é recortado para não cobrir os outros painéis.
 - `id: "boasVindas"`: saudação, hora e data.
 - `id: "mensagem"`: mensagem do dia.
 - `id: "curiosidade"`: curiosidades do dia.
@@ -223,6 +232,8 @@ Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura`
   - **✕** no canto do painel (aparece ao passar o mouse): oculta o painel (`visivel: false`); o aviso no topo tem **Desfazer**.
   - **Borda direita** do painel (cursor ↔): arrastar muda a `largura`, encaixando nas colunas da grade ("4 de 6 colunas");
     **duplo clique** faz o painel ocupar o espaço livre da linha. Largura que não cabe na linha desce para a seguinte.
+  - **Borda de baixo** do painel (cursor ↕): arrastar muda a altura da **linha inteira**, de 10 em 10 pixels
+    ("Linha: 320 px"), e grava a `altura` em todos os painéis dela; **duplo clique** volta para a altura automática.
 
 ## Grupos de apps (`grupos`)
 Cada grupo é uma lista de apps:

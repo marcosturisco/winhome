@@ -251,6 +251,12 @@ public sealed class EditorConfig(ConfigService config)
 
     public void DefinirLargura(Painel painel, int largura) => Estrutura(c => painel.Largura = Math.Clamp(largura, 1, c.Tema.Colunas));
 
+    // Altura da linha inteira: grava em todos os painéis dela (0 = automática).
+    public void DefinirAlturaLinha(IEnumerable<Painel> paineis, int altura) => Estrutura(_ =>
+    {
+        foreach (var p in paineis) p.Altura = altura <= 0 ? 0 : Math.Clamp(altura, Painel.AlturaMinima, Painel.AlturaMaxima);
+    });
+
     public void MoverPainel(Painel painel, int delta) => Estrutura(c =>
     {
         var i = c.Paineis.IndexOf(painel);
