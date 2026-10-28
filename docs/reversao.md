@@ -5,6 +5,7 @@
 | 26/10/2026 | Instalado .NET 10 SDK (10.0.403) via winget, para compilar o projeto | `winget uninstall --id Microsoft.DotNet.SDK.10 --exact` |
 | 27/10/2026 | GitHub CLI 2.103.3 **portátil** (zip oficial de `cli/cli`, checksum SHA-256 conferido) em `%LOCALAPPDATA%\Programs\GitHubCLI`, sem administrador e sem mexer no PATH; login guardado pelo próprio `gh` (`%APPDATA%\GitHub CLI`), para o `publicar.ps1` | `& "$env:LOCALAPPDATA\Programs\GitHubCLI\bin\gh.exe" auth logout`, depois apagar `%LOCALAPPDATA%\Programs\GitHubCLI` e `%APPDATA%\GitHub CLI` |
 | 27/10/2026 | Instalado scrcpy 5.0.1 via winget (escopo do usuário; pasta do pacote adicionada ao PATH do usuário), para a ação "Espelhar TV" | `winget uninstall --id Genymobile.scrcpy --exact` |
+| 28/10/2026 | Atalho `WinHome.lnk` na área de trabalho (`C:\Users\predator\Desktop`), apontando para a versão instalada, para reabrir a Home depois de "Sair" | apagar o atalho da área de trabalho |
 
 ## Alterações que o próprio WinHome faz
 | O quê | Quando | Como desfazer |
