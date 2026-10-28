@@ -36,15 +36,16 @@ if ($LASTEXITCODE -ge 8) { throw "Falha ao copiar os arquivos (robocopy $LASTEXI
 Get-ChildItem $destino -Recurse -File | Unblock-File
 Write-Host 'Programa copiado.' -ForegroundColor Green
 
-# 3. Atalho no menu Iniciar.
-$atalho = Join-Path ([Environment]::GetFolderPath('Programs')) 'WinHome.lnk'
-$shell = New-Object -ComObject WScript.Shell
-$lnk = $shell.CreateShortcut($atalho)
-$lnk.TargetPath = $exe
-$lnk.WorkingDirectory = $destino
-$lnk.IconLocation = "$exe,0"
-$lnk.Description = 'WinHome - Home personalizada para o Windows'
-$lnk.Save()
+# 3. Atalho no menu Iniciar (o da area de trabalho e perguntado abaixo).
+function CriarAtalho([string]$pasta) {
+    $lnk = (New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path $pasta 'WinHome.lnk'))
+    $lnk.TargetPath = $exe
+    $lnk.WorkingDirectory = $destino
+    $lnk.IconLocation = "$exe,0"
+    $lnk.Description = 'WinHome - Home personalizada para o Windows'
+    $lnk.Save()
+}
+CriarAtalho ([Environment]::GetFolderPath('Programs'))
 Write-Host 'Atalho criado no menu Iniciar.' -ForegroundColor Green
 
 # 4. Perguntas.
@@ -52,6 +53,17 @@ $argumentos = @()
 Write-Host ''
 $resposta = Read-Host 'Abrir o WinHome ao entrar no Windows? (s/N)'
 if ($resposta -match '^[sS]') { $argumentos += '--iniciar-com-windows' }
+
+# Atalho na area de trabalho: reabre a Home depois de "Sair do WinHome". Numa atualizacao, se ja existe, so e refeito.
+$areaDeTrabalho = [Environment]::GetFolderPath('Desktop')
+if (Test-Path (Join-Path $areaDeTrabalho 'WinHome.lnk')) { CriarAtalho $areaDeTrabalho }
+else {
+    $resposta = Read-Host 'Criar atalho do WinHome na area de trabalho? (s/N)'
+    if ($resposta -match '^[sS]') {
+        CriarAtalho $areaDeTrabalho
+        Write-Host 'Atalho criado na area de trabalho.' -ForegroundColor Green
+    }
+}
 
 $resposta = Read-Host 'Restaurar um backup do WinHome (.zip feito em Configuracoes > Backup)? (s/N)'
 if ($resposta -match '^[sS]') {

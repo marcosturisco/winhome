@@ -6,6 +6,7 @@ INSTALAR (ou atualizar) — sem precisar de administrador
 2. Dê duplo clique em "instalar.cmd".
 3. Responda às perguntas:
    - abrir o WinHome ao entrar no Windows;
+   - criar um atalho na área de trabalho (reabre a Home depois de "Sair do WinHome");
    - restaurar um backup (o .zip feito em Configurações > Backup no outro PC).
 4. A Home abre no final. Atalho: Ctrl+Alt+Space mostra/esconde.
 
@@ -27,5 +28,5 @@ Backups normalmente não levam o "Endereço secreto no formato iCal" da agenda (
 Cole-o de novo em Configurações > Agenda.
 
 DESINSTALAR
-Duplo clique em "desinstalar.cmd". Ele fecha a Home, remove o atalho, o "iniciar com o Windows" e o programa,
+Duplo clique em "desinstalar.cmd". Ele fecha a Home, remove os atalhos, o "iniciar com o Windows" e o programa,
 e pergunta antes de apagar a configuração.

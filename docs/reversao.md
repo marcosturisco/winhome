@@ -18,5 +18,6 @@
 |---|---|
 | Programa em `%LOCALAPPDATA%\WinHome\app` (e dados do WebView2 em `%LOCALAPPDATA%\WinHome\WebView2`) | `desinstalar.cmd` do pacote, ou apagar `%LOCALAPPDATA%\WinHome` com o WinHome fechado |
 | Atalho `WinHome.lnk` no menu Iniciar (`%APPDATA%\Microsoft\Windows\Start Menu\Programs`) | `desinstalar.cmd` ou apagar o atalho |
+| Atalho `WinHome.lnk` na área de trabalho (só se respondido "s"; numa atualização, refeito se já existir) | `desinstalar.cmd` ou apagar o atalho |
 | Valor `WinHome` em `HKCU\...\Run` (só se respondido "s") | `desinstalar.cmd`, ou desligar em Configurações → Geral |
 | Remove a marca "baixado da internet" dos arquivos do WinHome copiados (`Unblock-File`) | não se aplica (só os arquivos do próprio WinHome) |

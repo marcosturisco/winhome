@@ -1,5 +1,5 @@
 # Remove o WinHome instalado por instalar.ps1 (sem administrador).
-# Fecha a Home (saida normal: devolve apps ancorados), tira o "iniciar com o Windows" e o atalho,
+# Fecha a Home (saida normal: devolve apps ancorados), tira o "iniciar com o Windows" e os atalhos,
 # apaga o programa e, se confirmado, a configuracao.
 $ErrorActionPreference = 'Stop'
 
@@ -24,6 +24,8 @@ if (Get-ItemProperty $run -Name WinHome -ErrorAction SilentlyContinue) {
 
 $atalho = Join-Path ([Environment]::GetFolderPath('Programs')) 'WinHome.lnk'
 if (Test-Path $atalho) { Remove-Item $atalho -Force; Write-Host 'Removido: atalho do menu Iniciar.' }
+$atalho = Join-Path ([Environment]::GetFolderPath('Desktop')) 'WinHome.lnk'
+if (Test-Path $atalho) { Remove-Item $atalho -Force; Write-Host 'Removido: atalho da area de trabalho.' }
 
 # Programa e dados do navegador interno (YouTube) em %LOCALAPPDATA%\WinHome.
 if (Test-Path $pastaBase) {
