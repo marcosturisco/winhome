@@ -183,7 +183,7 @@ public sealed class PainelConfiguracoes
         new TextBlock
         {
             Text = "Ligado: a Home sai da barra de tarefas e do Alt+Tab e fica no fundo, como um papel de parede. " +
-                   "O atalho ou a bandeja a trazem para a frente; clicar em outro programa, Esc, — ou ✕ a mandam de volta.",
+                   "O atalho ou a bandeja a trazem para a frente; clicar em outro programa, Esc ou ✕ a mandam de volta (com ela já no fundo, o ✕ a esconde).",
             TextWrapping = TextWrapping.Wrap,
             Opacity = 0.6,
             FontSize = 12,
