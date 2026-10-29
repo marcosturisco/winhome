@@ -208,7 +208,7 @@
 
   "videos": {
     "repetir": false,              // recomeça o vídeo ao terminar (VLC)
-    "pausarAoEsconder": true,      // pausa ao esconder ou minimizar a Home
+    "pausarAoEsconder": true,      // pausa ao esconder ou minimizar a Home (e libera o VLC; o play retoma do ponto)
     "pastaVlc": ""                 // vazio = C:\Program Files\VideoLAN\VLC
   },
 

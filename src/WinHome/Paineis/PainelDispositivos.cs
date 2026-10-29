@@ -33,22 +33,23 @@ public static class PainelDispositivos
             foreach (var (_, atualizar) in linhas) atualizar();
         }
 
-        // "há 20 s" precisa andar sozinho; o status chega pelo serviço.
+        // "há 20 s" precisa andar sozinho; o status chega pelo serviço. Com a Home escondida, nem o painel nem os
+        // testes rodam; ao voltar, testa na hora o que estiver velho.
         var relogio = lista.DispatcherQueue.CreateTimer();
         relogio.Interval = TimeSpan.FromSeconds(10);
         relogio.Tick += (_, _) => Atualizar();
-        lista.Loaded += (_, _) =>
+        EstadoHome.Vincular(lista, () =>
         {
             ServicoDispositivos.Mudou += Atualizar;
             ServicoDispositivos.Acompanhar(() => config.Dispositivos);
             relogio.Start();
             Atualizar();
-        };
-        lista.Unloaded += (_, _) =>
+        }, () =>
         {
             ServicoDispositivos.Mudou -= Atualizar;
+            ServicoDispositivos.Parar();
             relogio.Stop();
-        };
+        });
         return lista;
     }
 

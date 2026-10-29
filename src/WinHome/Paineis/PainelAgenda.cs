@@ -85,12 +85,12 @@ public static class PainelAgenda
 
         atualizar.Click += (_, _) => Carregar(forcar: true);
 
-        // A cada minuto: "em X min"/"agora" andam; a leitura em si respeita os 15 min do cache.
+        // A cada minuto: "em X min"/"agora" andam; a leitura em si respeita os 15 min do cache. Parado com a Home
+        // escondida; ao voltar, atualiza na hora.
         var relogio = lista.DispatcherQueue.CreateTimer();
         relogio.Interval = TimeSpan.FromMinutes(1);
         relogio.Tick += (_, _) => Carregar(forcar: false);
-        lista.Loaded += (_, _) => { Carregar(forcar: false); relogio.Start(); };
-        lista.Unloaded += (_, _) => relogio.Stop();
+        EstadoHome.Vincular(lista, () => { Carregar(forcar: false); relogio.Start(); }, relogio.Stop);
         return new StackPanel { Spacing = 8, Children = { lista, aviso } };
     }
 

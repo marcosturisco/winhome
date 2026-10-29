@@ -34,9 +34,24 @@ public static class Ancoragem
     {
         _home = home;
         _visivel = areaVisivel;
+        // Só roda com alguma janela ancorada (liga em Ancorar, desliga quando não sobra nenhuma); com a Home
+        // escondida, basta conferir de vez em quando se o app foi fechado.
         _relogio = fila.CreateTimer();
-        _relogio.Interval = TimeSpan.FromMilliseconds(50);
         _relogio.Tick += (_, _) => Acompanhar();
+        EstadoHome.Mudou += visivel =>
+        {
+            if (!_relogio.IsRunning) return;
+            _relogio.Interval = Intervalo();
+            if (visivel) Acompanhar(); // as janelas voltam junto com a Home, sem esperar o próximo tique
+        };
+    }
+
+    static TimeSpan Intervalo() => TimeSpan.FromMilliseconds(EstadoHome.Visivel ? 50 : 500);
+
+    static void Ligar()
+    {
+        if (_relogio is null || _relogio.IsRunning) return;
+        _relogio.Interval = Intervalo();
         _relogio.Start();
     }
 
@@ -74,6 +89,7 @@ public static class Ancoragem
         item.AlturaMinima = 0;
         if (IsZoomed(janela) || IsIconic(janela)) ShowWindow(janela, SW_RESTORE); // maximizada não aceita posição
         Mudou?.Invoke(id);
+        Ligar();
         Acompanhar();
         return true;
     }
@@ -121,6 +137,11 @@ public static class Ancoragem
     static void Acompanhar()
     {
         if (_home == IntPtr.Zero) return;
+        if (!Itens.Values.Any(i => i.Janela != IntPtr.Zero))
+        {
+            _relogio?.Stop();
+            return;
+        }
         var homeVisivel = IsWindowVisible(_home) && !IsIconic(_home);
         foreach (var (id, item) in Itens)
         {

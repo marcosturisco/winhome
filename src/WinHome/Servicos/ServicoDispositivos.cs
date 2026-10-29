@@ -16,6 +16,7 @@ public static class ServicoDispositivos
     static readonly HashSet<string> Testando = [];
     static DispatcherQueueTimer? _relogio;
     static Func<Dispositivos>? _config;
+    static int _paineis; // painéis Dispositivos na tela agora
 
     public static event Action? Mudou; // na thread da interface
 
@@ -26,6 +27,7 @@ public static class ServicoDispositivos
     // Chamado pelo painel; o relógio é um só, e segue o intervalo atual da config.
     public static void Acompanhar(Func<Dispositivos> config)
     {
+        _paineis++;
         _config = config;
         if (_relogio is null)
         {
@@ -38,6 +40,15 @@ public static class ServicoDispositivos
         // Ao abrir a Home: testa já o que estiver sem resultado recente.
         var limite = DateTime.Now - _relogio.Interval;
         if (config().Lista.Any(d => De(d) is not { } s || s.Quando < limite)) _ = TestarTodos();
+    }
+
+    // Painel fora da tela (Home escondida ou painel removido). Na remontagem da Home o painel novo pode chegar antes
+    // de o antigo sair; por isso conta os painéis e só para os testes quando não sobra nenhum.
+    public static void Parar()
+    {
+        if (--_paineis > 0) return;
+        _paineis = 0;
+        _relogio?.Stop();
     }
 
     public static async Task TestarTodos()

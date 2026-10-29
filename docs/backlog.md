@@ -24,6 +24,10 @@
   acompanha rolagem/✥/↔/altura/monitor, recorta o que sai da tela, fica logo acima da Home, minimiza junto; Soltar ou
   sair devolve a janela. Sem `SetParent`/dono (seguro se o WinHome cair). `WinHome.exe --sair` = saída normal (scripts).
 
+- **Otimização de recursos** ✅ (29/10/2026): parada e visível, de ~454 MB / ~12% de um núcleo para ~178 MB / ~0,6%.
+  VLC liberado com a Home escondida e o vídeo pausado (e só criado no ▶ ao retomar); ancoragem (50 ms) só com app
+  ancorado e a 500 ms com a Home escondida; relógios de Boas-vindas, Agenda e Dispositivos parados com a Home escondida
+  (`EstadoHome.Vincular`); deslizantes das Configurações aplicam 300 ms depois de parar.
 - **Baterias** ✅ (29/10/2026): painel `baterias` com os aparelhos Bluetooth que informam a bateria ao Windows
   (leitura local a cada minuto, entradas do mesmo aparelho agrupadas), 🟢/🟠/🔴 por faixa (50%/20%), notificação do
   Windows uma vez por descarga abaixo de 20% (mesmo com a Home escondida), cartão "Bateria baixa" no Boas-vindas,

@@ -78,18 +78,18 @@ public static class PainelBoasVindas
             foreach (var w in widgets) _ = w.Recarregar();
         }
 
-        grade.Loaded += (_, _) =>
+        // Parado com a Home escondida; ao voltar, hora e cartões se atualizam na hora.
+        Servicos.EstadoHome.Vincular(grade, () =>
         {
             Atualizar();
             relogio.Start();
             dados.Start();
             Recarregar();
-        };
-        grade.Unloaded += (_, _) =>
+        }, () =>
         {
             relogio.Stop();
             dados.Stop();
-        };
+        });
         Atualizar();
         return grade;
     }

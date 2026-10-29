@@ -230,8 +230,9 @@ public static class PainelVideos
                 player = new MediaPlayerVlc(libvlc) { Volume = estado.Volume };
                 view.MediaPlayer = player;
                 Sessao.Player = player;
-                player.TimeChanged += (_, a) =>
+                player.TimeChanged += (s, a) =>
                 {
+                    if (s != player) return; // player já liberado (Stop em segundo plano): o ponto guardado vale
                     Sessao.TempoMs = a.Time;
                     var total = player?.Length ?? 0;
                     fila.TryEnqueue(() => Atualizar(a.Time, total));
@@ -367,8 +368,8 @@ public static class PainelVideos
             if (tocar) TocarVlc(fonte, inicioMs);
             else
             {
+                // O VLC só é criado no ▶: um vídeo pausado não ocupa memória enquanto ninguém assiste.
                 pendente = null;
-                if (view is null) CriarVideoView();
                 Mostrar("▶ para continuar de onde parou.");
             }
         }
@@ -423,7 +424,11 @@ public static class PainelVideos
 
         tocarPausar.Click += (_, _) =>
         {
-            if (player is null) return;
+            if (player is null)
+            {
+                if (Sessao.Fonte is { } retomar && !Sessao.YouTube) TocarVlc(retomar, Sessao.TempoMs); // VLC liberado
+                return;
+            }
             if (player.IsPlaying) player.Pause();
             else if (player.State is VLCState.Paused) player.Play();
             else if (Sessao.Fonte is { } f) TocarVlc(f, Sessao.TempoMs);
@@ -466,6 +471,20 @@ public static class PainelVideos
             if (Sessao.Fonte is { } f && YouTubeLink.Ler(f) is { } yt)
                 AbrirNoNavegador($"https://www.youtube.com/watch?v={yt.Id}&t={Sessao.TempoMs / 1000}s");
         };
+
+        // Home escondida com o vídeo pausado (ou pausado agora pelo "pausar ao esconder"): solta o VLC — decodificador,
+        // quadros e superfície somam centenas de MB num vídeo 4K. O ponto fica na Sessao; o ▶ retoma dali.
+        void HomeMudou(bool visivel)
+        {
+            if (visivel || player is null || (player.IsPlaying && !cfg.PausarAoEsconder)) return;
+            Sessao.Tocando = false;
+            LiberarVlc();
+            if (view is not null) { tela.Children.Remove(view); view = null; }
+            Glifo(tocarPausar, "");
+            Mostrar("▶ para continuar de onde parou.");
+        }
+        tela.Loaded += (_, _) => EstadoHome.Mudou += HomeMudou;
+        tela.Unloaded += (_, _) => EstadoHome.Mudou -= HomeMudou;
 
         // Painel remontado: continua o que estava aberto, do mesmo ponto.
         if (Sessao.Fonte is { } anterior) Abrir(anterior, Sessao.TempoMs, Sessao.Tocando);

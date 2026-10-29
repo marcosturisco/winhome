@@ -1423,7 +1423,16 @@ public sealed class PainelConfiguracoes
             SmallChange = passo,
             Value = Math.Clamp(valor, min, max),
         };
-        s.ValueChanged += (_, e) => mudou(e.NewValue);
+        // Cada mudança remonta a Home: aplica só quando o valor para de mudar (arrastar ou segurar a seta).
+        var espera = s.DispatcherQueue.CreateTimer();
+        espera.Interval = TimeSpan.FromMilliseconds(300);
+        espera.IsRepeating = false;
+        espera.Tick += (_, _) => mudou(s.Value);
+        s.ValueChanged += (_, _) =>
+        {
+            espera.Stop();
+            espera.Start();
+        };
         return s;
     }
 

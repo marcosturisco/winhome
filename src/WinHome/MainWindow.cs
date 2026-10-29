@@ -163,6 +163,15 @@ public sealed class MainWindow : Window
                 });
         };
 
+        // Escondida, mostrada, minimizada ou restaurada (por qualquer caminho, inclusive a barra de tarefas): os painéis
+        // param ou retomam o trabalho periódico (EstadoHome).
+        _mensagens.Adicionar((msg, _, _) =>
+        {
+            if (msg is WM_SHOWWINDOW or WM_SIZE)
+                DispatcherQueue.TryEnqueue(() => EstadoHome.Definir(IsWindowVisible(_hwnd) && !IsIconic(_hwnd)));
+            return false;
+        });
+
         // Modo área de trabalho: a cada mudança na ordem das janelas, a Home pede para ficar no fundo; se algo a
         // minimizar (Win+D), volta sozinha — ela faz o papel do papel de parede.
         _mensagens.Adicionar((msg, wParam, lParam) =>
@@ -210,6 +219,7 @@ public sealed class MainWindow : Window
             _bandeja.Avisar($"🔋 {nome}: {b.Nivel}%", $"A bateria está abaixo de {cfg.Baixa}%. Hora de carregar.");
         };
         ServicoBaterias.Iniciar(() => _config.Atual.Baterias);
+        DispatcherQueue.TryEnqueue(() => EstadoHome.Definir(IsWindowVisible(_hwnd) && !IsIconic(_hwnd)));
     }
 
     void Aplicar(Config config, string? erroConfig, bool doArquivo)
@@ -728,13 +738,14 @@ public sealed class MainWindow : Window
         public uint Flags;
     }
 
-    const uint WM_WINDOWPOSCHANGING = 0x0046, WM_SIZE = 0x0005;
+    const uint WM_WINDOWPOSCHANGING = 0x0046, WM_SIZE = 0x0005, WM_SHOWWINDOW = 0x0018;
     const int SW_SHOWNOACTIVATE = 4;
     const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10;
     static readonly IntPtr HWND_BOTTOM = 1, SIZE_MINIMIZED = 1;
     [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr hwnd, int comando);
     [DllImport("user32.dll")] static extern bool IsIconic(IntPtr hwnd);
+    [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hwnd);
     [DllImport("user32.dll")] static extern bool ReleaseCapture();
     [DllImport("user32.dll")] static extern IntPtr SendMessage(IntPtr hwnd, uint mensagem, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] static extern uint GetDoubleClickTime();
