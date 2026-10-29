@@ -154,7 +154,7 @@ Painel `id: "videos"`. Cole um link e tecle Enter, use o botão de arquivo ou ar
 | Opção | Valores | Padrão |
 |---|---|---|
 | `repetir` | recomeça ao terminar (VLC) | `false` |
-| `pausarAoEsconder` | pausa ao esconder, minimizar ou mandar a Home para trás (modo área de trabalho); o VLC de um vídeo pausado é liberado (memória) e o ▶ retoma do mesmo ponto | `true` |
+| `pausarAoEsconder` | pausa ao esconder, minimizar ou mandar a Home para trás (modo área de trabalho); o VLC de um vídeo pausado é liberado (memória) e o ▶ retoma do mesmo ponto. No modo área de trabalho, clicar em outro programa (a Home vai para trás) não pausa: o vídeo tocando segue no papel de parede; um pausado é liberado | `true` |
 | `pastaVlc` | pasta do VLC 64 bits (com `libvlc.dll`); vazio = `C:\Program Files\VideoLAN\VLC` | `""` |
 
 ## Agenda (`agenda`)

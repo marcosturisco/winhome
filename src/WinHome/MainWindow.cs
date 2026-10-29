@@ -159,7 +159,9 @@ public sealed class MainWindow : Window
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     var frente = GetForegroundWindow();
-                    if (frente != _hwnd && !Ancoragem.EhAncorada(frente)) MandarParaOFundo();
+                    if (frente == _hwnd || Ancoragem.EhAncorada(frente)) return;
+                    MandarParaOFundo();
+                    PainelVideos.HomeAtras(); // vídeo tocando segue no papel de parede; pausado solta o VLC
                 });
         };
 

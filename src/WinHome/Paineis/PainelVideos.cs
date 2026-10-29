@@ -44,8 +44,9 @@ public static class PainelVideos
         ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".opus", ".m3u", ".m3u8", "*",
     ];
 
-    // O painel visível solta o VLC quando a Home sai da frente (ver HomeMudou no Criar).
-    static event Action? SaiuDaFrente;
+    // O painel visível solta o VLC quando a Home sai da frente (ver Soltar no Criar); true = mesmo tocando (o
+    // "pausar ao esconder" acabou de pausar).
+    static event Action<bool>? SaiuDaFrente;
 
     // Chamado pela janela ao esconder, minimizar ou (no modo área de trabalho) mandar a Home para trás das janelas.
     public static void HomeEscondida(Videos cfg)
@@ -55,8 +56,12 @@ public static class PainelVideos
             if (Sessao.Player is { IsPlaying: true } p) p.SetPause(true);
             if (Sessao.Web?.CoreWebView2 is { } web) _ = web.ExecuteScriptAsync("pausar()");
         }
-        SaiuDaFrente?.Invoke();
+        SaiuDaFrente?.Invoke(cfg.PausarAoEsconder);
     }
+
+    // Modo área de trabalho: a Home foi para trás porque outro programa foi ativado. O vídeo que está tocando continua
+    // (fica no papel de parede); só um vídeo pausado solta o VLC.
+    public static void HomeAtras() => SaiuDaFrente?.Invoke(false);
 
     static string PastaVlc(Videos cfg) => string.IsNullOrWhiteSpace(cfg.PastaVlc)
         ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "VideoLAN", "VLC")
@@ -482,18 +487,21 @@ public static class PainelVideos
         // Home escondida ou atrás das janelas (modo área de trabalho) com o vídeo pausado (ou pausado agora pelo
         // "pausar ao esconder"): solta o VLC — decodificador, quadros e superfície somam centenas de MB num vídeo 4K.
         // O ponto fica na Sessao; o ▶ retoma dali.
-        void HomeMudou(bool visivel)
+        void Soltar(bool mesmoTocando)
         {
-            if (visivel || player is null || (player.IsPlaying && !cfg.PausarAoEsconder)) return;
+            if (player is null || (player.IsPlaying && !mesmoTocando)) return;
             Sessao.Tocando = false;
             LiberarVlc();
             if (view is not null) { tela.Children.Remove(view); view = null; }
             Glifo(tocarPausar, "");
             Mostrar("▶ para continuar de onde parou.");
         }
-        void Saiu() => HomeMudou(false);
-        tela.Loaded += (_, _) => { EstadoHome.Mudou += HomeMudou; SaiuDaFrente += Saiu; };
-        tela.Unloaded += (_, _) => { EstadoHome.Mudou -= HomeMudou; SaiuDaFrente -= Saiu; };
+        void HomeMudou(bool visivel)
+        {
+            if (!visivel) Soltar(cfg.PausarAoEsconder);
+        }
+        tela.Loaded += (_, _) => { EstadoHome.Mudou += HomeMudou; SaiuDaFrente += Soltar; };
+        tela.Unloaded += (_, _) => { EstadoHome.Mudou -= HomeMudou; SaiuDaFrente -= Soltar; };
 
         // Painel remontado: continua o que estava aberto, do mesmo ponto.
         if (Sessao.Fonte is { } anterior) Abrir(anterior, Sessao.TempoMs, Sessao.Tocando);
