@@ -88,6 +88,9 @@ public sealed class ConfigService : IDisposable
         try
         {
             var texto = JsonSerializer.Serialize(Atual, Opcoes);
+            // Nada mudou de fato (ex.: um controle que se ajustou sozinho ao abrir as Configurações): sem gravar e sem
+            // remontar a Home — remontar recria os painéis (o vídeo, por exemplo).
+            if (texto == _ultimoGravado) return;
             if (File.Exists(Arquivo)) File.Copy(Arquivo, Backup, overwrite: true);
             _ultimoGravado = texto;
             File.WriteAllText(Arquivo, texto);
@@ -127,6 +130,7 @@ public sealed class ConfigService : IDisposable
             var nova = JsonSerializer.Deserialize<Config>(texto, Opcoes) ?? new Config();
             nova.Migrar();
             Atual = nova;
+            _ultimoGravado = JsonSerializer.Serialize(nova, Opcoes); // base para o Gravar saber se algo mudou
             return null;
         }
         catch (JsonException ex)

@@ -236,9 +236,10 @@ public static class PainelVideos
                 player = new MediaPlayerVlc(libvlc) { Volume = estado.Volume };
                 view.MediaPlayer = player;
                 Sessao.Player = player;
-                player.TimeChanged += (s, a) =>
+                var este = player; // o remetente dos eventos do LibVLCSharp não é o player: compara com este
+                player.TimeChanged += (_, a) =>
                 {
-                    if (s != player) return; // player já liberado (Stop em segundo plano): o ponto guardado vale
+                    if (este != player) return; // player já liberado (Stop em segundo plano): o ponto guardado vale
                     Sessao.TempoMs = a.Time;
                     var total = player?.Length ?? 0;
                     fila.TryEnqueue(() => Atualizar(a.Time, total));
