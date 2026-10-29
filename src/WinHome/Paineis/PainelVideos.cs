@@ -44,12 +44,18 @@ public static class PainelVideos
         ".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".opus", ".m3u", ".m3u8", "*",
     ];
 
-    // Chamado pela janela ao esconder ou minimizar a Home.
+    // O painel visível solta o VLC quando a Home sai da frente (ver HomeMudou no Criar).
+    static event Action? SaiuDaFrente;
+
+    // Chamado pela janela ao esconder, minimizar ou (no modo área de trabalho) mandar a Home para trás das janelas.
     public static void HomeEscondida(Videos cfg)
     {
-        if (!cfg.PausarAoEsconder) return;
-        if (Sessao.Player is { IsPlaying: true } p) p.SetPause(true);
-        if (Sessao.Web?.CoreWebView2 is { } web) _ = web.ExecuteScriptAsync("pausar()");
+        if (cfg.PausarAoEsconder)
+        {
+            if (Sessao.Player is { IsPlaying: true } p) p.SetPause(true);
+            if (Sessao.Web?.CoreWebView2 is { } web) _ = web.ExecuteScriptAsync("pausar()");
+        }
+        SaiuDaFrente?.Invoke();
     }
 
     static string PastaVlc(Videos cfg) => string.IsNullOrWhiteSpace(cfg.PastaVlc)
@@ -472,8 +478,9 @@ public static class PainelVideos
                 AbrirNoNavegador($"https://www.youtube.com/watch?v={yt.Id}&t={Sessao.TempoMs / 1000}s");
         };
 
-        // Home escondida com o vídeo pausado (ou pausado agora pelo "pausar ao esconder"): solta o VLC — decodificador,
-        // quadros e superfície somam centenas de MB num vídeo 4K. O ponto fica na Sessao; o ▶ retoma dali.
+        // Home escondida ou atrás das janelas (modo área de trabalho) com o vídeo pausado (ou pausado agora pelo
+        // "pausar ao esconder"): solta o VLC — decodificador, quadros e superfície somam centenas de MB num vídeo 4K.
+        // O ponto fica na Sessao; o ▶ retoma dali.
         void HomeMudou(bool visivel)
         {
             if (visivel || player is null || (player.IsPlaying && !cfg.PausarAoEsconder)) return;
@@ -483,8 +490,9 @@ public static class PainelVideos
             Glifo(tocarPausar, "");
             Mostrar("▶ para continuar de onde parou.");
         }
-        tela.Loaded += (_, _) => EstadoHome.Mudou += HomeMudou;
-        tela.Unloaded += (_, _) => EstadoHome.Mudou -= HomeMudou;
+        void Saiu() => HomeMudou(false);
+        tela.Loaded += (_, _) => { EstadoHome.Mudou += HomeMudou; SaiuDaFrente += Saiu; };
+        tela.Unloaded += (_, _) => { EstadoHome.Mudou -= HomeMudou; SaiuDaFrente -= Saiu; };
 
         // Painel remontado: continua o que estava aberto, do mesmo ponto.
         if (Sessao.Fonte is { } anterior) Abrir(anterior, Sessao.TempoMs, Sessao.Tocando);
