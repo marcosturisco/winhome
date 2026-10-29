@@ -28,6 +28,19 @@
   VLC liberado com a Home escondida e o vídeo pausado (e só criado no ▶ ao retomar); ancoragem (50 ms) só com app
   ancorado e a 500 ms com a Home escondida; relógios de Boas-vindas, Agenda e Dispositivos parados com a Home escondida
   (`EstadoHome.Vincular`); deslizantes das Configurações aplicam 300 ms depois de parar.
+  - Medições na 1.0.14 instalada (29/10/2026, modo área de trabalho; CPU em % de um núcleo):
+
+    | Situação | CPU | Memória privada | Threads | GPU decodificação |
+    |---|---|---|---|---|
+    | Antes da otimização, com filme aberto | ~12% | ~454 MB | 78 | — |
+    | Vídeo tocando na frente | ~10,7% | ~380 MB | 77 | 4,8% |
+    | Vídeo tocando atrás das janelas | 9,5% | ~340 MB | 79 | 4,4% |
+    | Pausado + clique em outra janela (VLC solto) | 0,7% | 126 MB | 37 | 0% |
+    | Parado no ⏹ + ✕ (sem vídeo) | 0,6% | 193 MB | 42 | 0% |
+
+    A DLL do libvlc fica carregada depois do primeiro uso (sem custo de CPU); a memória entre 126 e 193 MB varia
+    com o que o .NET/VLC ainda não devolveu ao Windows, sem crescer. No modo área de trabalho o ✕ manda a Home para o
+    fundo (continua "visível" para o Windows).
 - **Baterias** ✅ (29/10/2026): painel `baterias` com os aparelhos Bluetooth que informam a bateria ao Windows
   (leitura local a cada minuto, entradas do mesmo aparelho agrupadas), 🟢/🟠/🔴 por faixa (50%/20%), notificação do
   Windows uma vez por descarga abaixo de 20% (mesmo com a Home escondida), cartão "Bateria baixa" no Boas-vindas,
