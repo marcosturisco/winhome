@@ -27,7 +27,8 @@ editar o arquivo à mão também funciona: a Home recarrega ao salvar.
 | `fundo` | `mica` · `micaAlt` · `acrilico` · `cor` · `imagem` | `mica` |
 | `corFundo` | cor usada com `fundo: cor` | `#101418` |
 | `imagemFundo` | caminho da imagem com `fundo: imagem` (aceita `%VARIAVEIS%`) | `""` |
-| `fonte` | nome de fonte instalada | `Segoe UI Variable` |
+| `fonte` | nome de fonte instalada (vale para todo texto dos painéis) | `Segoe UI Variable` |
+| `tamanhoTexto` | texto normal dos painéis, 10 a 24; todos os tamanhos acompanham na mesma proporção (legenda 12, corpo 14, realce 16, título 18, grande 20, hora 72… no padrão) | `14` |
 | `cantos` | arredondamento dos painéis (px) | `12` |
 | `tamanhoIcone` | 16 a 256 | `48` |
 | `opacidadePaineis` | 0 (transparente) a 1 (sólido) | `0.6` |
@@ -37,7 +38,7 @@ editar o arquivo à mão também funciona: a Home recarrega ao salvar.
 ### Temas prontos e salvos (`temasSalvos`)
 Configurações → Aparência → **Temas prontos**: Padrão, Grafite, Oceano, Claro, Sépia e Alto contraste, mais os seus.
 Clicar aplica só o visual (`modo`, `corDestaque`, `fundo`, `corFundo`, `fonte`, `cantos`, `opacidadePaineis`);
-`colunas`, `espacamento` e `tamanhoIcone` ficam como estão. **Salvar o visual atual como tema…** guarda em
+`colunas`, `espacamento`, `tamanhoTexto` e `tamanhoIcone` ficam como estão. **Salvar o visual atual como tema…** guarda em
 `temasSalvos` (`{ nome, tema }`; mesmo nome substitui); botão direito na miniatura remove.
 
 ## Boas-vindas (`boasVindas`)
@@ -184,6 +185,29 @@ Ações rápidas — mais "Testar agora" e "Copiar endereço".
 | `intervalo` | segundos entre os testes (15 a 3600; Configurações: 15 a 300) | `60` |
 | `lista` | `{ nome, icone, endereco, porta }` | 📺 TV `192.168.15.11:5555`, 📡 Box `192.168.15.13:5555` |
 
+## Baterias (`baterias`)
+Painel `id: "baterias"`: aparelhos Bluetooth que informam a bateria ao Windows (teclado, mouse, fones… — os mesmos de
+Configurações → Bluetooth e dispositivos), **sem configurar nada**: aparecem sozinhos. Cada linha tem o ícone do tipo
+de aparelho, a bolinha da faixa (🟢 boa, 🟠 abaixo de `media`, 🔴 abaixo de `baixa`), o nome, o percentual e o ícone de
+bateria; conectados primeiro, o mais descarregado em cima; desconectados ficam apagados com a hora da última leitura.
+O botão do cabeçalho abre o Bluetooth do Windows.
+- Leitura **local** (propriedades do dispositivo no Windows), a cada minuto e ao abrir a Home; sem rede, sem administrador.
+  Um aparelho com várias entradas no Windows (fone: áudio, microfone, cada lado) vira uma linha só, com o **menor** nível.
+- **Aviso:** ao ficar abaixo de `baixa` (só aparelho conectado), uma notificação do Windows ("🔋 MX Master 3S: 18%")
+  — **uma vez por descarga** (volta a avisar depois de carregar até `baixa` + 5%) e mesmo com a Home escondida.
+  Clicar na notificação mostra a Home. Com o ícone da bandeja desligado, ele aparece só enquanto o aviso está na tela.
+- **No Boas-vindas:** cartão vermelho "Bateria baixa" com os aparelhos abaixo de `baixa`; some quando não há nenhum.
+
+| Opção | Valores | Padrão |
+|---|---|---|
+| `baixa` | % abaixo do qual fica vermelho e avisa (Configurações: 5 a 50) | `20` |
+| `media` | % abaixo do qual fica laranja (Configurações: 10 a 90) | `50` |
+| `avisar` | notificação do Windows | `true` |
+| `alertaNoBoasVindas` | cartão "Bateria baixa" no Boas-vindas | `true` |
+| `mostrarDesconectados` | mostrar os desconectados (apagados, último valor) | `true` |
+| `ocultos` | nomes como o Windows mostra; não aparecem nem avisam | `[]` |
+| `apelidos` | nome no Windows → nome na Home (ex.: `"AULA-F75 5.0 KB": "Teclado"`) | `{}` |
+
 ## Apps ancorados (`appsAncorados`)
 Painel com a **janela real de um programa** posicionada sobre a área dele: acompanha rolagem, ✥ (lugar), ↔ (largura),
 a alça da base (altura) e a troca de monitor; minimiza junto com a Home; a parte fora da área visível é recortada.
@@ -223,6 +247,7 @@ automática) e `titulo` (opcional).
 - `id: "videos"`: vídeos (VLC e YouTube).
 - `id: "dispositivos"`: dispositivos (TV, box…).
 - `id: "agenda"`: agenda (Google Agenda).
+- `id: "baterias"`: baterias dos aparelhos Bluetooth (teclado, mouse, fones…).
 - `id: "ancoradoN"`: app ancorado definido em `appsAncorados`.
 - Qualquer outro `id`: grupo de apps com o mesmo nome em `grupos`.
 - Em Configurações → Painéis, "+ Adicionar painel" cria um grupo de apps ou um painel especial que ainda não esteja na Home.

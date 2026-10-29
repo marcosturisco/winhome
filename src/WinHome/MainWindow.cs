@@ -200,6 +200,16 @@ public sealed class MainWindow : Window
         var erro = _config.Carregar(); // antes de ler Atual
         RestaurarEstado(); // antes de Aplicar: o ajuste da janela usa o monitor onde ela está
         Aplicar(_config.Atual, erro, false);
+
+        // Bateria baixa avisa mesmo com a Home escondida (o painel e o selo do Boas-vindas só mostram).
+        ServicoBaterias.FicouBaixa += b =>
+        {
+            var cfg = _config.Atual.Baterias;
+            if (!cfg.Avisar) return;
+            var nome = cfg.NomeDe(b.Nome);
+            _bandeja.Avisar($"🔋 {nome}: {b.Nivel}%", $"A bateria está abaixo de {cfg.Baixa}%. Hora de carregar.");
+        };
+        ServicoBaterias.Iniciar(() => _config.Atual.Baterias);
     }
 
     void Aplicar(Config config, string? erroConfig, bool doArquivo)
@@ -237,6 +247,9 @@ public sealed class MainWindow : Window
 
         var margem = Math.Max(24, estilo.Espaco * 3);
         _rolagem.Padding = new Thickness(margem, AreaDoTopo, margem, margem); // painéis logo abaixo da barra de botões
+        // Fonte e tamanho herdados por todo texto dos painéis que não define os seus (Aparência).
+        _rolagem.FontFamily = estilo.Fonte;
+        _rolagem.FontSize = estilo.Corpo;
         _busca.Visibility = config.MostrarBusca ? Visibility.Visible : Visibility.Collapsed;
         _busca.FontFamily = estilo.Fonte;
         _busca.CornerRadius = new CornerRadius(Math.Min(estilo.Tema.Cantos, 20));

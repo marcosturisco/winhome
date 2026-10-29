@@ -44,16 +44,16 @@ public static class WidgetsBoasVindas
 
     public static Widget Clima(Cidade cidade, string unidade, Estilo estilo)
     {
-        var nome = Texto(estilo, 14, negrito: true);
+        var nome = Texto(estilo, estilo.Corpo, negrito: true);
         nome.Text = cidade.Nome;
         ToolTipService.SetToolTip(nome, ServicoClima.Descrever(cidade));
-        var hora = Texto(estilo, 12, 0.7);
-        var icone = new TextBlock { FontSize = 28, VerticalAlignment = VerticalAlignment.Center, Text = "…" };
-        var temperatura = Texto(estilo, 32);
+        var hora = Texto(estilo, estilo.Legenda, 0.7);
+        var icone = new TextBlock { FontSize = estilo.Tam(28), VerticalAlignment = VerticalAlignment.Center, Text = "…" };
+        var temperatura = Texto(estilo, estilo.Tam(32));
         temperatura.FontWeight = FontWeights.Light;
         temperatura.VerticalAlignment = VerticalAlignment.Center;
-        var descricao = Texto(estilo, 12, 0.8);
-        var extremos = Texto(estilo, 12, 0.8);
+        var descricao = Texto(estilo, estilo.Legenda, 0.8);
+        var extremos = Texto(estilo, estilo.Legenda, 0.8);
 
         TimeZoneInfo? fuso = null;
         try { if (cidade.Fuso is { Length: > 0 } id) fuso = TimeZoneInfo.FindSystemTimeZoneById(id); }
@@ -89,12 +89,71 @@ public static class WidgetsBoasVindas
         return new Widget { Elemento = Cartao(estilo, conteudo, 150), Recarregar = Recarregar, AtualizarHora = AtualizarHora };
     }
 
+    // Selo de alerta: só aparece enquanto algum aparelho conectado (e visível) estiver abaixo do limite "baixa".
+    public static Widget Baterias(Baterias cfg, Estilo estilo)
+    {
+        var vermelho = new SolidColorBrush(PainelBaterias.Cor(0, cfg));
+        var titulo = Texto(estilo, estilo.Corpo, negrito: true);
+        titulo.Text = "Bateria baixa";
+        titulo.Foreground = vermelho;
+        var cabeca = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 6,
+            Children = { new FontIcon { Glyph = PainelBaterias.GlifoDaBateria(10), FontSize = estilo.Realce, Foreground = vermelho }, titulo },
+        };
+        var linhas = new StackPanel { Spacing = 4 };
+        var cartao = Cartao(estilo, new StackPanel { Spacing = 8, Children = { cabeca, linhas } }, 170);
+        cartao.Visibility = Visibility.Collapsed;
+
+        void Atualizar()
+        {
+            var baixas = ServicoBaterias.Atuais
+                .Where(b => b.Conectado && cfg.Visivel(b.Nome) && ServicoBaterias.FaixaDe(b.Nivel, cfg) == ServicoBaterias.Faixa.Baixa)
+                .ToList();
+            cartao.Visibility = baixas.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            linhas.Children.Clear();
+            foreach (var b in baixas)
+            {
+                var nome = Texto(estilo, estilo.Corpo);
+                nome.Text = cfg.NomeDe(b.Nome);
+                var nivel = Texto(estilo, estilo.Corpo, negrito: true);
+                nivel.Text = $"{b.Nivel}%";
+                nivel.Foreground = vermelho;
+                var grade = new Grid { ColumnSpacing = 8 };
+                grade.ColumnDefinitions.Add(new ColumnDefinition());
+                grade.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                Grid.SetColumn(nivel, 1);
+                grade.Children.Add(nome);
+                grade.Children.Add(nivel);
+                linhas.Children.Add(grade);
+            }
+            ToolTipService.SetToolTip(cartao, $"Abaixo de {cfg.Baixa}%. Hora de carregar.");
+        }
+
+        cartao.Loaded += (_, _) =>
+        {
+            ServicoBaterias.Mudou += Atualizar;
+            Atualizar();
+        };
+        cartao.Unloaded += (_, _) => ServicoBaterias.Mudou -= Atualizar;
+        return new Widget
+        {
+            Elemento = cartao,
+            Recarregar = () =>
+            {
+                Atualizar();
+                return Task.CompletedTask;
+            },
+        };
+    }
+
     public static Widget Cotacoes(IReadOnlyList<string> moedas, Estilo estilo)
     {
-        var titulo = Texto(estilo, 14, negrito: true);
+        var titulo = Texto(estilo, estilo.Corpo, negrito: true);
         titulo.Text = "Cotações";
         var linhas = new StackPanel { Spacing = 6 };
-        var rodape = Texto(estilo, 11, 0.6);
+        var rodape = Texto(estilo, estilo.Legenda, 0.6);
         rodape.Text = "…";
 
         var verde = new SolidColorBrush(Color.FromArgb(255, 0x3D, 0xBE, 0x8B));
@@ -111,12 +170,12 @@ public static class WidgetsBoasVindas
             }
             foreach (var c in r.Valor)
             {
-                var codigo = Texto(estilo, 13, negrito: true);
+                var codigo = Texto(estilo, estilo.Corpo, negrito: true);
                 codigo.Text = c.Moeda;
                 ToolTipService.SetToolTip(codigo, ServicoCotacoes.Nome(c.Moeda));
-                var valor = Texto(estilo, 13);
+                var valor = Texto(estilo, estilo.Corpo);
                 valor.Text = c.Valor.ToString(c.Valor >= 1000 ? "C0" : "C2", PtBr);
-                var variacao = Texto(estilo, 12);
+                var variacao = Texto(estilo, estilo.Legenda);
                 if (c.Variacao is { } pct) // sem variação = a API mandou um valor implausível (ServicoCotacoes)
                 {
                     variacao.Text = $"{(pct >= 0 ? "▲" : "▼")} {Math.Abs(pct).ToString("0.00", PtBr)}%";

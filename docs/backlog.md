@@ -24,6 +24,10 @@
   acompanha rolagem/✥/↔/altura/monitor, recorta o que sai da tela, fica logo acima da Home, minimiza junto; Soltar ou
   sair devolve a janela. Sem `SetParent`/dono (seguro se o WinHome cair). `WinHome.exe --sair` = saída normal (scripts).
 
+- **Baterias** ✅ (29/10/2026): painel `baterias` com os aparelhos Bluetooth que informam a bateria ao Windows
+  (leitura local a cada minuto, entradas do mesmo aparelho agrupadas), 🟢/🟠/🔴 por faixa (50%/20%), notificação do
+  Windows uma vez por descarga abaixo de 20% (mesmo com a Home escondida), cartão "Bateria baixa" no Boas-vindas,
+  ocultar/renomear aparelhos em Configurações → Baterias.
 - **v0.4-d — Dispositivos** ✅ (27/10/2026): painel com TV e box (teste TCP da porta, latência, a cada 60 s, sem
   comandos); clique no aparelho = menu com Conectar, Espelhar, Print, Logs, Instalar APK, Desconectar (com o endereço
   do aparelho e a confirmação das Ações rápidas), Testar agora, Copiar endereço.

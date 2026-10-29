@@ -123,7 +123,7 @@ public static class PainelApps
                     {
                         Text = app.Nome,
                         FontFamily = estilo.Fonte,
-                        FontSize = 12,
+                        FontSize = estilo.Legenda,
                         TextAlignment = TextAlignment.Center,
                         TextTrimming = TextTrimming.CharacterEllipsis,
                         MaxWidth = tamanho + 44,

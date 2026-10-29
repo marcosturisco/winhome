@@ -83,6 +83,7 @@ public sealed class EditorConfig(ConfigService config)
         (Config.PainelVideos, "Vídeos (VLC e YouTube)"),
         (Config.PainelDispositivos, "Dispositivos (TV, box…)"),
         (Config.PainelAgenda, "Agenda (Google Agenda)"),
+        (Config.PainelBaterias, "Baterias (teclado, mouse, fones…)"),
     ];
 
     public bool Tem(string id) => C.Paineis.Any(p => p.Id == id);
@@ -124,6 +125,8 @@ public sealed class EditorConfig(ConfigService config)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Dispositivos", Largura = Math.Max(1, c.Tema.Colunas / 3) });
         else if (id == Config.PainelAgenda)
             c.Paineis.Add(new Painel { Id = id, Titulo = "Agenda", Largura = Math.Max(1, c.Tema.Colunas / 3) });
+        else if (id == Config.PainelBaterias)
+            c.Paineis.Add(new Painel { Id = id, Titulo = "Baterias", Largura = Math.Max(1, c.Tema.Colunas / 3) });
     });
 
     public void AdicionarCidade(Cidade cidade) => Estrutura(c =>

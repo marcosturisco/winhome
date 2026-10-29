@@ -36,9 +36,9 @@ public static class PainelAncorado
         };
         Ancoragem.Registrar(id, area);
 
-        var soltar = new Button { Content = "Soltar", Padding = new Thickness(10, 4, 10, 4), FontSize = 12 };
+        var soltar = new Button { Content = "Soltar", Padding = new Thickness(10, 4, 10, 4), FontSize = estilo.Legenda };
         ToolTipService.SetToolTip(soltar, "Devolve a janela ao tamanho e lugar de antes");
-        var titulo = new TextBlock { FontSize = 12, Opacity = 0.7, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, FontFamily = estilo.Fonte };
+        var titulo = new TextBlock { FontSize = estilo.Legenda, Opacity = 0.7, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, FontFamily = estilo.Fonte };
         var rodape = new Grid { ColumnSpacing = 8 };
         rodape.ColumnDefinitions.Add(new ColumnDefinition());
         rodape.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

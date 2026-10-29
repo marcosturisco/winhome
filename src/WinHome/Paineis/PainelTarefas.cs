@@ -15,9 +15,9 @@ public static class PainelTarefas
     {
         var entrada = new TextBox { PlaceholderText = "Nova tarefa… (Enter adiciona)", FontFamily = estilo.Fonte };
         var lista = new StackPanel { Spacing = 2 };
-        var aviso = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 12, Foreground = new SolidColorBrush(Microsoft.UI.Colors.OrangeRed) };
-        var resumo = new TextBlock { FontFamily = estilo.Fonte, FontSize = 12, Opacity = 0.7, VerticalAlignment = VerticalAlignment.Center };
-        var limpar = new Button { Content = "Limpar concluídas", FontSize = 12, Padding = new Thickness(8, 4, 8, 4) };
+        var aviso = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = estilo.Legenda, Foreground = new SolidColorBrush(Microsoft.UI.Colors.OrangeRed) };
+        var resumo = new TextBlock { FontFamily = estilo.Fonte, FontSize = estilo.Legenda, Opacity = 0.7, VerticalAlignment = VerticalAlignment.Center };
+        var limpar = new Button { Content = "Limpar concluídas", FontSize = estilo.Legenda, Padding = new Thickness(8, 4, 8, 4) };
 
         void Mostrar()
         {
@@ -90,7 +90,7 @@ public static class PainelTarefas
 
         var remover = new Button
         {
-            Content = new FontIcon { Glyph = "", FontSize = 12 },
+            Content = new FontIcon { Glyph = "", FontSize = estilo.Legenda },
             Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
             BorderThickness = new Thickness(0),
             Padding = new Thickness(6),

@@ -35,6 +35,7 @@
     "corFundo": "#101418",         // usada quando fundo = "cor"
     "imagemFundo": "",             // caminho da imagem quando fundo = "imagem"
     "fonte": "Segoe UI Variable",
+    "tamanhoTexto": 14,            // texto dos painéis (10 a 24); títulos, detalhes, hora etc. acompanham
     "cantos": 12,                  // arredondamento dos painéis
     "tamanhoIcone": 48,
     "opacidadePaineis": 0.6,       // 0 = transparente, 1 = sólido
@@ -193,6 +194,18 @@
     ]
   },
 
+  // Painel "baterias": aparelhos Bluetooth que informam a bateria ao Windows (teclado, mouse, fones…), lidos a cada
+  // minuto. Verde = boa, laranja = abaixo de "media", vermelho = abaixo de "baixa" (com aviso, uma vez por descarga).
+  "baterias": {
+    "baixa": 20,                   // % abaixo do qual fica vermelho e avisa
+    "media": 50,                   // % abaixo do qual fica laranja
+    "avisar": true,                // notificação do Windows (vem mesmo com a Home escondida)
+    "alertaNoBoasVindas": true,    // cartão "Bateria baixa" no Boas-vindas enquanto algum estiver abaixo de "baixa"
+    "mostrarDesconectados": true,  // desconectados aparecem apagados, com o último valor lido
+    "ocultos": [],                 // nomes (como o Windows mostra) que não aparecem nem avisam
+    "apelidos": {}                 // ex.: { "AULA-F75 5.0 KB": "Teclado" }
+  },
+
   "videos": {
     "repetir": false,              // recomeça o vídeo ao terminar (VLC)
     "pausarAoEsconder": true,      // pausa ao esconder ou minimizar a Home
@@ -201,7 +214,8 @@
 
   // Painéis em ordem de exibição. "visivel" liga/desliga o painel.
   // Ids especiais: "boasVindas" (saudação, hora, clima, cotações), "mensagem" (mensagem do dia),
-  // "curiosidade" (curiosidades do dia), "projetos" (projetos recentes), "tarefas", "acoes" (ações rápidas) e "videos";
+  // "curiosidade" (curiosidades do dia), "projetos" (projetos recentes), "tarefas", "acoes" (ações rápidas), "videos",
+  // "dispositivos", "agenda" e "baterias";
   // os demais ids são grupos de apps definidos em "grupos".
   // "largura" = colunas; "altura" = altura da linha em pixels (0 = automática; a linha usa a maior entre os painéis dela).
   "paineis": [

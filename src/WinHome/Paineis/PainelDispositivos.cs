@@ -58,15 +58,15 @@ public static class PainelDispositivos
         {
             Text = d.Icone,
             FontFamily = new FontFamily("Segoe UI Emoji"),
-            FontSize = 24,
+            FontSize = estilo.Tam(24),
             VerticalAlignment = VerticalAlignment.Center,
         };
         var nome = new TextBlock { Text = d.Nome, FontFamily = estilo.Fonte, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
-        var detalhe = new TextBlock { FontFamily = estilo.Fonte, FontSize = 12, Opacity = 0.7, TextTrimming = TextTrimming.CharacterEllipsis };
+        var detalhe = new TextBlock { FontFamily = estilo.Fonte, FontSize = estilo.Legenda, Opacity = 0.7, TextTrimming = TextTrimming.CharacterEllipsis };
         var textos = new StackPanel { Spacing = 1, VerticalAlignment = VerticalAlignment.Center, Children = { nome, detalhe } };
 
         var bolinha = new Microsoft.UI.Xaml.Shapes.Ellipse { Width = 10, Height = 10, VerticalAlignment = VerticalAlignment.Center };
-        var latencia = new TextBlock { FontFamily = estilo.Fonte, FontSize = 13, VerticalAlignment = VerticalAlignment.Center, MinWidth = 64, TextAlignment = TextAlignment.Right };
+        var latencia = new TextBlock { FontFamily = estilo.Fonte, FontSize = estilo.Corpo, VerticalAlignment = VerticalAlignment.Center, MinWidth = 64, TextAlignment = TextAlignment.Right };
         var status = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center, Children = { latencia, bolinha } };
 
         var grade = new Grid { ColumnSpacing = 12 };

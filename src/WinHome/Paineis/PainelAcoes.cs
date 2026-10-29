@@ -47,7 +47,7 @@ public static class PainelAcoes
                 {
                     Text = string.IsNullOrWhiteSpace(acao.Icone) ? "⚡" : acao.Icone,
                     FontFamily = new FontFamily("Segoe UI Emoji"),
-                    FontSize = 28,
+                    FontSize = estilo.Tam(28),
                     HorizontalAlignment = HorizontalAlignment.Center,
                 },
                 new TextBlock

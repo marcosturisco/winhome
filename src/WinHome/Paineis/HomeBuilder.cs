@@ -100,7 +100,8 @@ public static class HomeBuilder
     // Conteúdo do painel e, opcionalmente, um botão para o cabeçalho (ex.: ↻ das mensagens e curiosidades).
     static (UIElement Conteudo, Button? Acao) Conteudo(Painel painel, Config config, Estilo estilo, Acoes acoes, bool alturaFixa)
     {
-        if (painel.Id == Config.PainelBoasVindas) return (PainelBoasVindas.Criar(config.Nome, config.BoasVindas, estilo), null);
+        if (painel.Id == Config.PainelBoasVindas)
+            return (PainelBoasVindas.Criar(config.Nome, config.BoasVindas, config.Baterias, estilo), null);
         if (painel.Id == Config.PainelMensagem)
         {
             var outra = BotaoCabecalho("", "Outra mensagem");
@@ -116,6 +117,11 @@ public static class HomeBuilder
         if (painel.Id == Config.PainelAcoes) return (PainelAcoes.Criar(config, estilo, acoes), null);
         if (painel.Id == Config.PainelVideos) return (PainelVideos.Criar(config.Videos, estilo, acoes, alturaFixa), null);
         if (painel.Id == Config.PainelDispositivos) return (PainelDispositivos.Criar(config, estilo, acoes), null);
+        if (painel.Id == Config.PainelBaterias)
+        {
+            var bluetooth = BotaoCabecalho("", "Abrir Bluetooth e dispositivos (Windows)");
+            return (PainelBaterias.Criar(config.Baterias, estilo, bluetooth), bluetooth);
+        }
         if (painel.Id == Config.PainelAgenda)
         {
             var atualizar = BotaoCabecalho("", "Atualizar a agenda agora");
@@ -176,7 +182,7 @@ public static class HomeBuilder
             {
                 Text = titulo,
                 FontFamily = estilo.Fonte,
-                FontSize = 18,
+                FontSize = estilo.Titulo,
                 FontWeight = FontWeights.SemiBold,
                 Foreground = estilo.Destaque,
                 TextTrimming = TextTrimming.CharacterEllipsis,

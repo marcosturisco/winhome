@@ -25,8 +25,8 @@ public static class PainelCuriosidade
             VerticalAlignment = VerticalAlignment.Top,
             Visibility = Visibility.Collapsed,
         };
-        var quando = new TextBlock { FontFamily = estilo.Fonte, FontSize = 13, Foreground = estilo.Destaque, FontWeight = FontWeights.SemiBold };
-        var texto = new TextBlock { FontFamily = estilo.Fonte, FontSize = 16, TextWrapping = TextWrapping.Wrap, Text = "Carregando…" };
+        var quando = new TextBlock { FontFamily = estilo.Fonte, FontSize = estilo.Corpo, Foreground = estilo.Destaque, FontWeight = FontWeights.SemiBold };
+        var texto = new TextBlock { FontFamily = estilo.Fonte, FontSize = estilo.Realce, TextWrapping = TextWrapping.Wrap, Text = "Carregando…" };
         var ler = new HyperlinkButton { Content = "Ler na Wikipédia", Padding = new Thickness(0), Visibility = Visibility.Collapsed };
 
         List<Fato> fatos = [];
@@ -87,7 +87,7 @@ public static class PainelCuriosidade
         outro.Click += (_, _) => { _extra++; Mostrar(); };
 
 
-        var fonte = new TextBlock { Text = "Fonte: Wikipédia (CC BY-SA)", FontSize = 11, Opacity = 0.5, FontFamily = estilo.Fonte };
+        var fonte = new TextBlock { Text = "Fonte: Wikipédia (CC BY-SA)", FontSize = estilo.Legenda, Opacity = 0.5, FontFamily = estilo.Fonte };
         var direita = new StackPanel { Spacing = 8, Children = { quando, texto, ler, fonte } };
 
         var grade = new Grid { ColumnSpacing = 16 };

@@ -45,6 +45,10 @@ com painéis configuráveis (relógio, apps de trabalho, pessoal…). Projeto ir
 ## Alvo técnico
 - Windows 11 (x64), WinUI 3 (Windows App SDK 2.x, self-contained, sem MSIX), .NET 10, C#.
 - Interface montada em código a partir da config (`HomeBuilder`); XAML mínimo.
+- **Visual dos painéis vem da Aparência** (`Estilo`): fonte `estilo.Fonte`; tamanhos de texto e de ícones de conteúdo
+  só pelos papéis `estilo.Legenda/Corpo/Realce/Titulo/Grande` ou `estilo.Tam(n)` (escalam com `tema.tamanhoTexto`) —
+  nunca `FontSize` fixo em painel; cores, cantos e espaçamento também do `Estilo`. Ficam fixos só a moldura
+  (alças, botões do cabeçalho, barra da janela), diálogos e a tela de Configurações.
 - Abrir rápido e gastar pouca memória; ícones com cache em memória.
 
 ## Comandos

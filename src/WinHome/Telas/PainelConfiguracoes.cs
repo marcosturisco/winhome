@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expAparencia, _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expDispositivos, _expAgenda;
+    Expander? _expAparencia, _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expDispositivos, _expBaterias, _expAgenda;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -62,6 +62,7 @@ public sealed class PainelConfiguracoes
             if (_expAcoes is not null) _expAcoes.Content = ConteudoAcoes();
             if (_expVideos is not null) _expVideos.Content = ConteudoVideos();
             if (_expDispositivos is not null) _expDispositivos.Content = ConteudoDispositivos();
+            if (_expBaterias is not null) _expBaterias.Content = ConteudoBaterias();
             if (_expAgenda is not null) _expAgenda.Content = ConteudoAgenda();
         };
 
@@ -154,6 +155,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expAcoes = Secao("Ações rápidas", ConteudoAcoes()));
         _secoes.Children.Add(_expVideos = Secao("Vídeos", ConteudoVideos()));
         _secoes.Children.Add(_expDispositivos = Secao("Dispositivos", ConteudoDispositivos()));
+        _secoes.Children.Add(_expBaterias = Secao("Baterias", ConteudoBaterias()));
         _secoes.Children.Add(_expAgenda = Secao("Agenda", ConteudoAgenda()));
         _secoes.Children.Add(Secao("Backup", ConteudoBackup()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
@@ -231,6 +233,8 @@ public sealed class PainelConfiguracoes
             corFundo,
             imagem,
             fonte,
+            Deslizante("Tamanho do texto (14 = padrão; títulos e detalhes acompanham)", 10, 24, 1, t.TamanhoTexto,
+                v => _ed.Alterar(c => c.Tema.TamanhoTexto = v)),
             Deslizante("Opacidade dos painéis (%)", 0, 100, 5, t.OpacidadePaineis * 100,
                 v => _ed.Alterar(c => c.Tema.OpacidadePaineis = v / 100)),
             Deslizante("Tamanho dos ícones", 24, 128, 4, t.TamanhoIcone, v => _ed.Alterar(c => c.Tema.TamanhoIcone = v)),
@@ -850,6 +854,64 @@ public sealed class PainelConfiguracoes
         var novo = new Button { Content = "+ Novo aparelho" };
         novo.Click += (_, _) => _ed.NovoDispositivo();
         pilha.Children.Add(novo);
+        return pilha;
+    }
+
+    UIElement ConteudoBaterias()
+    {
+        var cfg = C.Baterias;
+        var pilha = Pilha(
+            Alternador("Mostrar as baterias na Home", _ed.Exibido(Config.PainelBaterias), on => _ed.Exibir(Config.PainelBaterias, on)),
+            Alternador("Avisar com uma notificação quando a bateria ficar baixa", cfg.Avisar, on => _ed.Alterar(c => c.Baterias.Avisar = on)),
+            Alternador("Alerta de bateria baixa no Boas-vindas", cfg.AlertaNoBoasVindas, on => _ed.Alterar(c => c.Baterias.AlertaNoBoasVindas = on)),
+            Alternador("Mostrar aparelhos desconectados", cfg.MostrarDesconectados, on => _ed.Alterar(c => c.Baterias.MostrarDesconectados = on)),
+            Deslizante("Bateria baixa (vermelho e aviso) abaixo de %", 5, 50, 5, cfg.Baixa, v => _ed.Alterar(c => c.Baterias.Baixa = (int)v)),
+            Deslizante("Meia carga (laranja) abaixo de %", 10, 90, 5, cfg.Media, v => _ed.Alterar(c => c.Baterias.Media = (int)v)),
+            new TextBlock
+            {
+                Text = "Aparelhos Bluetooth que informam a bateria ao Windows (os mesmos de Configurações → Bluetooth e " +
+                       "dispositivos), lidos a cada minuto. O aviso vem uma vez por descarga, mesmo com a Home escondida.",
+                TextWrapping = TextWrapping.Wrap,
+                Opacity = 0.6,
+                FontSize = 12,
+            },
+            Subtitulo("Aparelhos (marque os que aparecem na Home; o nome é opcional)"));
+
+        var nomes = Servicos.ServicoBaterias.Atuais.Select(b => b.Nome).Concat(cfg.Ocultos).Distinct().ToList();
+        if (nomes.Count == 0)
+            pilha.Children.Add(new TextBlock { Text = "Nenhum aparelho com bateria encontrado ainda.", Opacity = 0.7, FontSize = 12 });
+        foreach (var nome in nomes)
+        {
+            var b = Servicos.ServicoBaterias.Atuais.FirstOrDefault(x => x.Nome == nome);
+            var marcar = new CheckBox { IsChecked = cfg.Visivel(nome), MinWidth = 0, VerticalAlignment = VerticalAlignment.Center };
+            ToolTipService.SetToolTip(marcar, "Mostrar na Home");
+            marcar.Click += (_, _) => _ed.Alterar(c =>
+            {
+                c.Baterias.Ocultos.Remove(nome);
+                if (marcar.IsChecked != true) c.Baterias.Ocultos.Add(nome);
+            });
+            var apelido = new TextBox
+            {
+                Text = cfg.Apelidos.GetValueOrDefault(nome, ""),
+                PlaceholderText = nome,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            ToolTipService.SetToolTip(apelido, $"Nome na Home (vazio = \"{nome}\")");
+            apelido.TextChanged += (_, _) => _ed.Alterar(c =>
+            {
+                if (string.IsNullOrWhiteSpace(apelido.Text)) c.Baterias.Apelidos.Remove(nome);
+                else c.Baterias.Apelidos[nome] = apelido.Text.Trim();
+            });
+            var nivel = new TextBlock
+            {
+                Text = b is null ? "—" : $"{b.Nivel}%",
+                Opacity = b is { Conectado: true } ? 0.8 : 0.5,
+                MinWidth = 40,
+                TextAlignment = TextAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            pilha.Children.Add(Linha(marcar, apelido, nivel));
+        }
         return pilha;
     }
 

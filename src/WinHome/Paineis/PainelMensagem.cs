@@ -44,11 +44,11 @@ public static class PainelMensagem
         var texto = new TextBlock
         {
             FontFamily = estilo.Fonte,
-            FontSize = 20,
+            FontSize = estilo.Grande,
             FontStyle = FontStyle.Italic,
             TextWrapping = TextWrapping.Wrap,
         };
-        var autor = new TextBlock { FontFamily = estilo.Fonte, FontSize = 14, Opacity = 0.75, TextWrapping = TextWrapping.Wrap };
+        var autor = new TextBlock { FontFamily = estilo.Fonte, FontSize = estilo.Corpo, Opacity = 0.75, TextWrapping = TextWrapping.Wrap };
 
         void Mostrar()
         {

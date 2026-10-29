@@ -37,7 +37,7 @@ public static class TemasProntos
     public static Tema Copiar(Tema t) => new()
     {
         Modo = t.Modo, CorDestaque = t.CorDestaque, Fundo = t.Fundo, CorFundo = t.CorFundo, ImagemFundo = t.ImagemFundo,
-        Fonte = t.Fonte, Cantos = t.Cantos, TamanhoIcone = t.TamanhoIcone, OpacidadePaineis = t.OpacidadePaineis,
+        Fonte = t.Fonte, TamanhoTexto = t.TamanhoTexto, Cantos = t.Cantos, TamanhoIcone = t.TamanhoIcone, OpacidadePaineis = t.OpacidadePaineis,
         Espacamento = t.Espacamento, Colunas = t.Colunas,
     };
 

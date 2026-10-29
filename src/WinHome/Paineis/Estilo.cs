@@ -20,6 +20,16 @@ public sealed class Estilo
     public int Colunas => Math.Clamp(Tema.Colunas, 1, 24);
     public int TamanhoIcone => (int)Math.Clamp(Tema.TamanhoIcone, 16, 256);
 
+    // Tipografia: todo texto (e ícone de conteúdo) dos painéis usa estes tamanhos, proporcionais ao "tamanhoTexto"
+    // do tema (14 = padrão). Tamanhos especiais (hora, temperatura, emojis) usam Tam(valor no tamanho padrão).
+    public double Escala => Math.Clamp(Tema.TamanhoTexto, 10, 24) / 14.0;
+    public double Tam(double tamanhoNoPadrao) => Math.Round(tamanhoNoPadrao * Escala, 1);
+    public double Legenda => Tam(12); // detalhes, rodapés, botões pequenos
+    public double Corpo => Tam(14);   // texto normal
+    public double Realce => Tam(16);  // texto principal de um painel de leitura, valores em destaque
+    public double Titulo => Tam(18);  // título dos painéis
+    public double Grande => Tam(20);  // saudação, data, mensagem do dia
+
     public Brush FundoPainel
     {
         get

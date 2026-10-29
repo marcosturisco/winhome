@@ -7,9 +7,11 @@ public sealed class IconeBandeja : IDisposable
 {
     const uint WM_APP_BANDEJA = 0x8000 + 1; // WM_APP + 1
     const uint NIM_ADD = 0, NIM_MODIFY = 1, NIM_DELETE = 2, NIM_SETVERSION = 4;
-    const uint NIF_MESSAGE = 0x1, NIF_ICON = 0x2, NIF_TIP = 0x4, NIF_SHOWTIP = 0x80;
+    const uint NIF_MESSAGE = 0x1, NIF_ICON = 0x2, NIF_TIP = 0x4, NIF_INFO = 0x10, NIF_SHOWTIP = 0x80;
+    const uint NIIF_WARNING = 0x2;
     const uint NOTIFYICON_VERSION_4 = 4;
     const uint NIN_SELECT = 0x400, NIN_KEYSELECT = 0x401, WM_CONTEXTMENU = 0x7B;
+    const uint NIN_BALLOONHIDE = 0x403, NIN_BALLOONTIMEOUT = 0x404, NIN_BALLOONUSERCLICK = 0x405;
     const uint MF_STRING = 0, MF_SEPARATOR = 0x800, TPM_RIGHTBUTTON = 0x2, TPM_RETURNCMD = 0x100;
     const uint ID_MOSTRAR = 1, ID_CONFIGURACOES = 2, ID_SAIR = 3;
 
@@ -17,6 +19,8 @@ public sealed class IconeBandeja : IDisposable
     readonly IntPtr _icone;
     readonly uint _taskbarCreated;
     bool _visivel;
+    bool _desejado; // ícone ligado na config (sem ele, aparece só enquanto um aviso está na tela)
+    bool _avisando;
     string _dica = "WinHome";
 
     public event Action? Mostrar;
@@ -37,9 +41,30 @@ public sealed class IconeBandeja : IDisposable
     public void Definir(bool visivel, string dica)
     {
         _dica = dica.Length > 127 ? dica[..127] : dica;
+        _desejado = visivel;
         if (visivel && !_visivel) Adicionar();
         else if (visivel) Chamar(NIM_MODIFY);
-        else if (_visivel) Remover();
+        else if (_visivel && !_avisando) Remover();
+    }
+
+    // Notificação do Windows (balão da bandeja, que o Windows 11 mostra como notificação); clicar nela mostra a Home.
+    public void Avisar(string titulo, string texto)
+    {
+        if (!_visivel) Adicionar();
+        if (!_visivel) return;
+        _avisando = true;
+        var dados = Dados();
+        dados.uFlags |= NIF_INFO;
+        dados.szInfoTitle = titulo.Length > 63 ? titulo[..63] : titulo;
+        dados.szInfo = texto.Length > 255 ? texto[..255] : texto;
+        dados.dwInfoFlags = NIIF_WARNING;
+        Shell_NotifyIcon(NIM_MODIFY, ref dados);
+    }
+
+    void AvisoTerminou()
+    {
+        _avisando = false;
+        if (!_desejado && _visivel) Remover();
     }
 
     void Adicionar()
@@ -91,6 +116,12 @@ public sealed class IconeBandeja : IDisposable
         // Versão 4: evento no word baixo do lParam; posição do clique no wParam.
         var evento = (uint)(lParam.ToInt64() & 0xFFFF);
         if (evento is NIN_SELECT or NIN_KEYSELECT) Mostrar?.Invoke();
+        else if (evento is NIN_BALLOONHIDE or NIN_BALLOONTIMEOUT) AvisoTerminou();
+        else if (evento == NIN_BALLOONUSERCLICK)
+        {
+            AvisoTerminou();
+            Mostrar?.Invoke();
+        }
         else if (evento == WM_CONTEXTMENU)
         {
             var w = wParam.ToInt64();

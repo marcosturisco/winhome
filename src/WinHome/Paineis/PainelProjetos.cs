@@ -77,7 +77,7 @@ public static class PainelProjetos
         {
             var b = new Button
             {
-                Content = new FontIcon { Glyph = glifo, FontSize = 12 },
+                Content = new FontIcon { Glyph = glifo, FontSize = estilo.Legenda },
                 Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
                 BorderThickness = new Thickness(0),
                 Padding = new Thickness(6),
@@ -132,8 +132,8 @@ public static class PainelProjetos
                 Spacing = 6,
                 Children =
                 {
-                    new FontIcon { Glyph = "", FontSize = 12 },
-                    new TextBlock { Text = "Pastas…", FontFamily = estilo.Fonte, FontSize = 12 },
+                    new FontIcon { Glyph = "", FontSize = estilo.Legenda },
+                    new TextBlock { Text = "Pastas…", FontFamily = estilo.Fonte, FontSize = estilo.Legenda },
                 },
             },
             Padding = new Thickness(8, 4, 8, 4),
@@ -151,7 +151,7 @@ public static class PainelProjetos
         UIElement icone = ServicoProjetos.Executavel(p.Origem == "pasta" ? destinoPadrao : p.Origem, cfg.Editores) is { } exe &&
                           Icones.De(new AppItem { Caminho = exe }, 24) is { } img
             ? new Image { Source = img, Width = 24, Height = 24 }
-            : new FontIcon { Glyph = "", FontSize = 20 };
+            : new FontIcon { Glyph = "", FontSize = estilo.Tam(20) };
         if (icone is FrameworkElement fe) fe.VerticalAlignment = VerticalAlignment.Center;
 
         var nome = new TextBlock
@@ -170,7 +170,7 @@ public static class PainelProjetos
                 p.Quando is { } q ? Relativo(q) : null,
             }.Where(s => s is not null)),
             FontFamily = estilo.Fonte,
-            FontSize = 12,
+            FontSize = estilo.Legenda,
             Opacity = 0.7,
             TextTrimming = TextTrimming.CharacterEllipsis,
         };

@@ -22,6 +22,7 @@ public sealed class Config
     public Videos Videos { get; set; } = new();
     public Dictionary<string, AppAncorado> AppsAncorados { get; set; } = []; // id do painel → app
     public Dispositivos Dispositivos { get; set; } = new();
+    public Baterias Baterias { get; set; } = new();
     public Agenda Agenda { get; set; } = new();
     public List<Painel> Paineis { get; set; } = [];
     public Dictionary<string, List<AppItem>> Grupos { get; set; } = [];
@@ -36,6 +37,7 @@ public sealed class Config
     public const string PainelVideos = "videos";
     public const string PainelDispositivos = "dispositivos";
     public const string PainelAgenda = "agenda";
+    public const string PainelBaterias = "baterias";
 
     // Ajustes de configs antigas, feitos ao carregar (a gravação seguinte já sai no formato novo).
     public void Migrar()
@@ -132,6 +134,23 @@ public sealed class Calendario
     public string Nome { get; set; } = "Minha agenda";
     public string Endereco { get; set; } = ""; // secreto
     public string Cor { get; set; } = "#4F8CFF";
+}
+
+// Painel "Baterias": aparelhos Bluetooth que informam a bateria ao Windows (teclado, mouse, fones…), lidos a cada
+// minuto. Abaixo de "baixa" fica vermelho e gera um aviso; abaixo de "media", laranja; senão, verde.
+public sealed class Baterias
+{
+    public int Baixa { get; set; } = 20;
+    public int Media { get; set; } = 50;
+    public bool Avisar { get; set; } = true;             // notificação do Windows ao ficar abaixo de "baixa"
+    public bool AlertaNoBoasVindas { get; set; } = true; // selo no Boas-vindas enquanto algum estiver abaixo de "baixa"
+    public bool MostrarDesconectados { get; set; } = true;
+    public List<string> Ocultos { get; set; } = [];                // nomes como o Windows mostra
+    public Dictionary<string, string> Apelidos { get; set; } = []; // nome no Windows → nome na Home
+
+    public bool Visivel(string nome) => !Ocultos.Contains(nome);
+
+    public string NomeDe(string nome) => Apelidos.TryGetValue(nome, out var a) && a.Trim() is { Length: > 0 } t ? t : nome;
 }
 
 // Painel "Dispositivos": testa a cada "intervalo" segundos se a porta de cada aparelho responde (só abre e fecha
@@ -375,6 +394,7 @@ public sealed class Tema
     public string CorFundo { get; set; } = "#101418";
     public string ImagemFundo { get; set; } = "";
     public string Fonte { get; set; } = "Segoe UI Variable";
+    public double TamanhoTexto { get; set; } = 14; // texto normal dos painéis; os demais tamanhos acompanham (Estilo)
     public double Cantos { get; set; } = 12;
     public double TamanhoIcone { get; set; } = 48;
     public double OpacidadePaineis { get; set; } = 0.6;

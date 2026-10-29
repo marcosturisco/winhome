@@ -19,7 +19,7 @@ public static class PainelAgenda
     public static UIElement Criar(Agenda cfg, Estilo estilo, Button atualizar)
     {
         var lista = new StackPanel { Spacing = 4 };
-        var aviso = new TextBlock { FontSize = 12, Opacity = 0.6, TextWrapping = TextWrapping.Wrap, FontFamily = estilo.Fonte };
+        var aviso = new TextBlock { FontSize = estilo.Legenda, Opacity = 0.6, TextWrapping = TextWrapping.Wrap, FontFamily = estilo.Fonte };
         var calendarios = cfg.Calendarios.Where(c => !string.IsNullOrWhiteSpace(c.Endereco)).ToList();
         if (calendarios.Count == 0)
             return new TextBlock
@@ -46,14 +46,14 @@ public static class PainelAgenda
                     Text = d switch { 0 => "Hoje", 1 => "Amanhã", _ => PtBr.TextInfo.ToTitleCase(dia.ToString("dddd", PtBr)) } +
                            "  ·  " + dia.ToString("d 'de' MMMM", PtBr),
                     FontFamily = estilo.Fonte,
-                    FontSize = 13,
+                    FontSize = estilo.Corpo,
                     FontWeight = FontWeights.SemiBold,
                     Opacity = 0.8,
                     Margin = new Thickness(0, d == 0 ? 0 : 10, 0, 2),
                 });
                 if (doDia.Count == 0)
                 {
-                    lista.Children.Add(new TextBlock { Text = "Nada na agenda.", Opacity = 0.5, FontFamily = estilo.Fonte, FontSize = 13, Margin = new Thickness(12, 0, 0, 0) });
+                    lista.Children.Add(new TextBlock { Text = "Nada na agenda.", Opacity = 0.5, FontFamily = estilo.Fonte, FontSize = estilo.Corpo, Margin = new Thickness(12, 0, 0, 0) });
                     continue;
                 }
                 var proximo = d == 0 ? doDia.Where(x => !x.C.DiaTodo && x.C.Inicio > agora).Select(x => x.C).FirstOrDefault() : null;
@@ -127,7 +127,7 @@ public static class PainelAgenda
         {
             Text = c.Local is { } local ? $"{horario}  ·  {local}" : horario,
             FontFamily = estilo.Fonte,
-            FontSize = 12,
+            FontSize = estilo.Legenda,
             Opacity = 0.7,
             TextTrimming = TextTrimming.CharacterEllipsis,
         };
@@ -148,7 +148,7 @@ public static class PainelAgenda
                 CornerRadius = new CornerRadius(10),
                 Padding = new Thickness(8, 2, 8, 2),
                 VerticalAlignment = VerticalAlignment.Center,
-                Child = new TextBlock { Text = selo, FontSize = 12, Foreground = new SolidColorBrush(Microsoft.UI.Colors.White), FontFamily = estilo.Fonte },
+                Child = new TextBlock { Text = selo, FontSize = estilo.Legenda, Foreground = new SolidColorBrush(Microsoft.UI.Colors.White), FontFamily = estilo.Fonte },
             };
             Grid.SetColumn(etiqueta, 2);
             grade.Children.Add(etiqueta);

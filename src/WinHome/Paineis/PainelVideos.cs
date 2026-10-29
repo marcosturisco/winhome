@@ -87,9 +87,9 @@ public static class PainelVideos
 
         // ---------- Topo: link, arquivo, recentes ----------
         var link = new TextBox { PlaceholderText = "Cole um link (YouTube ou vídeo) e tecle Enter, ou arraste um arquivo aqui", FontFamily = estilo.Fonte };
-        var abrirArquivo = new Button { Content = new FontIcon { Glyph = "", FontSize = 14 }, Padding = new Thickness(10, 6, 10, 6) };
+        var abrirArquivo = new Button { Content = new FontIcon { Glyph = "", FontSize = estilo.Corpo }, Padding = new Thickness(10, 6, 10, 6) };
         ToolTipService.SetToolTip(abrirArquivo, "Abrir arquivo de vídeo ou áudio…");
-        var recentes = new Button { Content = new FontIcon { Glyph = "", FontSize = 14 }, Padding = new Thickness(10, 6, 10, 6) };
+        var recentes = new Button { Content = new FontIcon { Glyph = "", FontSize = estilo.Corpo }, Padding = new Thickness(10, 6, 10, 6) };
         ToolTipService.SetToolTip(recentes, "Recentes");
         var topo = new Grid { ColumnSpacing = 6 };
         topo.ColumnDefinitions.Add(new ColumnDefinition());
@@ -135,7 +135,7 @@ public static class PainelVideos
         var tocarPausar = BotaoControle("", "Tocar / pausar");
         var parar = BotaoControle("", "Parar");
         var posicao = new Slider { Minimum = 0, Maximum = 1, StepFrequency = 1, IsThumbToolTipEnabled = false, VerticalAlignment = VerticalAlignment.Center };
-        var tempo = new TextBlock { Text = "0:00 / 0:00", FontSize = 12, Opacity = 0.8, VerticalAlignment = VerticalAlignment.Center, FontFamily = estilo.Fonte };
+        var tempo = new TextBlock { Text = "0:00 / 0:00", FontSize = estilo.Legenda, Opacity = 0.8, VerticalAlignment = VerticalAlignment.Center, FontFamily = estilo.Fonte };
         var mudo = BotaoControle("", "Sem som");
         var volume = new Slider { Minimum = 0, Maximum = 100, Width = 90, Value = estado.Volume, VerticalAlignment = VerticalAlignment.Center };
         var externo = BotaoControle("", "Abrir no VLC (tela cheia, do mesmo ponto)");

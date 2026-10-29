@@ -7,26 +7,27 @@ using WinHome.Configuracao;
 
 namespace WinHome.Paineis;
 
-// Painel do topo: saudação, hora e data à esquerda; clima e cotações à direita.
+// Painel do topo: saudação, hora e data à esquerda; alerta de bateria baixa, clima e cotações à direita.
 // O relógio atualiza a cada segundo e os cartões a cada minuto (usando o cache enquanto ele vale).
 public static class PainelBoasVindas
 {
     static readonly CultureInfo PtBr = new("pt-BR");
 
-    public static UIElement Criar(string nome, BoasVindas opcoes, Estilo estilo)
+    public static UIElement Criar(string nome, BoasVindas opcoes, Baterias baterias, Estilo estilo)
     {
-        var saudacao = new TextBlock { FontFamily = estilo.Fonte, FontSize = 20, Opacity = 0.85 };
+        var saudacao = new TextBlock { FontFamily = estilo.Fonte, FontSize = estilo.Grande, Opacity = 0.85 };
         var hora = new TextBlock
         {
             FontFamily = estilo.Fonte,
-            FontSize = 72,
+            FontSize = estilo.Tam(72),
             FontWeight = FontWeights.SemiLight,
             Foreground = estilo.Destaque,
         };
-        var data = new TextBlock { FontFamily = estilo.Fonte, FontSize = 20, Opacity = 0.85 };
+        var data = new TextBlock { FontFamily = estilo.Fonte, FontSize = estilo.Grande, Opacity = 0.85 };
         var formatoHora = opcoes.MostrarSegundos ? "HH:mm:ss" : "HH:mm";
 
         var widgets = new List<Widget>();
+        if (baterias.AlertaNoBoasVindas) widgets.Add(WidgetsBoasVindas.Baterias(baterias, estilo)); // à esquerda do clima
         if (opcoes.Clima.Visivel)
             widgets.AddRange(opcoes.Clima.Cidades.Select(c => WidgetsBoasVindas.Clima(c, opcoes.Clima.Unidade, estilo)));
         if (opcoes.Cotacoes.Visivel && opcoes.Cotacoes.Moedas.Count > 0)
