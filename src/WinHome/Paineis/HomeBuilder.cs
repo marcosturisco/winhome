@@ -98,7 +98,7 @@ public static class HomeBuilder
     }
 
     // Conteúdo do painel e, opcionalmente, um botão para o cabeçalho (ex.: ↻ das mensagens e curiosidades).
-    static (UIElement Conteudo, Button? Acao) Conteudo(Painel painel, Config config, Estilo estilo, Acoes acoes, bool alturaFixa)
+    static (UIElement Conteudo, FrameworkElement? Acao) Conteudo(Painel painel, Config config, Estilo estilo, Acoes acoes, bool alturaFixa)
     {
         if (painel.Id == Config.PainelBoasVindas)
             return (PainelBoasVindas.Criar(config.Nome, config.BoasVindas, config.Baterias, estilo), null);
@@ -120,7 +120,9 @@ public static class HomeBuilder
         if (painel.Id == Config.PainelBaterias)
         {
             var bluetooth = BotaoCabecalho("", "Abrir Bluetooth e dispositivos (Windows)");
-            return (PainelBaterias.Criar(config.Baterias, estilo, bluetooth), bluetooth);
+            var atualizarBaterias = BotaoCabecalho("", "Atualizar as baterias agora");
+            var botoes = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Children = { atualizarBaterias, bluetooth } };
+            return (PainelBaterias.Criar(config.Baterias, estilo, bluetooth, atualizarBaterias), botoes);
         }
         if (painel.Id == Config.PainelAgenda)
         {
@@ -217,7 +219,7 @@ public static class HomeBuilder
 
     // Cartão de um painel da Home: ✥ muda de lugar, ✕ oculta (com "Desfazer"), a borda direita ajusta a largura
     // e a de baixo, a altura.
-    static FrameworkElement CartaoDoPainel(Painel painel, UIElement conteudo, Button? acao, Estilo estilo, Acoes acoes,
+    static FrameworkElement CartaoDoPainel(Painel painel, UIElement conteudo, FrameworkElement? acao, Estilo estilo, Acoes acoes,
         Grid linha, int coluna, IReadOnlyList<Painel> daLinha, ArrastoPaineis arrasto)
     {
         var titulo = painel.Titulo is { Length: > 0 } t ? t

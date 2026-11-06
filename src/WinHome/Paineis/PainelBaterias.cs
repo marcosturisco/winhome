@@ -9,15 +9,22 @@ using WinHome.Servicos;
 namespace WinHome.Paineis;
 
 // Baterias: uma linha por aparelho Bluetooth (teclado, mouse, fones…) com a bolinha da faixa (verde/laranja/vermelho),
-// o percentual e o ícone de bateria. Os dados vêm do ServicoBaterias; o botão do cabeçalho abre o Bluetooth do Windows.
+// o percentual e o ícone de bateria. Os dados vêm do ServicoBaterias (atualiza sozinho quando o Windows avisa uma
+// mudança); no cabeçalho, ↻ lê agora e o outro botão abre o Bluetooth do Windows.
 public static class PainelBaterias
 {
     static readonly Color Verde = Color.FromArgb(255, 61, 190, 139);
     static readonly Color Laranja = Color.FromArgb(255, 245, 158, 11);
     static readonly Color Vermelho = Color.FromArgb(255, 229, 72, 77);
 
-    public static UIElement Criar(Baterias cfg, Estilo estilo, Button bluetooth)
+    public static UIElement Criar(Baterias cfg, Estilo estilo, Button bluetooth, Button atualizar)
     {
+        atualizar.Click += async (_, _) =>
+        {
+            atualizar.IsEnabled = false;
+            try { await ServicoBaterias.AtualizarAgora(); }
+            finally { atualizar.IsEnabled = true; }
+        };
         bluetooth.Click += (_, _) =>
         {
             try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-settings:bluetooth") { UseShellExecute = true }); }

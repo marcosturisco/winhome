@@ -9,7 +9,7 @@ namespace WinHome.Servicos;
 public sealed record Bateria(string Nome, int Nivel, bool Conectado, string Categoria, DateTimeOffset? Leitura);
 
 // Lê do Windows a bateria dos aparelhos Bluetooth — a mesma informação de Configurações → Bluetooth e dispositivos —
-// a cada minuto, enquanto o WinHome roda (o aviso precisa vir mesmo com a Home escondida). Só leitura, sem rede.
+// na hora em que o Windows avisa uma mudança (nível, conectou, desconectou) e, de reserva, a cada minuto, enquanto o WinHome roda (o aviso precisa vir mesmo com a Home escondida). Só leitura, sem rede.
 // Um aparelho aparece no Windows como várias entradas (ex.: fone = áudio, microfone, cada lado do fone sem fio);
 // elas são agrupadas pelo "container": conexão e nome vêm da entrada principal (DEV_…), o nível é o menor do grupo.
 public static class ServicoBaterias
@@ -39,22 +39,89 @@ public static class ServicoBaterias
     {
         _config = config;
         if (_relogio is not null) return;
-        _relogio = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        var fila = DispatcherQueue.GetForCurrentThread();
+        _relogio = fila.CreateTimer();
         _relogio.Interval = TimeSpan.FromMinutes(1);
-        _relogio.Tick += (_, _) => _ = Atualizar();
+        _relogio.Tick += (_, _) =>
+        {
+            Observar(fila); // se o observador parou (erro do Windows), tenta de novo
+            _ = Atualizar();
+        };
         _relogio.Start();
+
+        _juntar = fila.CreateTimer();
+        _juntar.Interval = TimeSpan.FromSeconds(1.5);
+        _juntar.IsRepeating = false;
+        _juntar.Tick += (_, _) => _ = Atualizar();
+        Observar(fila);
         _ = Atualizar();
+    }
+
+    // O Windows avisa na hora quando um aparelho conecta, desconecta ou informa outro nível de bateria; vários avisos
+    // seguidos (cada entrada do mesmo aparelho) viram uma leitura só, 1,5 s depois do último.
+    static Observador? _observador;
+    static DispatcherQueueTimer? _juntar;
+
+    static void Observar(DispatcherQueue fila)
+    {
+        if (_observador?.Ativo == true) return;
+        _observador?.Parar();
+        try { _observador = new Observador(Propriedades, Filtro, () => fila.TryEnqueue(Agendar)); }
+        catch (Exception) { _observador = null; } // sem observador: fica a leitura a cada minuto
+    }
+
+    static void Agendar()
+    {
+        if (_juntar is null) return;
+        _juntar.Stop();
+        _juntar.Start();
+    }
+
+    // Leitura antecipada pedida pelo painel (↻): também reinicia o observador se ele tiver parado.
+    public static Task AtualizarAgora()
+    {
+        if (_relogio is not null) Observar(DispatcherQueue.GetForCurrentThread());
+        return Atualizar();
     }
 
     public static async Task Atualizar()
     {
-        if (_lendo) return;
+        if (_lendo)
+        {
+            Agendar(); // chegou um aviso no meio de uma leitura: lê de novo logo depois
+            return;
+        }
         _lendo = true;
         try { Atuais = await Ler(); }
         catch (Exception) { } // falha na leitura: fica a lista anterior
         finally { _lendo = false; }
         Verificar();
         Mudou?.Invoke();
+    }
+
+    // Embrulha o PnpObjectWatcher: ignora a enumeração inicial (a primeira leitura já cobre) e avisa cada mudança.
+    sealed class Observador
+    {
+        readonly PnpObjectWatcher _w;
+        bool _pronto;
+
+        public Observador(string[] propriedades, string filtro, Action mudou)
+        {
+            _w = PnpObject.CreateWatcher(PnpObjectType.Device, propriedades, filtro);
+            _w.Added += (_, _) => { if (_pronto) mudou(); };
+            _w.Updated += (_, _) => { if (_pronto) mudou(); };
+            _w.Removed += (_, _) => { if (_pronto) mudou(); };
+            _w.EnumerationCompleted += (_, _) => _pronto = true;
+            _w.Start();
+        }
+
+        public bool Ativo => _w.Status is Windows.Devices.Enumeration.DeviceWatcherStatus.Started
+            or Windows.Devices.Enumeration.DeviceWatcherStatus.EnumerationCompleted;
+
+        public void Parar()
+        {
+            try { if (Ativo) _w.Stop(); } catch (Exception) { }
+        }
     }
 
     public enum Faixa { Boa, Media, Baixa }
