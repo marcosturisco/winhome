@@ -14,7 +14,7 @@ namespace WinHome.Paineis;
 public sealed record Acoes(Action<AppItem> Abrir, EditorConfig Editor, Action<string?> Resultado, Func<Task<string?>> EscolherPasta,
     Action<string> Informar, Func<string[], Task<string?>> EscolherArquivo, Action<string, Action> Desfazer);
 
-// Grade de botões de apps; navegável por setas, Enter abre, botão direito mostra o menu.
+// Grade de botões de apps; navegável por setas, Enter abre, botão direito mostra o menu, arrastar muda a ordem.
 public static class PainelApps
 {
     // grupo = id do grupo dono dos apps; null = apps fora dos grupos (resultados da busca).
@@ -37,6 +37,15 @@ public static class PainelApps
             grade.Children.Add(botao);
             botoes?.Add(botao);
         }
+
+        // Nos grupos, arrastar um ícone muda a ordem (na busca não: lá a ordem é a do resultado).
+        if (grupo is not null)
+            ReordenarArrastando.Ativar(grade, (_, _) => true, (arrastado, antes, depois) =>
+            {
+                var app = (AppItem)arrastado;
+                if (depois is AppItem d) acoes.Editor.ReposicionarApp(grupo, app, d, depois: false);
+                else if (antes is AppItem a) acoes.Editor.ReposicionarApp(grupo, app, a, depois: true);
+            });
 
         if (grade.Children.Count == 0)
             return new TextBlock

@@ -103,6 +103,15 @@ public static class ServicoTarefas
         Gravar();
     }
 
+    // Arrastar no painel: coloca antes ou depois de outra tarefa do mesmo grupo (pendentes ou concluídas).
+    public static void MoverPara(Tarefa tarefa, Tarefa alvo, bool depois)
+    {
+        if (tarefa == alvo || tarefa.Feita != alvo.Feita || !Lista.Contains(alvo) || !Lista.Remove(tarefa)) return;
+        var i = Lista.IndexOf(alvo);
+        Lista.Insert(depois ? i + 1 : i, tarefa);
+        Gravar();
+    }
+
     public static void Remover(Tarefa tarefa)
     {
         if (Lista.Remove(tarefa)) Gravar();

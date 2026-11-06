@@ -37,6 +37,14 @@ public sealed class EditorConfig(ConfigService config)
         (apps[i], apps[j]) = (apps[j], apps[i]);
     });
 
+    // Arrastar no painel: coloca o app antes ou depois de outro do mesmo grupo.
+    public void ReposicionarApp(string grupo, AppItem app, AppItem alvo, bool depois) => Estrutura(c =>
+    {
+        if (app == alvo || !c.Grupos.TryGetValue(grupo, out var apps) || !apps.Contains(alvo) || !apps.Remove(app)) return;
+        var i = apps.IndexOf(alvo);
+        apps.Insert(depois ? i + 1 : i, app);
+    });
+
     public void MoverAppPara(string de, AppItem app, string para) => Estrutura(c =>
     {
         if (de == para || !c.Grupos.TryGetValue(de, out var origem) || !c.Grupos.TryGetValue(para, out var destino)) return;

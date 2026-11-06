@@ -8,7 +8,8 @@ using WinHome.Servicos;
 
 namespace WinHome.Paineis;
 
-// Tarefas: Enter adiciona, marcar conclui (vai riscada para o fim), ✕ remove; botão direito edita ou move.
+// Tarefas: Enter adiciona, marcar conclui (vai riscada para o fim), ✕ remove; arrastar muda a ordem;
+// botão direito edita ou move.
 public static class PainelTarefas
 {
     public static UIElement Criar(Tarefas cfg, Estilo estilo)
@@ -60,6 +61,17 @@ public static class PainelTarefas
         };
         Mostrar();
 
+        // Arrastar uma tarefa muda a ordem (só entre pendentes ou só entre concluídas).
+        ReordenarArrastando.Ativar(lista,
+            (a, b) => a is Tarefa x && b is Tarefa y && x.Feita == y.Feita,
+            (arrastada, antes, depois) =>
+            {
+                var t = (Tarefa)arrastada;
+                if (depois is Tarefa d && d.Feita == t.Feita) ServicoTarefas.MoverPara(t, d, depois: false);
+                else if (antes is Tarefa a && a.Feita == t.Feita) ServicoTarefas.MoverPara(t, a, depois: true);
+                Mostrar();
+            });
+
         var rodape = new Grid();
         rodape.ColumnDefinitions.Add(new ColumnDefinition());
         rodape.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -104,7 +116,7 @@ public static class PainelTarefas
             mostrar();
         };
 
-        var linha = new Grid();
+        var linha = new Grid { Tag = t, Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent) };
         linha.ColumnDefinitions.Add(new ColumnDefinition());
         linha.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         Grid.SetColumn(remover, 1);
