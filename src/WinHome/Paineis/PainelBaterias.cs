@@ -10,7 +10,8 @@ namespace WinHome.Paineis;
 
 // Baterias: uma linha por aparelho Bluetooth (teclado, mouse, fones…) com a bolinha da faixa (verde/laranja/vermelho),
 // o percentual e o ícone de bateria. Os dados vêm do ServicoBaterias (atualiza sozinho quando o Windows avisa uma
-// mudança); no cabeçalho, ↻ lê agora e o outro botão abre o Bluetooth do Windows.
+// mudança); no cabeçalho, ↻ lê agora e o outro botão abre o Bluetooth do Windows. Aparelhos de áudio (fone, caixa)
+// ganham o botão Reconectar (ServicoReconexao: desconecta, espera 5 s e conecta de novo).
 public static class PainelBaterias
 {
     static readonly Color Verde = Color.FromArgb(255, 61, 190, 139);
@@ -56,10 +57,15 @@ public static class PainelBaterias
         lista.Loaded += (_, _) =>
         {
             ServicoBaterias.Mudou += Atualizar;
+            ServicoReconexao.Mudou += Atualizar;
             Atualizar();
             _ = ServicoBaterias.Atualizar(); // ao abrir a Home, um valor fresco
         };
-        lista.Unloaded += (_, _) => ServicoBaterias.Mudou -= Atualizar;
+        lista.Unloaded += (_, _) =>
+        {
+            ServicoBaterias.Mudou -= Atualizar;
+            ServicoReconexao.Mudou -= Atualizar;
+        };
         return lista;
     }
 
@@ -85,8 +91,8 @@ public static class PainelBaterias
         };
         var detalhe = new TextBlock
         {
-            Text = b.Conectado ? "Conectado"
-                : b.Leitura is { } l ? $"Desconectado · última leitura {l.LocalDateTime:dd/MM HH:mm}" : "Desconectado",
+            Text = ServicoReconexao.Andamento(b.Container) ?? (b.Conectado ? "Conectado"
+                : b.Leitura is { } l ? $"Desconectado · última leitura {l.LocalDateTime:dd/MM HH:mm}" : "Desconectado"),
             FontFamily = estilo.Fonte,
             FontSize = estilo.Legenda,
             Opacity = 0.7,
@@ -109,6 +115,7 @@ public static class PainelBaterias
         };
         var pilha = new FontIcon { Glyph = GlifoDaBateria(b.Nivel), FontSize = estilo.Titulo, Foreground = pinta, VerticalAlignment = VerticalAlignment.Center };
         var direita = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center, Children = { nivel, pilha } };
+        if (b.Audio) direita.Children.Add(BotaoReconectar(b, estilo));
 
         var grade = new Grid { ColumnSpacing = 12, Padding = new Thickness(8, 6, 8, 6), Opacity = b.Conectado ? 1 : 0.55 };
         grade.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -121,6 +128,25 @@ public static class PainelBaterias
         grade.Children.Add(direita);
         if (cfg.NomeDe(b.Nome) != b.Nome) ToolTipService.SetToolTip(grade, $"No Windows: {b.Nome}");
         return grade;
+    }
+
+    // Reconectar (conectado: desconecta, espera 5 s e conecta) ou Conectar (desconectado). Só aparelhos de áudio.
+    static Button BotaoReconectar(Bateria b, Estilo estilo)
+    {
+        var dica = b.Conectado ? "Reconectar (desconecta, espera 5 s e conecta de novo)" : "Conectar";
+        var botao = new Button
+        {
+            Content = new FontIcon { Glyph = "", FontSize = estilo.Tam(16) },
+            Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+            BorderThickness = new Thickness(0),
+            Padding = new Thickness(6),
+            VerticalAlignment = VerticalAlignment.Center,
+            IsEnabled = !ServicoReconexao.Ocupado(b.Container),
+        };
+        ToolTipService.SetToolTip(botao, dica);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(botao, $"{dica}: {b.Nome}");
+        botao.Click += (_, _) => _ = ServicoReconexao.Reconectar(b.Container, b.Conectado);
+        return botao;
     }
 
     public static Color Cor(int nivel, Baterias cfg) => ServicoBaterias.FaixaDe(nivel, cfg) switch

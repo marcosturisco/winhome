@@ -196,6 +196,11 @@ No cabeçalho, **↻** lê de novo na hora e o outro botão abre o Bluetooth do 
   o Windows avisa uma mudança (nível de bateria, aparelho conectado ou desconectado, aparelho novo ou removido), e
   também a cada minuto (reserva) e ao abrir a Home.
   Um aparelho com várias entradas no Windows (fone: áudio, microfone, cada lado) vira uma linha só, com o **menor** nível.
+- **Reconectar** (botão de setas à direita do %, só em aparelhos de **áudio**: fones, caixas): desconecta, espera
+  5 s e conecta de novo — a linha mostra "Desconectando…", "conectando de novo em 5 s…", "Conectando…". Num aparelho
+  desconectado o botão só **conecta**. Usa o mesmo comando do "Conectar" das configurações de Som do Windows, sem
+  administrador. Mouse e teclado (Bluetooth LE) ficam sem o botão: o Windows não permite desconectá-los sem
+  administrador ou sem remover o pareamento. Se falhar, a linha mostra "Falhou: …" por 20 s.
 - **Aviso:** ao ficar abaixo de `baixa` (só aparelho conectado), uma notificação do Windows ("🔋 MX Master 3S: 18%")
   — **uma vez por descarga** (volta a avisar depois de carregar até `baixa` + 5%) e mesmo com a Home escondida.
   Clicar na notificação mostra a Home. Com o ícone da bandeja desligado, ele aparece só enquanto o aviso está na tela.

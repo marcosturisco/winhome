@@ -5,8 +5,10 @@ using WinHome.Configuracao;
 namespace WinHome.Servicos;
 
 // Um aparelho com bateria. Nome = como o Windows mostra (chave de "ocultos" e "apelidos"); Categoria = ex.:
-// "Input.Mouse", "Input.Keyboard", "Audio.Earbuds"; Leitura = quando o aparelho informou o nível pela última vez.
-public sealed record Bateria(string Nome, int Nivel, bool Conectado, string Categoria, DateTimeOffset? Leitura);
+// "Input.Mouse", "Input.Keyboard", "Audio.Earbuds"; Leitura = quando o aparelho informou o nível pela última vez;
+// Container = ID que junta as entradas do aparelho; Audio = tem saída de áudio que aceita Reconectar (ServicoReconexao).
+public sealed record Bateria(string Nome, int Nivel, bool Conectado, string Categoria, DateTimeOffset? Leitura,
+    Guid Container, bool Audio);
 
 // Lê do Windows a bateria dos aparelhos Bluetooth — a mesma informação de Configurações → Bluetooth e dispositivos —
 // na hora em que o Windows avisa uma mudança (nível, conectou, desconectou) e, de reserva, a cada minuto, enquanto o WinHome roda (o aviso precisa vir mesmo com a Home escondida). Só leitura, sem rede.
@@ -132,17 +134,18 @@ public static class ServicoBaterias
     static async Task<IReadOnlyList<Bateria>> Ler()
     {
         var objetos = await PnpObject.FindAllAsync(PnpObjectType.Device, Propriedades, Filtro);
+        var audio = await Task.Run(ServicoReconexao.ContainersDeAudio);
         return objetos
             .Where(o => Valor(o, ChaveContainer) is Guid)
             .GroupBy(o => (Guid)Valor(o, ChaveContainer)!)
-            .Select(g => Montar(g.ToList()))
+            .Select(g => Montar(g.Key, g.ToList(), audio.Contains(g.Key)))
             .OfType<Bateria>()
             .OrderByDescending(b => b.Conectado)
             .ThenBy(b => b.Nivel)
             .ToList();
     }
 
-    static Bateria? Montar(List<PnpObject> entradas)
+    static Bateria? Montar(Guid container, List<PnpObject> entradas, bool audio)
     {
         var niveis = entradas.Select(o => Valor(o, ChaveNivel))
             .Where(v => v is byte or sbyte or short or ushort or int or uint)
@@ -159,7 +162,7 @@ public static class ServicoBaterias
         var leitura = entradas.Select(o => Valor(o, ChaveLeitura)).OfType<DateTimeOffset>()
             .Select(d => (DateTimeOffset?)d).Max();
         var conectado = principais.Any(o => Valor(o, ChaveConectado) is true);
-        return new Bateria(nome, niveis.Min(), conectado, categoria, leitura);
+        return new Bateria(nome, niveis.Min(), conectado, categoria, leitura, container, audio);
     }
 
     static object? Valor(PnpObject o, string chave) => o.Properties.TryGetValue(chave, out var v) ? v : null;

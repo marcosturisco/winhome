@@ -1,6 +1,10 @@
 # Backlog do WinHome (atualizado em 27/10/2026)
 
 ## Concluído recentemente
+- **Reconectar nas Baterias** ✅ (06/11/2026, testado pelo usuário com música tocando: parou ~5 s e voltou): botão
+  em cada aparelho de **áudio** (`ServicoReconexao`, KSPROPSETID_BtAudio pela saída de áudio, sem administrador).
+  Mouse/teclado (BLE) sem botão — decisão do usuário (não há como desconectá-los sem administrador ou despareamento).
+  S24 Ultra também fica sem: o Windows não tem saída de áudio utilizável dele.
 - **Ajustes da 1.0.15** ✅ (06/11/2026, testados pelo usuário): Baterias atualizam sozinhas quando o Windows avisa
   mudança de nível/conexão (`PnpObject.CreateWatcher`, leituras juntadas em 1,5 s; minuto de reserva) + botão ↻ —
   fone desligado/ligado apareceu no painel em segundos; arrastar com o mouse reordena tarefas e ícones dos grupos de
