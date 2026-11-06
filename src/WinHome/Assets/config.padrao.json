@@ -220,7 +220,7 @@
   // "largura" = colunas; "altura" = altura da linha em pixels (0 = automática; a linha usa a maior entre os painéis dela).
   "paineis": [
     { "id": "boasVindas", "visivel": true, "largura": 6 },
-    { "id": "trabalho",   "visivel": true, "largura": 4, "titulo": "Trabalho" },
+    { "id": "trabalho",   "visivel": true, "largura": 4, "titulo": "Aplicativos" },
     { "id": "pessoal",    "visivel": true, "largura": 2, "titulo": "Pessoal" },
     { "id": "mensagem",   "visivel": true, "largura": 3, "titulo": "Mensagem do dia" },
     { "id": "curiosidade", "visivel": true, "largura": 3, "titulo": "Curiosidades do dia" }

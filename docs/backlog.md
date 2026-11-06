@@ -1,6 +1,11 @@
 # Backlog do WinHome (atualizado em 27/10/2026)
 
 ## Concluído recentemente
+- **Ajustes da 1.0.15** ✅ (06/11/2026, testados pelo usuário): Baterias atualizam sozinhas quando o Windows avisa
+  mudança de nível/conexão (`PnpObject.CreateWatcher`, leituras juntadas em 1,5 s; minuto de reserva) + botão ↻ —
+  fone desligado/ligado apareceu no painel em segundos; arrastar com o mouse reordena tarefas e ícones dos grupos de
+  apps (`ReordenarArrastando`; a captura perdida pelo botão sobe até o painel e não pode cancelar o arrasto); grupo
+  "Trabalho" virou "Aplicativos" (id `trabalho` mantido).
 - **v0.4-a — Projetos recentes** ✅ (27/10/2026): recentes do IntelliJ, Android Studio e VS Code
   + subpastas com git de `D:\Documents\dev`; abrir na IDE de origem, Terminal, Explorer, WSL remoto, fixar/ocultar.
 - **v0.4-b — Tarefas** ✅ (27/10/2026): painel `tarefas` (dados em `%APPDATA%\WinHome\tarefas.json`), adicionar,

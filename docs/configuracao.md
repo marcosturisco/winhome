@@ -92,6 +92,7 @@ O botão **Pastas…** no rodapé do painel troca, remove ou adiciona pastas sem
 
 ## Tarefas (`tarefas`)
 Painel `id: "tarefas"`: lista de tarefas. Enter adiciona; marcar conclui (fica riscada, no fim); ✕ remove;
+**arrastar** uma tarefa com o mouse muda a ordem (pendentes entre si, concluídas entre si; Esc desfaz);
 duplo clique ou botão direito edita, move para cima/baixo ou remove; "Limpar concluídas" apaga as marcadas.
 A lista fica em `%APPDATA%\WinHome\tarefas.json`, **fora** da config (as Configurações não a regravam).
 Se esse arquivo estiver inválido, a Home começa uma lista nova e guarda o antigo em `tarefas.json.erro`.
@@ -190,8 +191,10 @@ Painel `id: "baterias"`: aparelhos Bluetooth que informam a bateria ao Windows (
 Configurações → Bluetooth e dispositivos), **sem configurar nada**: aparecem sozinhos. Cada linha tem o ícone do tipo
 de aparelho, a bolinha da faixa (🟢 boa, 🟠 abaixo de `media`, 🔴 abaixo de `baixa`), o nome, o percentual e o ícone de
 bateria; conectados primeiro, o mais descarregado em cima; desconectados ficam apagados com a hora da última leitura.
-O botão do cabeçalho abre o Bluetooth do Windows.
-- Leitura **local** (propriedades do dispositivo no Windows), a cada minuto e ao abrir a Home; sem rede, sem administrador.
+No cabeçalho, **↻** lê de novo na hora e o outro botão abre o Bluetooth do Windows.
+- Leitura **local** (propriedades do dispositivo no Windows), sem rede, sem administrador. Atualiza **sozinha** assim que
+  o Windows avisa uma mudança (nível de bateria, aparelho conectado ou desconectado, aparelho novo ou removido), e
+  também a cada minuto (reserva) e ao abrir a Home.
   Um aparelho com várias entradas no Windows (fone: áudio, microfone, cada lado) vira uma linha só, com o **menor** nível.
 - **Aviso:** ao ficar abaixo de `baixa` (só aparelho conectado), uma notificação do Windows ("🔋 MX Master 3S: 18%")
   — **uma vez por descarga** (volta a avisar depois de carregar até `baixa` + 5%) e mesmo com a Home escondida.
@@ -269,6 +272,10 @@ Cada grupo é uma lista de apps:
 | `caminho` | alternativa ao `app`: `.exe`, atalho, pasta ou documento (aceita `%VARIAVEIS%`) |
 | `args`, `pasta` | argumentos e pasta de trabalho (só com `caminho`) |
 | `icone` | imagem própria para o ícone (opcional) |
+
+Na Home, **arrastar** um ícone com o mouse para outro lugar do mesmo grupo muda a ordem (grava em `grupos`; Esc desfaz);
+o clique simples continua abrindo o app. Botão direito: mover para a esquerda/direita, para outro grupo ou remover.
+O grupo padrão `trabalho` aparece com o título **Aplicativos**.
 
 ## Backup (Configurações → Backup)
 - **Fazer backup…**: `.zip` com `config.json`, `tarefas.json` e `videos.json` (o `estado.json`, com a posição da janela,
