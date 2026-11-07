@@ -45,6 +45,11 @@ public sealed class EstadoVideos
         Gravar();
     }
 
+    public void RemoverRecente(string fonte)
+    {
+        if (Recentes.RemoveAll(r => string.Equals(r, fonte, StringComparison.OrdinalIgnoreCase)) > 0) Gravar();
+    }
+
     public void LimparRecentes()
     {
         Recentes.Clear();

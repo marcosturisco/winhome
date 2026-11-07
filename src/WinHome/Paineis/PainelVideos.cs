@@ -398,23 +398,62 @@ public static class PainelVideos
         };
         recentes.Click += (_, _) =>
         {
-            var menu = new MenuFlyout();
-            foreach (var r in estado.Recentes)
+            // Lista com um ✕ por item: remove só aquele vídeo/link e a lista continua aberta.
+            // Largura fixa abaixo do limite da caixa do Flyout (~456 px): senão o ✕ da direita fica cortado.
+            var lista = new StackPanel { Spacing = 2, Width = 380 };
+            var flyout = new Flyout { Content = lista };
+            void Montar()
             {
-                var item = new MenuFlyoutItem { Text = Rotulo(r) };
-                ToolTipService.SetToolTip(item, r);
-                item.Click += (_, _) => Abrir(r);
-                menu.Items.Add(item);
+                lista.Children.Clear();
+                if (estado.Recentes.Count == 0)
+                {
+                    lista.Children.Add(new TextBlock { Text = "Nada ainda", Opacity = 0.6, Margin = new Thickness(8, 6, 8, 6) });
+                    return;
+                }
+                foreach (var r in estado.Recentes.ToList())
+                {
+                    var abrir = new Button
+                    {
+                        Content = new TextBlock { Text = Rotulo(r), TextTrimming = TextTrimming.CharacterEllipsis },
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                        HorizontalContentAlignment = HorizontalAlignment.Left,
+                        Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                        BorderThickness = new Thickness(0),
+                    };
+                    ToolTipService.SetToolTip(abrir, r);
+                    abrir.Click += (_, _) => { flyout.Hide(); Abrir(r); };
+                    var remover = BotaoControle("", "Remover do histórico");
+                    remover.Click += (_, _) => { estado.RemoverRecente(r); Montar(); };
+                    var linha = new Grid { ColumnSpacing = 4, Children = { abrir, remover } };
+                    linha.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    linha.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    Grid.SetColumn(remover, 1);
+                    lista.Children.Add(linha);
+                }
+                var limpar = new Button
+                {
+                    Content = new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal,
+                        Spacing = 8,
+                        Children = { new FontIcon { Glyph = "", FontSize = 14 }, new TextBlock { Text = "Limpar o histórico" } },
+                    },
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    HorizontalContentAlignment = HorizontalAlignment.Left,
+                    Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                    BorderThickness = new Thickness(0),
+                };
+                limpar.Click += (_, _) => { flyout.Hide(); ConfirmarLimpezaDoHistorico(recentes, estado); };
+                lista.Children.Add(new Border
+                {
+                    Height = 1,
+                    Margin = new Thickness(4, 4, 4, 4),
+                    Background = (Brush)Application.Current.Resources["DividerStrokeColorDefaultBrush"],
+                });
+                lista.Children.Add(limpar);
             }
-            if (menu.Items.Count == 0) menu.Items.Add(new MenuFlyoutItem { Text = "Nada ainda", IsEnabled = false });
-            else
-            {
-                menu.Items.Add(new MenuFlyoutSeparator());
-                var limpar = new MenuFlyoutItem { Text = "Limpar o histórico", Icon = new FontIcon { Glyph = "" } };
-                limpar.Click += (_, _) => ConfirmarLimpezaDoHistorico(recentes, estado);
-                menu.Items.Add(limpar);
-            }
-            menu.ShowAt(recentes);
+            Montar();
+            flyout.ShowAt(recentes);
         };
 
         tela.DragOver += (_, e) =>
