@@ -473,7 +473,7 @@ public static class PainelVideos
                 Abrir(await e.DataView.GetTextAsync());
         };
 
-        tocarPausar.Click += (_, _) =>
+        void TocarOuPausar()
         {
             if (player is null)
             {
@@ -483,7 +483,27 @@ public static class PainelVideos
             if (player.IsPlaying) player.Pause();
             else if (player.State is VLCState.Paused) player.Play();
             else if (Sessao.Fonte is { } f) TocarVlc(f, Sessao.TempoMs);
-        };
+        }
+        tocarPausar.Click += (_, _) => TocarOuPausar();
+        // Clique na área do vídeo (VLC) também toca/pausa. O player do YouTube já faz isso por conta própria.
+        // A VideoView do VLC marca o clique como tratado (o Tapped não chega): escuta apertar/soltar mesmo assim e
+        // conta como clique se o ponteiro quase não andou.
+        Windows.Foundation.Point? apertou = null;
+        tela.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, e) =>
+        {
+            var ponto = e.GetCurrentPoint(tela);
+            apertou = ponto.Properties.IsLeftButtonPressed ? ponto.Position : null;
+        }), true);
+        tela.AddHandler(UIElement.PointerReleasedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, e) =>
+        {
+            if (apertou is not { } inicio) return;
+            apertou = null;
+            var fim = e.GetCurrentPoint(tela).Position;
+            if (Math.Abs(fim.X - inicio.X) > 8 || Math.Abs(fim.Y - inicio.Y) > 8) return;
+            if (Sessao.YouTube || Sessao.Fonte is null || controles.Visibility != Visibility.Visible) return;
+            TocarOuPausar();
+        }), true);
+        tela.PointerCaptureLost += (_, _) => apertou = null;
         parar.Click += (_, _) => Limpar();
         pararYouTube.Click += (_, _) => Limpar();
         posicao.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, _) => arrastando = true), true);

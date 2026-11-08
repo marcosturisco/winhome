@@ -144,6 +144,7 @@ Ações padrão:
 Painel `id: "videos"`. Cole um link e tecle Enter, use o botão de arquivo ou arraste um arquivo/link para a tela.
 - **Arquivos e links** (mp4, mkv, avi, mp3, flac, rádios, listas m3u/m3u8…) tocam no **VLC instalado**, dentro do painel:
   tocar/pausar, parar, barra de posição, sem som, volume e ⤢ (abre no VLC em tela cheia, do mesmo ponto).
+  Um clique na área do vídeo também toca/pausa (o player do YouTube já faz isso por conta própria).
 - **Links do YouTube** (`watch?v=`, `youtu.be/`, `shorts/`, `live/`, playlists com `list=`, início com `t=`) tocam no
   **player do YouTube** (`youtube-nocookie.com`, num WebView2). "Abrir no YouTube" leva ao navegador no mesmo ponto.
 - Recentes (botão de relógio) e volume ficam em `%APPDATA%\WinHome\videos.json`, fora da config. Na lista de
