@@ -36,6 +36,7 @@
     o seu nível); teclas por app em `zoomTeclas` / Configurações → Apps ancorados.
   - **Zoom dos painéis** ✅ (09/11/2026): `zoom` (%) por painel, multiplicando os tamanhos do `Estilo` só dele;
     Ctrl + roda do mouse sobre o painel ou botão % em Configurações → Painéis.
+  - **Escolher a janela** ✅ (09/11/2026): app com várias janelas (Teams + reunião) mostra a lista ao ancorar.
   - **Correção** (09/11/2026): processos com ponto no nome (`WhatsApp.Root`) e janelas minimizadas não eram encontrados.
 
 - **Otimização de recursos** ✅ (29/10/2026): parada e visível, de ~454 MB / ~12% de um núcleo para ~178 MB / ~0,6%.

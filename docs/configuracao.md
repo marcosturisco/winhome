@@ -223,6 +223,8 @@ a alça da base (altura) e a troca de monitor; minimiza junto com a Home; a part
 Vários podem ficar lado a lado. Criar: Configurações → Painéis → **+ Adicionar painel → App ancorado**:
 IntelliJ IDEA, VS Code, Android Studio, Terminal, **Escolher uma janela aberta…** (qualquer programa aberto; o processo
 é descoberto pela janela) ou **Outro app instalado…** (o painel abre o app e ancora a primeira janela nova).
+Com o app já aberto em **mais de uma janela** (ex.: Teams com uma reunião), "Ancorar a janela que já está aberta" e
+"Abrir … aqui" mostram a lista das janelas (título; marca as minimizadas) para escolher qual ancorar.
 **Soltar** (rodapé do painel) ou sair do WinHome devolvem a janela ao tamanho e lugar de antes. Não usa `SetParent`
 nem janela "dona": se o WinHome cair, o programa continua normal (fica onde estava, acessível pela barra de tarefas).
 

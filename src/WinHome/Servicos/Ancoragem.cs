@@ -348,13 +348,18 @@ public static class Ancoragem
     }
 
     // A maior janela principal livre do processo.
-    public static IntPtr Procurar(string processo)
+    public static IntPtr Procurar(string processo) => DoProcesso(processo).FirstOrDefault()?.Janela ?? IntPtr.Zero;
+
+    // Janelas principais livres do processo, da maior para a menor (ex.: Teams com a principal e a de uma reunião).
+    public static List<JanelaAberta> DoProcesso(string processo)
     {
         // Só tira o ".exe": GetFileNameWithoutExtension cortaria nomes com ponto ("WhatsApp.Root" virava "WhatsApp").
         var nome = Path.GetFileName(processo);
         if (nome.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) nome = nome[..^4];
-        return Janelas().FirstOrDefault(j => string.Equals(j.Processo, nome, StringComparison.OrdinalIgnoreCase))?.Janela ?? IntPtr.Zero;
+        return Janelas().Where(j => string.Equals(j.Processo, nome, StringComparison.OrdinalIgnoreCase)).ToList();
     }
+
+    public static bool Minimizada(IntPtr janela) => IsIconic(janela);
 
     // Primeira janela principal que não estava aberta antes (para apps cujo processo ainda não se conhece).
     public static JanelaAberta? Nova(IReadOnlySet<IntPtr> antes)

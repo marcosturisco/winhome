@@ -89,14 +89,47 @@ public static class PainelAncorado
             return janela != IntPtr.Zero && Ancoragem.Ancorar(id, janela);
         }
 
+        // App já aberto: com uma janela, ancora direto; com várias (ex.: Teams com uma reunião), mostra a lista para
+        // escolher. false = nenhuma janela livre do app.
+        bool AncorarOuEscolher(FrameworkElement origem)
+        {
+            var abertas = processo is null ? [] : Ancoragem.DoProcesso(processo);
+            if (abertas.Count == 0) return false;
+            if (abertas.Count == 1)
+            {
+                Ancoragem.Ancorar(id, abertas[0].Janela);
+                Atualizar();
+                return true;
+            }
+            // Fora dos limites da Home: assim a lista fica por cima das janelas já ancoradas.
+            var menu = new MenuFlyout { ShouldConstrainToRootBounds = false };
+            menu.Items.Add(new MenuFlyoutItem { Text = $"{app.Nome} tem {abertas.Count} janelas. Qual ancorar?", IsEnabled = false });
+            menu.Items.Add(new MenuFlyoutSeparator());
+            foreach (var j in abertas)
+            {
+                var texto = j.Titulo.Length > 70 ? j.Titulo[..69] + "…" : j.Titulo;
+                if (Ancoragem.Minimizada(j.Janela)) texto += "  (minimizada)";
+                var item = new MenuFlyoutItem { Text = texto };
+                ToolTipService.SetToolTip(item, j.Titulo);
+                item.Click += (_, _) =>
+                {
+                    if (!Ancoragem.Ancorar(id, j.Janela)) status.Text = $"Essa janela de {app.Nome} não está mais disponível (fechou ou já foi ancorada).";
+                    Atualizar();
+                };
+                menu.Items.Add(item);
+            }
+            menu.ShowAt(origem);
+            return true;
+        }
+
         pegar.Click += (_, _) =>
         {
-            if (!Ancorar()) status.Text = $"Nenhuma janela de {app.Nome} aberta (e livre) foi encontrada.";
+            if (!AncorarOuEscolher(pegar)) status.Text = $"Nenhuma janela de {app.Nome} aberta (e livre) foi encontrada.";
             Atualizar();
         };
         abrir.Click += async (_, _) =>
         {
-            if (Ancorar()) { Atualizar(); return; } // já estava aberto
+            if (AncorarOuEscolher(abrir)) return; // já estava aberto
             var antes = Ancoragem.Janelas().Select(j => j.Janela).ToHashSet(); // processo desconhecido: vale a janela nova
             if (Abrir(app, config) is { } erro) { status.Text = erro; return; }
             abrir.IsEnabled = pegar.IsEnabled = false;
