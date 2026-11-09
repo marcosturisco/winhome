@@ -39,19 +39,43 @@ public static class PainelAncorado
         var soltar = new Button { Content = "Soltar", Padding = new Thickness(10, 4, 10, 4), FontSize = estilo.Legenda };
         ToolTipService.SetToolTip(soltar, "Devolve a janela ao tamanho e lugar de antes");
         var titulo = new TextBlock { FontSize = estilo.Legenda, Opacity = 0.7, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, FontFamily = estilo.Fonte };
+        var processo = NomeDoProcesso(app);
+
+        // Zoom do próprio app (atalho de teclado mandado para a janela; cada app guarda o seu nível).
+        var zoom = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2 };
+        var modificadores = ModificadoresZoom(app);
+        var zeroNumerico = app.Editor == "vscode" || string.Equals(processo, "Code", StringComparison.OrdinalIgnoreCase);
+        foreach (var (texto, passo, dica) in new[]
+                 {
+                     ("−", -1, "Diminuir o zoom do app (mostra mais informação)"),
+                     ("100%", 0, "Voltar o app ao zoom normal"),
+                     ("+", 1, "Aumentar o zoom do app"),
+                 })
+        {
+            var botao = new Button { Content = texto, Padding = new Thickness(8, 4, 8, 4), FontSize = estilo.Legenda, MinWidth = 32 };
+            ToolTipService.SetToolTip(botao, $"{dica} — atalho {Atalho(modificadores, passo, zeroNumerico)}");
+            botao.Click += async (_, _) =>
+            {
+                if (!await Ancoragem.Zoom(id, passo, modificadores, zeroNumerico))
+                    titulo.Text = $"Não consegui mandar o zoom para {app.Nome} (confira as teclas em Configurações → Apps ancorados).";
+            };
+            zoom.Children.Add(botao);
+        }
+
         var rodape = new Grid { ColumnSpacing = 8 };
         rodape.ColumnDefinitions.Add(new ColumnDefinition());
         rodape.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(soltar, 1);
+        rodape.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(zoom, 1);
+        Grid.SetColumn(soltar, 2);
         rodape.Children.Add(titulo);
+        rodape.Children.Add(zoom);
         rodape.Children.Add(soltar);
-
-        var processo = NomeDoProcesso(app);
         void Atualizar()
         {
             var ancorado = Ancoragem.Ancorado(id);
             conteudo.Visibility = ancorado ? Visibility.Collapsed : Visibility.Visible;
-            soltar.Visibility = ancorado ? Visibility.Visible : Visibility.Collapsed;
+            soltar.Visibility = zoom.Visibility = ancorado ? Visibility.Visible : Visibility.Collapsed;
             titulo.Text = ancorado ? Ancoragem.Titulo(Ancoragem.Janela(id)) : "";
             pegar.Visibility = processo is null ? Visibility.Collapsed : Visibility.Visible; // sem processo, só abrindo
             if (!ancorado && status.Text.Length == 0)
@@ -129,6 +153,18 @@ public static class PainelAncorado
             return editor switch { "intellij" => "idea64", "androidStudio" => "studio64", "vscode" => "Code", _ => null };
         return app.Caminho is { Length: > 0 } c ? Path.GetFileNameWithoutExtension(c) : null;
     }
+
+    // Modificadores do zoom: os da config ou, vazio, o "Zoom da IDE" das JetBrains e Ctrl para os demais.
+    public static string ModificadoresZoom(AppAncorado app) =>
+        !string.IsNullOrWhiteSpace(app.ZoomTeclas) ? app.ZoomTeclas.Trim() : ZoomAutomatico(app);
+
+    public static string ZoomAutomatico(AppAncorado app) =>
+        app.Editor is "intellij" or "androidStudio" || app.Processo is "idea64" or "studio64" ? "ctrl+alt+shift" : "ctrl";
+
+    static string Atalho(string modificadores, int passo, bool zeroNumerico) =>
+        string.Join("+", modificadores.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(m => char.ToUpperInvariant(m[0]) + m[1..].ToLowerInvariant()))
+        + (passo > 0 ? " +" : passo < 0 ? " -" : zeroNumerico ? " 0 (numérico)" : " 0");
 
     static string? Abrir(AppAncorado app, Config config)
     {

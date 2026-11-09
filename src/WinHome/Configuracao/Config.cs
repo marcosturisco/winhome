@@ -240,6 +240,9 @@ public sealed class AppAncorado
     public string? Args { get; set; }
     public string? Processo { get; set; }
     public int Altura { get; set; } = 640; // altura da área do app, em pixels da Home
+    // Modificadores do atalho de zoom do próprio app, somados a "+", "-" e "0" (ex.: "ctrl", "ctrl+alt+shift").
+    // Vazio = automático: "ctrl+alt+shift" para IntelliJ/Android Studio (Zoom da IDE), "ctrl" para os demais.
+    public string ZoomTeclas { get; set; } = "";
 }
 
 // Painel "Vídeos": arquivos e links pelo VLC instalado; links do YouTube pelo player do YouTube (WebView2).
@@ -411,8 +414,12 @@ public sealed class Painel
     // conteúdo maior ganha rolagem dentro do painel.
     public int Altura { get; set; }
     public string? Titulo { get; set; }
+    // Zoom do conteúdo deste painel, em % (texto e ícones; soma-se ao "tamanhoTexto" do tema). Ctrl + roda do mouse
+    // sobre o painel muda de 10 em 10. Não vale para app ancorado (que usa o zoom do próprio app).
+    public int Zoom { get; set; } = 100;
 
     public const int AlturaMinima = 100, AlturaMaxima = 2000;
+    public const int ZoomMinimo = 50, ZoomMaximo = 200;
 }
 
 public sealed class AppItem

@@ -260,6 +260,14 @@ public sealed class EditorConfig(ConfigService config)
         else c.Paineis.Insert(depois ? i + 1 : i, painel);
     });
 
+    // Zoom do conteúdo do painel (grava depois de parar de mudar, como os deslizantes); devolve o valor aplicado.
+    public int DefinirZoom(Painel painel, int zoom)
+    {
+        var z = Math.Clamp(zoom, Painel.ZoomMinimo, Painel.ZoomMaximo);
+        Alterar(_ => painel.Zoom = z);
+        return z;
+    }
+
     public void DefinirLargura(Painel painel, int largura) => Estrutura(c => painel.Largura = Math.Clamp(largura, 1, c.Tema.Colunas));
 
     // Altura da linha inteira: grava em todos os painéis dela (0 = automática).

@@ -45,12 +45,15 @@ public static class HomeBuilder
             foreach (var painel in paineis)
             {
                 var largura = Math.Clamp(painel.Largura, 1, estilo.Colunas);
-                var (conteudo, acao) = Conteudo(painel, config, estilo, acoes, fixa);
+                // Zoom próprio do painel; o app ancorado usa o zoom do próprio app (botões do rodapé).
+                var ancorado = config.AppsAncorados.ContainsKey(painel.Id);
+                var estiloPainel = ancorado ? estilo : estilo.ComZoom(painel.Zoom);
+                var (conteudo, acao) = Conteudo(painel, config, estiloPainel, acoes, fixa);
                 // Vídeos se ajusta à altura e o app ancorado tem a própria altura; os demais encolhem até caber
                 // (também na linha automática, para a prévia do arrasto da altura já encolher).
-                if (painel.Id != Config.PainelVideos && !config.AppsAncorados.ContainsKey(painel.Id))
+                if (painel.Id != Config.PainelVideos && !ancorado)
                     conteudo = AjusteAltura.Envolver(conteudo);
-                var cartao = CartaoDoPainel(painel, conteudo, acao, estilo, acoes, linha, coluna, paineis, arrasto);
+                var cartao = CartaoDoPainel(painel, conteudo, acao, estiloPainel, acoes, linha, coluna, paineis, arrasto, !ancorado);
                 Grid.SetColumn(cartao, coluna);
                 Grid.SetColumnSpan(cartao, largura);
                 linha.Children.Add(cartao);
@@ -220,7 +223,7 @@ public static class HomeBuilder
     // Cartão de um painel da Home: ✥ muda de lugar, ✕ oculta (com "Desfazer"), a borda direita ajusta a largura
     // e a de baixo, a altura.
     static FrameworkElement CartaoDoPainel(Painel painel, UIElement conteudo, FrameworkElement? acao, Estilo estilo, Acoes acoes,
-        Grid linha, int coluna, IReadOnlyList<Painel> daLinha, ArrastoPaineis arrasto)
+        Grid linha, int coluna, IReadOnlyList<Painel> daLinha, ArrastoPaineis arrasto, bool aceitaZoom)
     {
         var titulo = painel.Titulo is { Length: > 0 } t ? t
             : EditorConfig.Especiais.FirstOrDefault(e => e.Id == painel.Id).Nome ?? painel.Id;
@@ -272,6 +275,48 @@ public static class HomeBuilder
         raiz.PointerEntered += (_, _) => Ferramentas(true);
         raiz.PointerExited += (_, _) => Ferramentas(false);
         fechar.GotFocus += (_, _) => fechar.Opacity = 0.8; // acessível pelo teclado
+        if (aceitaZoom) ZoomComRoda(raiz, painel, acoes);
         return raiz;
+    }
+
+    // Ctrl + roda do mouse sobre o painel: zoom do conteúdo de 10 em 10% (o selo mostra o valor; a Home remonta o
+    // painel quando a roda para, como nos deslizantes das Configurações).
+    static void ZoomComRoda(Grid raiz, Painel painel, Acoes acoes)
+    {
+        var texto = new TextBlock { FontSize = 14, FontWeight = FontWeights.SemiBold };
+        var selo = new Border
+        {
+            Child = texto,
+            Padding = new Thickness(12, 6, 12, 6),
+            CornerRadius = new CornerRadius(8),
+            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xD0, 0x20, 0x20, 0x24)),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Visibility = Visibility.Collapsed,
+            IsHitTestVisible = false,
+        };
+        texto.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
+        raiz.Children.Add(selo);
+        Microsoft.UI.Dispatching.DispatcherQueueTimer? esconder = null;
+        // handledEventsToo: painéis com rolagem própria já tratam a roda antes do cartão.
+        raiz.AddHandler(UIElement.PointerWheelChangedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, e) =>
+        {
+            if ((e.KeyModifiers & Windows.System.VirtualKeyModifiers.Control) == 0) return;
+            var delta = e.GetCurrentPoint(raiz).Properties.MouseWheelDelta;
+            if (delta == 0) return;
+            e.Handled = true;
+            var novo = acoes.Editor.DefinirZoom(painel, painel.Zoom + Math.Sign(delta) * 10);
+            texto.Text = $"Zoom {novo}%";
+            selo.Visibility = Visibility.Visible;
+            if (esconder is null) // some sozinho: se o valor não mudou (limite), a Home não remonta
+            {
+                esconder = raiz.DispatcherQueue.CreateTimer();
+                esconder.Interval = TimeSpan.FromMilliseconds(1500);
+                esconder.IsRepeating = false;
+                esconder.Tick += (_, _) => selo.Visibility = Visibility.Collapsed;
+            }
+            esconder.Stop();
+            esconder.Start();
+        }), true);
     }
 }

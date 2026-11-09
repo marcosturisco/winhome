@@ -28,7 +28,7 @@ public sealed class PainelConfiguracoes
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
     readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
-    Expander? _expAparencia, _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expDispositivos, _expBaterias, _expAgenda;
+    Expander? _expAparencia, _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expAncorados, _expDispositivos, _expBaterias, _expAgenda;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
 
@@ -61,6 +61,7 @@ public sealed class PainelConfiguracoes
             if (_expTarefas is not null) _expTarefas.Content = ConteudoTarefas();
             if (_expAcoes is not null) _expAcoes.Content = ConteudoAcoes();
             if (_expVideos is not null) _expVideos.Content = ConteudoVideos();
+            if (_expAncorados is not null) _expAncorados.Content = ConteudoAncorados();
             if (_expDispositivos is not null) _expDispositivos.Content = ConteudoDispositivos();
             if (_expBaterias is not null) _expBaterias.Content = ConteudoBaterias();
             if (_expAgenda is not null) _expAgenda.Content = ConteudoAgenda();
@@ -154,6 +155,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expTarefas = Secao("Tarefas", ConteudoTarefas()));
         _secoes.Children.Add(_expAcoes = Secao("Ações rápidas", ConteudoAcoes()));
         _secoes.Children.Add(_expVideos = Secao("Vídeos", ConteudoVideos()));
+        _secoes.Children.Add(_expAncorados = Secao("Apps ancorados", ConteudoAncorados()));
         _secoes.Children.Add(_expDispositivos = Secao("Dispositivos", ConteudoDispositivos()));
         _secoes.Children.Add(_expBaterias = Secao("Baterias", ConteudoBaterias()));
         _secoes.Children.Add(_expAgenda = Secao("Agenda", ConteudoAgenda()));
@@ -950,6 +952,34 @@ public sealed class PainelConfiguracoes
             });
     }
 
+    // Teclas do zoom de cada app ancorado (os botões − 100% + do rodapé mandam esse atalho para o app).
+    UIElement ConteudoAncorados()
+    {
+        var pilha = Pilha(new TextBlock
+        {
+            Text = "Os botões − 100% + no rodapé de cada app ancorado usam o zoom do próprio app (cada um guarda o seu nível): " +
+                   "a Home traz a janela para a frente e manda o atalho. Informe os modificadores, separados por +, que somados a " +
+                   "\"+\", \"-\" e \"0\" fazem o zoom no app: ctrl, shift e alt (ex.: ctrl  ou  ctrl+alt+shift). Vazio = automático.",
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.6,
+            FontSize = 12,
+        });
+        if (C.AppsAncorados.Count == 0)
+            pilha.Children.Add(new TextBlock { Text = "Nenhum app ancorado. Crie em Painéis → + Adicionar painel → App ancorado.", TextWrapping = TextWrapping.Wrap, Opacity = 0.7 });
+        foreach (var (id, app) in C.AppsAncorados)
+        {
+            var aviso = new TextBlock { Text = "Use só ctrl, shift e alt, separados por +.", FontSize = 12, Foreground = new SolidColorBrush(Colors.OrangeRed), Visibility = Visibility.Collapsed };
+            var caixa = Texto($"{app.Nome}: teclas do zoom (vazio = {PainelAncorado.ZoomAutomatico(app)}; Enter para aplicar)", app.ZoomTeclas, t =>
+            {
+                var valido = string.IsNullOrWhiteSpace(t) || Ancoragem.Modificadores(t) is { Count: > 0 };
+                aviso.Visibility = valido ? Visibility.Collapsed : Visibility.Visible;
+                if (valido) _ed.Alterar(c => { if (c.AppsAncorados.TryGetValue(id, out var a)) a.ZoomTeclas = t.Trim().ToLowerInvariant(); });
+            }, aoConfirmar: true, exemplo: PainelAncorado.ZoomAutomatico(app));
+            pilha.Children.Add(new StackPanel { Spacing = 4, Children = { caixa, aviso } });
+        }
+        return pilha;
+    }
+
     // Passo de comando: programa + argumentos; "esperar" roda escondido e mostra a saída na Home.
     Button BotaoNovoComando(AcaoRapida acao)
     {
@@ -982,7 +1012,8 @@ public sealed class PainelConfiguracoes
         var pilha = Pilha(new TextBlock
         {
             Text = "Marque para exibir. A largura é em colunas da grade (painéis que não cabem descem para a linha seguinte) " +
-                "e a altura, em pixels (0 = automática): a linha usa a maior altura entre os painéis dela.",
+                "e a altura, em pixels (0 = automática): a linha usa a maior altura entre os painéis dela. " +
+                "O % é o zoom do conteúdo do painel (na Home: Ctrl + roda do mouse sobre ele).",
             TextWrapping = TextWrapping.Wrap,
             Opacity = 0.7,
         });
@@ -1036,7 +1067,23 @@ public sealed class PainelConfiguracoes
                 if (!double.IsNaN(e.NewValue)) _ed.Alterar(c => painel.Altura = (int)e.NewValue);
             };
 
-            var linha = Linha(visivel, titulo, largura, altura,
+            // Zoom do conte\u00FAdo: bot\u00E3o compacto com a lista de valores (na Home: Ctrl + roda do mouse sobre o painel).
+            var ancorado = C.AppsAncorados.ContainsKey(painel.Id);
+            var zoom = new Button { Content = $"{painel.Zoom}%", Padding = new Thickness(6, 4, 6, 4), MinWidth = 0, VerticalAlignment = VerticalAlignment.Center, IsEnabled = !ancorado };
+            ToolTipService.SetToolTip(zoom, ancorado
+                ? "App ancorado: use os bot\u00F5es \u2212 100% + no rodap\u00E9 do painel (zoom do pr\u00F3prio app)"
+                : "Zoom do conte\u00FAdo (na Home: Ctrl + roda do mouse sobre o painel)");
+            var opcoesZoom = new MenuFlyout();
+            for (var z = Painel.ZoomMinimo; z <= Painel.ZoomMaximo; z += 10)
+            {
+                var valor = z;
+                var item = new RadioMenuFlyoutItem { Text = valor == 100 ? "100% (normal)" : $"{valor}%", IsChecked = valor == painel.Zoom, GroupName = $"zoom{i}" };
+                item.Click += (_, _) => zoom.Content = $"{_ed.DefinirZoom(painel, valor)}%";
+                opcoesZoom.Items.Add(item);
+            }
+            zoom.Flyout = opcoesZoom;
+
+            var linha = Linha(visivel, titulo, largura, altura, zoom,
                 Icone("\uE70E", "Subir", i > 0, () => _ed.MoverPainel(painel, -1)),
                 Icone("\uE70D", "Descer", i < C.Paineis.Count - 1, () => _ed.MoverPainel(painel, +1)),
                 Icone("\uE74D", "Remover painel", true, () => _ = RemoverPainel(painel)));

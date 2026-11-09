@@ -32,6 +32,11 @@
   vários lado a lado; IntelliJ, VS Code, Android Studio, Terminal, "Escolher uma janela aberta…" e "Outro app instalado…";
   acompanha rolagem/✥/↔/altura/monitor, recorta o que sai da tela, fica logo acima da Home, minimiza junto; Soltar ou
   sair devolve a janela. Sem `SetParent`/dono (seguro se o WinHome cair). `WinHome.exe --sair` = saída normal (scripts).
+  - **Zoom do app** ✅ (09/11/2026): botões − 100% + no rodapé mandam o atalho de zoom do próprio app (cada janela com
+    o seu nível); teclas por app em `zoomTeclas` / Configurações → Apps ancorados.
+  - **Zoom dos painéis** ✅ (09/11/2026): `zoom` (%) por painel, multiplicando os tamanhos do `Estilo` só dele;
+    Ctrl + roda do mouse sobre o painel ou botão % em Configurações → Painéis.
+  - **Correção** (09/11/2026): processos com ponto no nome (`WhatsApp.Root`) e janelas minimizadas não eram encontrados.
 
 - **Otimização de recursos** ✅ (29/10/2026): parada e visível, de ~454 MB / ~12% de um núcleo para ~178 MB / ~0,6%.
   VLC liberado com a Home escondida e o vídeo pausado (e só criado no ▶ ao retomar); ancoragem (50 ms) só com app

@@ -254,6 +254,53 @@ public static class Ancoragem
         return r.Direita - r.Esquerda < 20 || r.Base - r.Topo < 20 ? null : r;
     }
 
+    // ---------- Zoom do próprio app ----------
+
+    // A Home não mexe no conteúdo de outro programa: traz a janela ancorada para a frente e manda o atalho de zoom
+    // do app (cada app guarda o seu nível). passo: 1 aumenta, -1 diminui, 0 volta ao normal.
+    // modificadores: "ctrl", "ctrl+shift", "ctrl+alt+shift"…; zeroNumerico: o "0" vem do teclado numérico (VS Code).
+    public static async Task<bool> Zoom(string id, int passo, string modificadores, bool zeroNumerico = false)
+    {
+        if (!Itens.TryGetValue(id, out var item) || item.Janela == IntPtr.Zero || !IsWindow(item.Janela)) return false;
+        if (Modificadores(modificadores) is not { Count: > 0 } teclas) return false;
+        var janela = item.Janela;
+        if (GetForegroundWindow() != janela)
+        {
+            SetForegroundWindow(janela);
+            await Task.Delay(80); // o app precisa receber o foco antes das teclas
+            if (GetForegroundWindow() != janela) return false;
+        }
+        teclas.Add(passo > 0 ? VK_OEM_PLUS : passo < 0 ? VK_OEM_MINUS : zeroNumerico ? VK_NUMPAD0 : VK_0);
+        var entradas = teclas.Select(t => Tecla(t, false))
+            .Concat(Enumerable.Reverse(teclas).Select(t => Tecla(t, true))).ToArray();
+        return SendInput((uint)entradas.Length, entradas, Marshal.SizeOf<Entrada>()) == entradas.Length;
+    }
+
+    // "ctrl+alt+shift" -> teclas virtuais; null se algum nome for desconhecido.
+    public static List<ushort>? Modificadores(string texto)
+    {
+        var lista = new List<ushort>();
+        foreach (var parte in texto.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            ushort? vk = parte.ToLowerInvariant() switch
+            {
+                "ctrl" or "control" => VK_CONTROL,
+                "shift" => VK_SHIFT,
+                "alt" => VK_MENU,
+                _ => null,
+            };
+            if (vk is not { } v) return null;
+            if (!lista.Contains(v)) lista.Add(v);
+        }
+        return lista;
+    }
+
+    static Entrada Tecla(ushort vk, bool soltar) => new()
+    {
+        Tipo = INPUT_KEYBOARD,
+        U = new UniaoEntrada { T = new EntradaTeclado { Tecla = vk, Flags = soltar ? KEYEVENTF_KEYUP : 0 } },
+    };
+
     // ---------- Encontrar a janela principal de um app ----------
 
     // Janela que pode ser ancorada: a principal de um programa (visível, sem dono, com moldura, de bom tamanho).
@@ -270,6 +317,11 @@ public static class Ancoragem
             var estilo = GetWindowLongPtr(h, GWL_STYLE);
             if ((estilo & (WS_CAPTION | WS_THICKFRAME)) == 0 && !Classe(h).StartsWith("SunAwtFrame")) return true;
             GetWindowRect(h, out var r);
+            if (IsIconic(h)) // minimizada mede ~160x28: vale o tamanho que ela tem quando restaurada
+            {
+                var lugar = new Placement { Tamanho = Marshal.SizeOf<Placement>() };
+                if (GetWindowPlacement(h, ref lugar)) r = lugar.Normal;
+            }
             if (r.Direita - r.Esquerda < 300 || r.Base - r.Topo < 200) return true;
             var titulo = Titulo(h);
             if (titulo.Length == 0) return true;
@@ -298,7 +350,9 @@ public static class Ancoragem
     // A maior janela principal livre do processo.
     public static IntPtr Procurar(string processo)
     {
-        var nome = Path.GetFileNameWithoutExtension(processo);
+        // Só tira o ".exe": GetFileNameWithoutExtension cortaria nomes com ponto ("WhatsApp.Root" virava "WhatsApp").
+        var nome = Path.GetFileName(processo);
+        if (nome.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) nome = nome[..^4];
         return Janelas().FirstOrDefault(j => string.Equals(j.Processo, nome, StringComparison.OrdinalIgnoreCase))?.Janela ?? IntPtr.Zero;
     }
 
@@ -339,6 +393,13 @@ public static class Ancoragem
         public Ret Normal;
     }
 
+    [StructLayout(LayoutKind.Sequential)] struct Entrada { public uint Tipo; public UniaoEntrada U; }
+    [StructLayout(LayoutKind.Explicit)] struct UniaoEntrada { [FieldOffset(0)] public EntradaMouse M; [FieldOffset(0)] public EntradaTeclado T; }
+    [StructLayout(LayoutKind.Sequential)] struct EntradaMouse { public int X, Y; public uint Dados, Flags, Tempo; public IntPtr Extra; }
+    [StructLayout(LayoutKind.Sequential)] struct EntradaTeclado { public ushort Tecla, Scan; public uint Flags, Tempo; public IntPtr Extra; }
+    const uint INPUT_KEYBOARD = 1, KEYEVENTF_KEYUP = 0x2;
+    const ushort VK_SHIFT = 0x10, VK_CONTROL = 0x11, VK_MENU = 0x12, VK_0 = 0x30, VK_NUMPAD0 = 0x60, VK_OEM_PLUS = 0xBB, VK_OEM_MINUS = 0xBD;
+
     delegate bool EnumCb(IntPtr h, IntPtr l);
     const int SW_SHOWNORMAL = 1, SW_SHOWMINIMIZED = 2, SW_SHOWMINNOACTIVE = 7, SW_SHOWNOACTIVATE = 4, SW_RESTORE = 9;
     const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10;
@@ -358,6 +419,8 @@ public static class Ancoragem
     [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int cmd);
     [DllImport("user32.dll")] static extern IntPtr GetWindow(IntPtr h, uint cmd);
     [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr h);
+    [DllImport("user32.dll")] static extern uint SendInput(uint n, Entrada[] entradas, int tamanho);
     [DllImport("user32.dll")] static extern long GetWindowLongPtr(IntPtr h, int i);
     [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out Ret r);
     [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h, IntPtr depois, int x, int y, int cx, int cy, uint flags);

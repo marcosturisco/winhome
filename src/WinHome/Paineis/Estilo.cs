@@ -12,17 +12,23 @@ public sealed class Estilo
 {
     public required Tema Tema { get; init; }
     public required bool Escuro { get; init; }
+    public double Zoom { get; init; } = 1; // zoom do painel (1 = 100%): multiplica texto e ícones de conteúdo
+
+    // O mesmo estilo com o zoom de um painel (percentual; 100 = sem mudança).
+    public Estilo ComZoom(int percentual) =>
+        percentual == 100 ? this
+        : new Estilo { Tema = Tema, Escuro = Escuro, Zoom = Math.Clamp(percentual, Painel.ZoomMinimo, Painel.ZoomMaximo) / 100.0 };
 
     public Brush Destaque => new SolidColorBrush(Cor(Tema.CorDestaque, Color.FromArgb(255, 79, 140, 255)));
     public FontFamily Fonte => new(string.IsNullOrWhiteSpace(Tema.Fonte) ? "Segoe UI Variable" : Tema.Fonte);
     public CornerRadius Cantos => new(Math.Max(0, Tema.Cantos));
     public double Espaco => Math.Max(0, Tema.Espacamento);
     public int Colunas => Math.Clamp(Tema.Colunas, 1, 24);
-    public int TamanhoIcone => (int)Math.Clamp(Tema.TamanhoIcone, 16, 256);
+    public int TamanhoIcone => (int)Math.Clamp(Math.Round(Tema.TamanhoIcone * Zoom), 16, 256);
 
     // Tipografia: todo texto (e ícone de conteúdo) dos painéis usa estes tamanhos, proporcionais ao "tamanhoTexto"
-    // do tema (14 = padrão). Tamanhos especiais (hora, temperatura, emojis) usam Tam(valor no tamanho padrão).
-    public double Escala => Math.Clamp(Tema.TamanhoTexto, 10, 24) / 14.0;
+    // do tema (14 = padrão) e ao zoom do painel. Tamanhos especiais (hora, temperatura, emojis) usam Tam(valor no tamanho padrão).
+    public double Escala => Math.Clamp(Tema.TamanhoTexto, 10, 24) / 14.0 * Zoom;
     public double Tam(double tamanhoNoPadrao) => Math.Round(tamanhoNoPadrao * Escala, 1);
     public double Legenda => Tam(12); // detalhes, rodapés, botões pequenos
     public double Corpo => Tam(14);   // texto normal

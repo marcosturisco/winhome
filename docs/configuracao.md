@@ -233,12 +233,22 @@ Chave = id do painel (`ancorado1`, `ancorado2`…):
 | `editor` / `app` / `caminho` + `args` | como abrir (igual às Ações rápidas) |
 | `processo` | processo dono da janela (ex.: `idea64`, `Code`, `WindowsTerminal`); vazio = descoberto ao abrir |
 | `altura` | altura da área, em pixels da Home (200 a 2000) | 
+| `zoomTeclas` | modificadores do atalho de zoom do próprio app, separados por `+` (`ctrl`, `shift`, `alt`), somados a `+`, `-` e `0`; vazio = automático (`ctrl+alt+shift` para IntelliJ/Android Studio — "Zoom da IDE"; `ctrl` para os demais) |
+
+**Zoom do app:** com a janela ancorada, o rodapé mostra **− 100% +**. A Home não mexe no conteúdo de outro programa:
+traz a janela para a frente e manda o atalho de zoom do próprio app (cada app guarda o seu nível, então cada janela
+fica com o seu zoom). No VS Code o "100%" usa o 0 do teclado numérico (`Ctrl+0` lá foca a barra lateral). App sem
+zoom por teclado não muda. Teclas por app em Configurações → **Apps ancorados**.
 
 `WinHome.exe --sair` pede para a Home aberta sair normalmente (usado pelos scripts antes de recompilar).
 
 ## Painéis (`paineis`)
 Lista em ordem de exibição. Cada item: `id`, `visivel` (true/false), `largura` (colunas), `altura` (pixels; 0 =
-automática) e `titulo` (opcional).
+automática), `titulo` (opcional) e `zoom` (opcional; % do conteúdo, 50 a 200, padrão 100).
+- O **zoom** multiplica o texto e os ícones de conteúdo **só daquele painel** (soma-se ao `tamanhoTexto` do tema; a
+  moldura e os botões do cabeçalho não mudam). Na Home: **Ctrl + roda do mouse** sobre o painel, de 10 em 10% (um selo
+  mostra o valor); em Configurações → Painéis: botão **%** de cada painel. Com a linha em altura fixa, zoom maior faz o
+  conteúdo encolher para caber (veja abaixo). No app ancorado não vale: lá os botões − 100% + mudam o zoom do próprio app.
 - A **altura vale para a linha inteira**: a linha usa a maior `altura` entre os painéis dela (100 a 2000; valores
   abaixo de 100 contam como automática). Automática = altura do conteúdo mais alto da linha.
 - Com altura definida, o conteúdo que não cabe **encolhe por igual** até caber (e se rearranja na largura); abaixo de
