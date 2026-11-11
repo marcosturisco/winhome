@@ -161,7 +161,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expAgenda = Secao("Agenda", ConteudoAgenda()));
         _secoes.Children.Add(Secao("Backup", ConteudoBackup()));
         _secoes.Children.Add(_expPaineis = Secao("Painéis", ConteudoPaineis()));
-        _secoes.Children.Add(_expApps = Secao("Apps", ConteudoApps()));
+        _secoes.Children.Add(_expApps = Secao("Aplicativos", ConteudoApps()));
     }
 
     // ---------- Seções ----------
