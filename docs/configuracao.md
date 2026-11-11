@@ -217,7 +217,7 @@ No cabeçalho, **↻** lê de novo na hora e o outro botão abre o Bluetooth do 
 | `ocultos` | nomes como o Windows mostra; não aparecem nem avisam | `[]` |
 | `apelidos` | nome no Windows → nome na Home (ex.: `"AULA-F75 5.0 KB": "Teclado"`) | `{}` |
 
-## Apps ancorados (`appsAncorados`)
+## Aplicativos ancorados (`appsAncorados`)
 Painel com a **janela real de um programa** posicionada sobre a área dele: acompanha rolagem, ✥ (lugar), ↔ (largura),
 a alça da base (altura) e a troca de monitor; minimiza junto com a Home; a parte fora da área visível é recortada.
 Vários podem ficar lado a lado. Criar: Configurações → Painéis → **+ Adicionar painel → App ancorado**:
@@ -240,7 +240,7 @@ Chave = id do painel (`ancorado1`, `ancorado2`…):
 **Zoom do app:** com a janela ancorada, o rodapé mostra **− 100% +**. A Home não mexe no conteúdo de outro programa:
 traz a janela para a frente e manda o atalho de zoom do próprio app (cada app guarda o seu nível, então cada janela
 fica com o seu zoom). No VS Code o "100%" usa o 0 do teclado numérico (`Ctrl+0` lá foca a barra lateral). App sem
-zoom por teclado não muda. Teclas por app em Configurações → **Apps ancorados**.
+zoom por teclado não muda. Teclas por app em Configurações → **Aplicativos ancorados**.
 
 `WinHome.exe --sair` pede para a Home aberta sair normalmente (usado pelos scripts antes de recompilar).
 

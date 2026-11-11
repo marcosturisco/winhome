@@ -57,7 +57,7 @@ public static class PainelAncorado
             botao.Click += async (_, _) =>
             {
                 if (!await Ancoragem.Zoom(id, passo, modificadores, zeroNumerico))
-                    titulo.Text = $"Não consegui mandar o zoom para {app.Nome} (confira as teclas em Configurações → Apps ancorados).";
+                    titulo.Text = $"Não consegui mandar o zoom para {app.Nome} (confira as teclas em Configurações → Aplicativos ancorados).";
             };
             zoom.Children.Add(botao);
         }

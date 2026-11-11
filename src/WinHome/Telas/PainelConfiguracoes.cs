@@ -155,7 +155,7 @@ public sealed class PainelConfiguracoes
         _secoes.Children.Add(_expTarefas = Secao("Tarefas", ConteudoTarefas()));
         _secoes.Children.Add(_expAcoes = Secao("Ações rápidas", ConteudoAcoes()));
         _secoes.Children.Add(_expVideos = Secao("Vídeos", ConteudoVideos()));
-        _secoes.Children.Add(_expAncorados = Secao("Apps ancorados", ConteudoAncorados()));
+        _secoes.Children.Add(_expAncorados = Secao("Aplicativos ancorados", ConteudoAncorados()));
         _secoes.Children.Add(_expDispositivos = Secao("Dispositivos", ConteudoDispositivos()));
         _secoes.Children.Add(_expBaterias = Secao("Baterias", ConteudoBaterias()));
         _secoes.Children.Add(_expAgenda = Secao("Agenda", ConteudoAgenda()));

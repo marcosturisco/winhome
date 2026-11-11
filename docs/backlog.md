@@ -33,7 +33,7 @@
   acompanha rolagem/✥/↔/altura/monitor, recorta o que sai da tela, fica logo acima da Home, minimiza junto; Soltar ou
   sair devolve a janela. Sem `SetParent`/dono (seguro se o WinHome cair). `WinHome.exe --sair` = saída normal (scripts).
   - **Zoom do app** ✅ (09/11/2026): botões − 100% + no rodapé mandam o atalho de zoom do próprio app (cada janela com
-    o seu nível); teclas por app em `zoomTeclas` / Configurações → Apps ancorados.
+    o seu nível); teclas por app em `zoomTeclas` / Configurações → Aplicativos ancorados.
   - **Zoom dos painéis** ✅ (09/11/2026): `zoom` (%) por painel, multiplicando os tamanhos do `Estilo` só dele;
     Ctrl + roda do mouse sobre o painel ou botão % em Configurações → Painéis.
   - **Escolher a janela** ✅ (09/11/2026): app com várias janelas (Teams + reunião) mostra a lista ao ancorar.

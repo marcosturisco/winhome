@@ -21,7 +21,7 @@ PROGRAMAS USADOS POR ALGUNS PAINÉIS (o instalador avisa o que falta)
 - adb .................... TV e Dispositivos ........... winget install Google.PlatformTools
 - scrcpy ................. Espelhar a TV ............... winget install Genymobile.scrcpy
 - Windows Terminal ....... Ações e Projetos ............ winget install Microsoft.WindowsTerminal
-- VS Code / IntelliJ / Android Studio ... painel Projetos e Apps ancorados
+- VS Code / IntelliJ / Android Studio ... painel Projetos e Aplicativos ancorados
 
 AGENDA
 Backups normalmente não levam o "Endereço secreto no formato iCal" da agenda (por segurança).
