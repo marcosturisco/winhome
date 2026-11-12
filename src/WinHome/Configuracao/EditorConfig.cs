@@ -57,14 +57,24 @@ public sealed class EditorConfig(ConfigService config)
     });
 
     // Adiciona sem repetir o mesmo app/caminho no grupo.
-    public void AdicionarApp(string grupo, AppItem app) => Estrutura(c =>
+    public void AdicionarApp(string grupo, AppItem app) => AdicionarApps(grupo, [app]);
+
+    // Vários de uma vez (uma gravação só); apps que já estão no grupo são ignorados.
+    public void AdicionarApps(string grupo, IReadOnlyList<AppItem> novos)
     {
-        if (!c.Grupos.TryGetValue(grupo, out var apps)) c.Grupos[grupo] = apps = [];
-        bool igual(AppItem a) =>
-            (app.App is not null && string.Equals(a.App, app.App, StringComparison.OrdinalIgnoreCase)) ||
-            (app.Caminho is not null && string.Equals(a.Caminho, app.Caminho, StringComparison.OrdinalIgnoreCase));
-        if (!apps.Any(igual)) apps.Add(app);
-    });
+        if (novos.Count == 0) return;
+        Estrutura(c =>
+        {
+            if (!c.Grupos.TryGetValue(grupo, out var apps)) c.Grupos[grupo] = apps = [];
+            foreach (var app in novos)
+            {
+                bool igual(AppItem a) =>
+                    (app.App is not null && string.Equals(a.App, app.App, StringComparison.OrdinalIgnoreCase)) ||
+                    (app.Caminho is not null && string.Equals(a.Caminho, app.Caminho, StringComparison.OrdinalIgnoreCase));
+                if (!apps.Any(igual)) apps.Add(app);
+            }
+        });
+    }
 
     public string NovoGrupo()
     {

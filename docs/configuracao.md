@@ -220,9 +220,10 @@ No cabeçalho, **↻** lê de novo na hora e o outro botão abre o Bluetooth do 
 ## Aplicativos ancorados (`appsAncorados`)
 Painel com a **janela real de um programa** posicionada sobre a área dele: acompanha rolagem, ✥ (lugar), ↔ (largura),
 a alça da base (altura) e a troca de monitor; minimiza junto com a Home; a parte fora da área visível é recortada.
-Vários podem ficar lado a lado. Criar: Configurações → Painéis → **+ Adicionar painel → App ancorado**:
-IntelliJ IDEA, VS Code, Android Studio, Terminal, **Escolher uma janela aberta…** (qualquer programa aberto; o processo
-é descoberto pela janela) ou **Outro app instalado…** (o painel abre o app e ancora a primeira janela nova).
+Vários podem ficar lado a lado. Criar: Configurações → **Aplicativos ancorados** → **+ Ancorar um app instalado…**
+(lista dos apps do menu Iniciar com ícone e filtro: escolhe pelo nome, sem saber a pasta; o painel abre o app e ancora a
+primeira janela nova) ou **+ Ancorar uma janela aberta…** (qualquer programa aberto; o processo é descoberto pela janela).
+Também em Painéis → **+ Adicionar painel → App ancorado** (com atalhos para IntelliJ IDEA, VS Code, Android Studio e Terminal).
 Com o app já aberto em **mais de uma janela** (ex.: Teams com uma reunião), "Ancorar a janela que já está aberta" e
 "Abrir … aqui" mostram a lista das janelas (título; marca as minimizadas) para escolher qual ancorar.
 **Soltar** (rodapé do painel) ou sair do WinHome devolvem a janela ao tamanho e lugar de antes. Não usa `SetParent`
@@ -294,6 +295,11 @@ Cada grupo é uma lista de apps:
 Na Home, **arrastar** um ícone com o mouse para outro lugar do mesmo grupo muda a ordem (grava em `grupos`; Esc desfaz);
 o clique simples continua abrindo o app. Botão direito: mover para a esquerda/direita, para outro grupo ou remover.
 O grupo padrão `trabalho` aparece com o título **Aplicativos**.
+
+Em Configurações → **Aplicativos**: **+ Escolher entre os apps instalados…** abre a lista de todos os apps do menu Iniciar
+(ícone, nome e filtro; marque um ou vários) — não é preciso saber onde o app foi instalado (ex.: WhatsApp, apps da Store).
+Também há a busca rápida pelo nome e, para programas fora do menu Iniciar, **Programa ou arquivo do disco…**.
+A tela de Configurações abre com todas as seções recolhidas.
 
 ## Backup (Configurações → Backup)
 - **Fazer backup…**: `.zip` com `config.json`, `tarefas.json` e `videos.json` (o `estado.json`, com a posição da janela,

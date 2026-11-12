@@ -27,7 +27,7 @@ public sealed class PainelConfiguracoes
     readonly Action _sair;
     readonly Border _borda;
     readonly StackPanel _secoes = new() { Spacing = 8 };
-    readonly Dictionary<string, bool> _expandidas = new() { ["Geral"] = true };
+    readonly Dictionary<string, bool> _expandidas = []; // começa tudo recolhido; lembra o que o usuário abriu
     Expander? _expAparencia, _expPaineis, _expApps, _expMensagens, _expBoasVindas, _expCuriosidades, _expProjetos, _expTarefas, _expAcoes, _expVideos, _expAncorados, _expDispositivos, _expBaterias, _expAgenda;
     string? _grupoApps;
     List<AppInstalado> _sugestoes = [];
@@ -955,7 +955,15 @@ public sealed class PainelConfiguracoes
     // Teclas do zoom de cada app ancorado (os botões − 100% + do rodapé mandam esse atalho para o app).
     UIElement ConteudoAncorados()
     {
-        var pilha = Pilha(new TextBlock
+        var instalado = new Button { Content = "+ Ancorar um app instalado…", Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
+        ToolTipService.SetToolTip(instalado, "Escolha o app pelo nome, na lista dos apps do menu Iniciar");
+        instalado.Click += (_, _) => EscolherAppInstalado();
+        var janela = new Button { Content = "+ Ancorar uma janela aberta…" };
+        ToolTipService.SetToolTip(janela, "Para um app que já está aberto agora");
+        janela.Click += (_, _) => EscolherJanelaAberta();
+
+        var pilha = Pilha(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { instalado, janela } },
+        new TextBlock
         {
             Text = "Os botões − 100% + no rodapé de cada app ancorado usam o zoom do próprio app (cada um guarda o seu nível): " +
                    "a Home traz a janela para a frente e manda o atalho. Informe os modificadores, separados por +, que somados a " +
@@ -965,7 +973,7 @@ public sealed class PainelConfiguracoes
             FontSize = 12,
         });
         if (C.AppsAncorados.Count == 0)
-            pilha.Children.Add(new TextBlock { Text = "Nenhum app ancorado. Crie em Painéis → + Adicionar painel → App ancorado.", TextWrapping = TextWrapping.Wrap, Opacity = 0.7 });
+            pilha.Children.Add(new TextBlock { Text = "Nenhum app ancorado ainda: use os botões acima.", TextWrapping = TextWrapping.Wrap, Opacity = 0.7 });
         foreach (var (id, app) in C.AppsAncorados)
         {
             var aviso = new TextBlock { Text = "Use só ctrl, shift e alt, separados por +.", FontSize = 12, Foreground = new SolidColorBrush(Colors.OrangeRed), Visibility = Visibility.Collapsed };
@@ -1123,7 +1131,7 @@ public sealed class PainelConfiguracoes
         var janelaAberta = new MenuFlyoutItem { Text = "Escolher uma janela aberta…", Icon = new FontIcon { Glyph = "" } };
         janelaAberta.Click += (_, _) => EscolherJanelaAberta();
         ancorados.Items.Add(janelaAberta);
-        var instalado = new MenuFlyoutItem { Text = "Outro app instalado…", Icon = new FontIcon { Glyph = "" } };
+        var instalado = new MenuFlyoutItem { Text = "Escolher um app instalado…", Icon = new FontIcon { Glyph = "" } };
         instalado.Click += (_, _) => EscolherAppInstalado();
         ancorados.Items.Add(instalado);
         menu.Items.Add(ancorados);
@@ -1196,43 +1204,112 @@ public sealed class PainelConfiguracoes
         return j.Processo;
     }
 
-    // Busca entre os apps instalados; o processo é descoberto na primeira vez que o painel abrir o app.
+    // Lista dos apps instalados; o processo é descoberto na primeira vez que o painel abrir o app.
     async void EscolherAppInstalado()
     {
-        ContentDialog? dialogo = null;
-        AppItem? escolhido = null;
-        var busca = BuscaDeInstalados("App instalado", app =>
+        var escolhidos = await EscolherAppsInstalados("Ancorar um app instalado", "Ancorar", varios: false,
+            "O painel abre o app e ancora a primeira janela nova que aparecer. Se o app já estiver aberto, " +
+            "use \"Ancorar uma janela aberta…\".");
+        if (escolhidos.FirstOrDefault() is not { } item) return;
+        _ed.NovoAppAncorado(new AppAncorado { Nome = item.Nome, App = item.App });
+    }
+
+    // Janela com todos os apps do menu Iniciar (ícone + nome, com filtro): o usuário escolhe pelo nome,
+    // sem precisar saber onde o app foi instalado. Lista virtualizada; o ícone carrega só quando a linha aparece.
+    async Task<List<AppItem>> EscolherAppsInstalados(string titulo, string acao, bool varios, string? ajuda = null)
+    {
+        var todos = await AppsInstalados.Obter();
+        var selecionados = new HashSet<AppInstalado>();
+        var filtro = new TextBox { PlaceholderText = "Filtrar pelo nome (ex.: WhatsApp)" };
+        var lista = new ListView
         {
-            escolhido = app;
-            dialogo?.Hide();
-        });
-        dialogo = new ContentDialog
+            SelectionMode = varios ? ListViewSelectionMode.Multiple : ListViewSelectionMode.Single,
+            Height = 380,
+            ItemTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(
+                "<DataTemplate xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">" +
+                "<StackPanel Orientation=\"Horizontal\" Spacing=\"12\" Padding=\"0,6\">" +
+                "<Image Width=\"24\" Height=\"24\" VerticalAlignment=\"Center\"/>" +
+                "<TextBlock VerticalAlignment=\"Center\" TextTrimming=\"CharacterEllipsis\"/>" +
+                "</StackPanel></DataTemplate>"),
+        };
+        lista.ContainerContentChanging += (_, e) =>
+        {
+            if (e.InRecycleQueue || e.Item is not AppInstalado app || e.ItemContainer.ContentTemplateRoot is not StackPanel linha) return;
+            ((TextBlock)linha.Children[1]).Text = app.Nome;
+            var imagem = (Image)linha.Children[0];
+            imagem.Source = null;
+            e.RegisterUpdateCallback(1, (_, e2) =>
+            {
+                if (e2.Item == (object)app) imagem.Source = Icones.De(app.ParaItem(), 24);
+            });
+        };
+        var vazio = new TextBlock { Text = "Nenhum app com esse nome.", Opacity = 0.7, Visibility = Visibility.Collapsed };
+
+        var dialogo = new ContentDialog
         {
             XamlRoot = _borda.XamlRoot,
-            Title = "Ancorar um app instalado",
-            Content = new StackPanel
-            {
-                Spacing = 8,
-                Width = 400,
-                Children =
-                {
-                    busca,
-                    new TextBlock
-                    {
-                        Text = "O painel abre o app e ancora a primeira janela nova que aparecer. Se o app já estiver aberto, " +
-                               "use \"Escolher uma janela aberta…\".",
-                        TextWrapping = TextWrapping.Wrap,
-                        FontSize = 12,
-                        Opacity = 0.7,
-                    },
-                },
-            },
+            Title = titulo,
+            PrimaryButtonText = acao,
             CloseButtonText = "Cancelar",
+            DefaultButton = ContentDialogButton.Primary,
+            IsPrimaryButtonEnabled = false,
             RequestedTheme = _borda.ActualTheme,
         };
-        await dialogo.ShowAsync();
-        if (escolhido is not { } item) return;
-        _ed.NovoAppAncorado(new AppAncorado { Nome = item.Nome, App = item.App, Caminho = item.App is null ? item.Caminho : null });
+
+        var filtrando = false;
+        void Atualizar()
+        {
+            dialogo.IsPrimaryButtonEnabled = selecionados.Count > 0;
+            dialogo.PrimaryButtonText = varios && selecionados.Count > 1 ? $"{acao} ({selecionados.Count})" : acao;
+        }
+        void Filtrar()
+        {
+            var termo = filtro.Text.Trim();
+            var itens = termo.Length == 0
+                ? todos
+                : todos.Where(a => a.Nome.Contains(termo, StringComparison.CurrentCultureIgnoreCase)).ToList();
+            filtrando = true;
+            lista.ItemsSource = itens;
+            if (varios) foreach (var a in itens.Where(selecionados.Contains)) lista.SelectedItems.Add(a);
+            filtrando = false;
+            vazio.Visibility = itens.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+        lista.SelectionChanged += (_, e) =>
+        {
+            if (filtrando) return;
+            if (!varios) selecionados.Clear();
+            foreach (var a in e.RemovedItems.OfType<AppInstalado>()) selecionados.Remove(a);
+            foreach (var a in e.AddedItems.OfType<AppInstalado>()) selecionados.Add(a);
+            Atualizar();
+        };
+        filtro.TextChanged += (_, _) => Filtrar();
+        // Enter no filtro: com um só resultado, escolhe direto.
+        filtro.KeyDown += (_, e) =>
+        {
+            if (e.Key != VirtualKey.Enter || lista.ItemsSource is not List<AppInstalado> { Count: 1 } unico) return;
+            e.Handled = true;
+            if (!varios) selecionados.Clear();
+            selecionados.Add(unico[0]);
+            _escolhida = true;
+            dialogo.Hide();
+        };
+        _escolhida = false;
+        if (!varios)
+            lista.DoubleTapped += (_, _) => { if (selecionados.Count > 0) { _escolhida = true; dialogo.Hide(); } };
+
+        var conteudo = new StackPanel { Spacing = 8, Width = 420, Children = { filtro, vazio, lista } };
+        if (ajuda is not null)
+            conteudo.Children.Add(new TextBlock { Text = ajuda, TextWrapping = TextWrapping.Wrap, FontSize = 12, Opacity = 0.7 });
+        if (varios)
+            conteudo.Children.Insert(0, new TextBlock { Text = "Marque um ou mais apps.", FontSize = 12, Opacity = 0.7 });
+        dialogo.Content = conteudo;
+        Filtrar();
+        dialogo.Opened += (_, _) => filtro.Focus(FocusState.Programmatic);
+
+        var resultado = await dialogo.ShowAsync();
+        if (resultado != ContentDialogResult.Primary && !_escolhida) return [];
+        // Na ordem da lista (alfabética), não na ordem dos cliques.
+        return todos.Where(selecionados.Contains).Select(a => a.ParaItem()).ToList();
     }
 
     async Task RemoverPainel(Painel painel)
@@ -1293,8 +1370,16 @@ public sealed class PainelConfiguracoes
                 Icone("\uE74D", "Remover do grupo", true, () => _ed.RemoverApp(grupo, app))));
         }
 
-        pilha.Children.Add(BuscaDeInstalados("Adicionar app instalado", app => _ed.AdicionarApp(grupo, app)));
-        var arquivo = new Button { Content = "Adicionar programa ou arquivo…" };
+        var lista = new Button { Content = "+ Escolher entre os apps instalados…", Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
+        ToolTipService.SetToolTip(lista, "Lista dos apps do menu Iniciar, com ícone e filtro; dá para marcar vários");
+        lista.Click += async (_, _) =>
+        {
+            _ed.AdicionarApps(grupo, await EscolherAppsInstalados("Adicionar apps ao grupo", "Adicionar", varios: true));
+        };
+        pilha.Children.Add(lista);
+        pilha.Children.Add(BuscaDeInstalados("Ou busque pelo nome", app => _ed.AdicionarApp(grupo, app)));
+        var arquivo = new Button { Content = "Programa ou arquivo do disco…" };
+        ToolTipService.SetToolTip(arquivo, "Para um programa que não aparece no menu Iniciar (escolha o .exe) ou um documento");
         arquivo.Click += async (_, _) =>
         {
             var escolhido = await EscolherArquivo(["*"]);
